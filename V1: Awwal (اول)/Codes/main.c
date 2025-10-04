@@ -19,15 +19,19 @@
 
 typedef struct 
 {
-    // add p1name, p2name, p1symbol, p2symbol, playerTurn/moveCount
     // perhaps add a seperate config function or initialize all elements properly at start of initializeGame
     // add a menu function; move the whole connect four title printing to menu
     
-    char gameBoard[8][7];   // max possible size of the gameBoard
-    int rowCount;           // num of rows of the gameBoard
-    int columnCount;        // num of columns of the gameBoard
+    char gameBoard[8][7];   // the gameBoard, initialized to the max possible size
+    int rowCount;           // number of rows of the gameBoard
+    int colCount;           // number of columns of the gameBoard
+    char _player1Name_[25];       // name of player1
+    char _player1Symbol_;     // symbol for player1's spaces
+    char _player2Name_[25];       // name of player2
+    char _player2Symbol_;     // symbol for player2's spaces
     char emptyChar;         // the char used to represent an empty position
-    int activePlayer;       // odd: player1, even: player2;    also serves as a counter for total moves
+    int _totalMoves_;         // counter for the total number of moves made
+    int activePlayer;       // [CURRENTLY] odd: player1, even: player2; also serves as a counter for total moves   [IDEALLY] 1:player1, 2:player2 
     bool playGame;          // flag used for the main while loop main()
     int sleepTime;          // the time, in ms, used for the argument of the Sleep() function, for animating gameBoard updates
 
@@ -36,11 +40,47 @@ typedef struct
 gameConfig game;
 
 
-void initializeGame()
+void mainMenu()
 {
+    system("cls");      // clears the terminal screen
+
     printf("\n==================");
     printf("\n=> Connect Four <=");
     printf("\n==================\n\n");
+
+    printf("[Main Menu]\n  [1] Play\n  [2] Exit");
+    int userChoice;
+    while (true)
+    {
+        printf("\nEnter your choice [1/2]: ");
+        scanf("%d", &userChoice);
+
+        if (userChoice == 1){ break; }
+        else if (userChoice == 2)
+        { 
+            printf("\n");
+            for (int i = 5; i >= 1; i--)
+            {
+                printf("\rExiting in %d...", i);
+                Sleep(1000);
+            }
+            printf("\rExiting now.  ");
+            exit(0);
+        }
+        else    // ie ((userChoice != 1) && (userChoice != 2))
+        {
+            printf("> [!] Enter either 1 or 2");
+            continue;
+        }
+    }
+}
+
+void initializeGame()
+{
+    game.activePlayer = 0;
+    game.playGame = true;
+    game.sleepTime = 400;
+    game.emptyChar = ' ';
 
     char userChoice;
     while (1)
@@ -59,35 +99,29 @@ void initializeGame()
     {
         case '1':   // 6 x 5
             game.rowCount = 6;
-            game.columnCount = 5;
+            game.colCount = 5;
             break;
         case '2':   // 7 x 6
             game.rowCount = 7;
-            game.columnCount = 6;
+            game.colCount = 6;
             break;
         case '3':   // 8 x 7
             game.rowCount = 8;
-            game.columnCount = 7;
+            game.colCount = 7;
             break;
     }
 
-    game.emptyChar = ' ';
-
     for (int i = 0; i < game.rowCount; i++)
     {
-        for (int j = 0; j < game.columnCount; j++){
+        for (int j = 0; j < game.colCount; j++){
             game.gameBoard[i][j] = game.emptyChar;
         }
     }
-
-    game.activePlayer = 0;  // game not started
-    game.playGame = true;
-    game.sleepTime = 250;
 }
 
 void printGameBoard()
 {
-    int numOfDashes = (6 * game.columnCount);    // calculating the num of dashes required for rows
+    int numOfDashes = (6 * game.colCount);    // calculating the num of dashes required for rows
     char rowDashes[numOfDashes + 1];
     for (int i = 0; i <= numOfDashes; i++){ rowDashes[i] = '-'; }
     rowDashes[numOfDashes + 1] = '\0';
@@ -95,7 +129,7 @@ void printGameBoard()
     printf("\n  %s\n", rowDashes);    // topmost row of dashes
     for (int i = 0; i < game.rowCount; i++)
     {
-        for (int j = 0; j < game.columnCount; j++)
+        for (int j = 0; j < game.colCount; j++)
         {
             printf("  |  %c", game.gameBoard[i][j]);
         }
@@ -104,7 +138,7 @@ void printGameBoard()
     
     // for printing column numbers
     printf("  ");    // empty space of width 2 (is fixed)
-    for (int i = 0; i < game.columnCount; i++)
+    for (int i = 0; i < game.colCount; i++)
     {
         printf("  [%d] ", i+1);
     }
@@ -123,7 +157,7 @@ int getPlayerMove()
         printf("\nEnter your move (column number): ");
         scanf("%d", &userMove);
 
-        if ((userMove < 1) || (userMove > game.columnCount)){
+        if ((userMove < 1) || (userMove > game.colCount)){
             printf("> That column doesn't exist!");
             continue;
         }
@@ -168,7 +202,7 @@ int checkHorizontally()
 
     for (int i = 0; i < game.rowCount; i++)
     {
-        for (int j = 0; j < (game.columnCount - 3); j++)
+        for (int j = 0; j < (game.colCount - 3); j++)
         {
             if (((game.gameBoard[i][j])     == (game.gameBoard[i][j + 1])) && 
                 ((game.gameBoard[i][j + 1]) == (game.gameBoard[i][j + 2])) && 
@@ -192,7 +226,7 @@ int checkVertically()
         2 : player 2 won (has a complete, vertical row)
     */
 
-    for (int i = 0; i < game.columnCount; i++)
+    for (int i = 0; i < game.colCount; i++)
     {
         for (int j = 0; j < (game.rowCount - 3); j++)
         {
@@ -222,7 +256,7 @@ int checkPosDiagonals()
 
     for (int i = game.rowCount; i >= 4; i--)     // reverse loop (from the bottom row to the topmost)
     {
-        for (int j = 1; j <= (game.columnCount - 3); j++)
+        for (int j = 1; j <= (game.colCount - 3); j++)
         {
             int row = i-1, column = j-1;
             if (((game.gameBoard[row][column])     == (game.gameBoard[row-1][column+1])) && 
@@ -251,7 +285,7 @@ int checkNegDiagonals()
 
     for (int i = game.rowCount; i >= 4; i--)     // reverse loop (from the bottom row to the topmost)
     {
-        for (int j = game.columnCount; j >= 4; j--)     // from right to left
+        for (int j = game.colCount; j >= 4; j--)     // from right to left
         {
             int row = (i - 1), column = (j - 1);
             if (((game.gameBoard[row][column])     == (game.gameBoard[row-1][column-1])) && 
@@ -276,7 +310,7 @@ int checkDraw()
 
     for (int i = 0; i < game.rowCount; i++)
     {
-        for (int j = 0; j < game.columnCount; j++)
+        for (int j = 0; j < game.colCount; j++)
         {
             if (game.gameBoard[i][j] == game.emptyChar){ return 0; }
         }
@@ -325,12 +359,13 @@ int checkGameBoard()
 
 int main()
 {
+    mainMenu();
     initializeGame();
     printf("\n This is the gameBoard:");
     printGameBoard();
     Sleep(3000);    // wait 3s
 
-    while (game.playGame == true)
+    while (game.playGame)
     {
         game.activePlayer++;
         int playerMove = getPlayerMove();
