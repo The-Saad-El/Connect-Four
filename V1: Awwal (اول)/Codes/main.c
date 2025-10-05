@@ -6,31 +6,33 @@
     >    V1: Awwal (اول)
 
     Features
-        > CLI
-        > Menu
-        > Replayable
-        > 2 local players
-        > Animated Moves
-        > Input Validation
-        > Variable boardSizes
+        -> CLI
+        -> Menu
+        -> Replayable
+        -> 2 local players
+        -> Animated Moves
+        -> Input Validation
+        -> Variable boardSizes
 
     boardSizes
         1) 6 x 5
         2) 7 x 6
         3) 8 x 7
 
-    [Started]   Sep 4th, 25 @ 0800ish
-    [Completed] 
+    [Started]   Sep 4th, 25; ≈ 0800
+    [Completed]
 
                                                 الحمد للہ
 */
 
 /*
     TODO
-    -> make exhaustive comments for all
-    -> check game win logic
-    -> write code to validate all inputs
-    -> check all inputs
+    [!] -> check game win logic
+    [!] -> write code to validate all inputs
+    [!] -> check all inputs
+        -> make exhaustive comments for all
+        -> Break long functions into smaller
+        -> make main() as short as possible
 */
 
 
@@ -85,10 +87,10 @@ void mainMenu()
             printf("\n");
             for (int i = 5; i >= 1; i--)
             {
-                printf("\rExiting in %d...", i);
+                printf("\rExiting in %d", i);
                 Sleep(1000);
             }
-            printf("\rExiting now.   ");
+            printf("\rExiting now. [^-^]");
             exit(0);
         }
         else    // ie ((userChoice != 1) && (userChoice != 2))
@@ -99,15 +101,15 @@ void mainMenu()
     }
 }
 
-void initializeGame()
+void setGame()          // game setup
 {
     game.playGame = true;
     game.activePlayer = 0;
     game.totalMoves = 0;
-    game.emptyChar = ' ';
-    game.sleepTime = 400;
-
-
+    game.sleepTime = 300;
+}
+void setPlayers()       // players setup
+{
     // these both took longggg...
     getchar();      // to get rid of the newline char in the buffer
     printf("\n[Player 1]\n");
@@ -131,7 +133,12 @@ void initializeGame()
     printf("Enter your symbol: ");
     scanf(" %c", game.player2Symbol);
     if ((game.player2Symbol == ' ') || (game.player2Symbol == '\n') || (game.player2Symbol == '1') || (game.player1Symbol == game.player2Symbol)){ game.player2Symbol = '2'; }
+}
+void setGameBoard()     // gameBoard setup
+{
+    game.emptyChar = ' ';
 
+    getchar();
     char userChoice;
     while (true)
     {
@@ -167,6 +174,12 @@ void initializeGame()
             game.gameBoard[i][j] = game.emptyChar;
         }
     }
+}
+void initializeGame()
+{
+    setGame();
+    setPlayers();
+    setGameBoard();
 }
 
 void printGameBoard()
@@ -414,6 +427,25 @@ int checkGameBoard()
     return -1;     // else the game continues
 }
 
+void evaluateGameState(int gameState)
+{
+    if (gameState != -1)        // continue the round if gameState == -1
+    {
+        Sleep(330);     // a little pause before printing results
+        switch (gameState)
+        {
+            case 0: printf("\n==================\n[ >< ]  DRAW!  [ >< ]\n=================");                                   break;
+            case 1: printf("\n==========================\n[* * *] WINNER: %s!\n===========================", game.player1Name); break;
+            case 2: printf("\n==========================\n[* * *] WINNER: %s!\n===========================", game.player2Name); break;
+        }
+        Sleep(3000);    // wait 3s
+        game.playGame = false;      // breaks from the inner while loop in main()
+        getchar();      // clearing the '\n' from the buffer
+        printf("\n\n\nPress Enter to continue: ");
+        scanf("%s");    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
+    }
+}
+
 
 int main()
 {
@@ -430,27 +462,8 @@ int main()
         {
             int playerMove = getPlayerMove();
             updateGameBoard(playerMove);
-            int gameStatus = checkGameBoard();
-
-            switch (gameStatus)
-            {
-                case -1: continue;   // game continues
-
-                case  0:
-                    Sleep(230);     // a little pause before printing results
-                    printf("\n==================\n[ >< ]  DRAW!  [ >< ]\n==================");
-                    break;
-                case  1:
-                    Sleep(230); 
-                    printf("\n==========================\n[* * *] WINNER: %s!\n===========================", game.player1Name);
-                    break;
-                case  2:
-                    Sleep(230);
-                    printf("\n==========================\n[* * *] WINNER: %s!\n===========================", game.player2Name);
-                    break;
-            }
-            Sleep(3000);    // wait 3s
-            game.playGame = false;      // breaks from the inner while loop
+            int gameState = checkGameBoard();
+            evaluateGameState(gameState);
         }
     }
 
