@@ -1,15 +1,18 @@
 /*
-    n x n gameBoard
-    replayable
+    CLI
     menu
+    replayable
+    2 local players
+    choosable gameBoard
     animations
+    input validation
 
     boardSizes
         1) 6 x 5
         2) 7 x 6
         3) 8 x 7
 
-    started: 8ish 4/10/25
+    started: 8am-ish 4/10/25
 */
 
 #include <stdio.h>
@@ -18,22 +21,24 @@
 
 
 typedef struct 
-{
-    // perhaps add a seperate config function or initialize all elements properly at start of initializeGame
-    // add a menu function; move the whole connect four title printing to menu
+{    
+    // gameBoard setup
+    char gameBoard[8][7];       // the gameBoard, initialized to the max possible size
+    int rowCount;               // number of rows of the gameBoard
+    int colCount;               // number of columns of the gameBoard
+    char emptyChar;             // the char used to represent an empty/unfilled position
     
-    char gameBoard[8][7];   // the gameBoard, initialized to the max possible size
-    int rowCount;           // number of rows of the gameBoard
-    int colCount;           // number of columns of the gameBoard
-    char _player1Name_[25];       // name of player1
-    char _player1Symbol_;     // symbol for player1's spaces
-    char _player2Name_[25];       // name of player2
-    char _player2Symbol_;     // symbol for player2's spaces
-    char emptyChar;         // the char used to represent an empty position
-    int _totalMoves_;         // counter for the total number of moves made
-    int activePlayer;       // [CURRENTLY] odd: player1, even: player2; also serves as a counter for total moves   [IDEALLY] 1:player1, 2:player2 
-    bool playGame;          // flag used for the main while loop main()
-    int sleepTime;          // the time, in ms, used for the argument of the Sleep() function, for animating gameBoard updates
+    // player setup (NOT CHECKED)
+    char player1Name[25];       // name of player1
+    char player1Symbol;         // symbol for player1's spaces
+    char player2Name[25];       // name of player2
+    char player2Symbol;         // symbol for player2's spaces
+    
+    // game setup
+    bool playGame;              // flag used for the main while loop in main()
+    int totalMoves;             // counter for the total number of moves made
+    int activePlayer;           // 0: game not started, 1: player1, 2: player2 
+    int sleepTime;              // the time, in ms, used for the argument of the Sleep() function, for animating gameBoard updates
 
 } gameConfig;
 
@@ -64,7 +69,7 @@ void mainMenu()
                 printf("\rExiting in %d...", i);
                 Sleep(1000);
             }
-            printf("\rExiting now.  ");
+            printf("\rExiting now.   ");
             exit(0);
         }
         else    // ie ((userChoice != 1) && (userChoice != 2))
@@ -77,13 +82,35 @@ void mainMenu()
 
 void initializeGame()
 {
-    game.activePlayer = 0;
     game.playGame = true;
-    game.sleepTime = 400;
+    game.activePlayer = 0;
+    game.totalMoves = 0;
     game.emptyChar = ' ';
+    game.sleepTime = 400;
+
+
+    getchar();      // to get rid of the newline char in the buffer
+    printf("\n[Player 1]");
+    printf("\nEnter your name: ");
+    fgets(game.player1Name, sizeof(game.player1Name), stdin);
+    if   (strlen(game.player1Name) == 1) { strcpy(game.player1Name, "Player 1"); }     // if the user didnt enter anything, sets p1name to {Player 1}
+    else                                 { game.player1Name[strlen(game.player1Name) - 1] = '\0'; }      // setting the trailing newline char to the null terminator char
+    printf("Enter your symbol: ");
+    scanf(" %c", game.player1Symbol);
+    if ((game.player1Symbol == ' ') || (game.player1Symbol == '\n')){ game.player1Symbol = '1'; }
+
+    getchar();
+    printf("\n[Player 2]");
+    printf("\nEnter your name: ");
+    fgets(game.player2Name, sizeof(game.player2Name), stdin);
+    if   (strlen(game.player2Name) == 1) { strcpy(game.player2Name, "Player 2"); }
+    else                                 { game.player2Name[strlen(game.player2Name) - 1] = '\0'; }
+    printf("Enter your symbol: ");
+    scanf(" %c", game.player2Symbol);
+    if ((game.player2Symbol == ' ') || (game.player2Symbol == '\n')){ game.player2Symbol = '2'; }
 
     char userChoice;
-    while (1)
+    while (true)
     {
         printf("\nChoose your gameBoard size\n  1) Blitz: 6 x 5\n  2) Classic: 7 x 6\n  3) Large: 8 x 7\nEnter [1-3]: ");
         scanf(" %c", &userChoice);
@@ -150,9 +177,16 @@ int getPlayerMove()
 {
     // returns the column number of a player's move
 
-    printf("\n\n[%s]", (((game.activePlayer % 2) == 1))? "Player 1" : "Player 2");
+    switch (game.activePlayer)
+    {
+        case 0: game.activePlayer = 1; break;
+        case 1: game.activePlayer = 2; break;
+        case 2: game.activePlayer = 1; break;
+    }
+
+    printf("\n\n[%s]", ((game.activePlayer == 1)? game.player1Name : game.player2Name));
     int userMove;
-    while (1)
+    while (true)
     {
         printf("\nEnter your move (column number): ");
         scanf("%d", &userMove);
@@ -173,7 +207,8 @@ int getPlayerMove()
 
 void updateGameBoard(int columnToUpdate)
 {
-    char playerMark = (((game.activePlayer % 2) == 1)? '1' : '2');
+    game.totalMoves++;
+    char playerMark = ((game.activePlayer == 1)? game.player1Symbol : game.player2Symbol);
     columnToUpdate--;
 
     for (int i = 0; i <= game.rowCount; i++)    // why <= and not just < ???
@@ -319,7 +354,7 @@ int checkDraw()
 }
 int checkGameBoard()
 {
-    if (game.activePlayer >= 7)     // the min num of moves required for any player to have won is 7 (ie 4 by the player 1)
+    if (game.totalMoves >= 7)     // the min num of moves required for any player to have won is 7 (ie 4 by the player 1)
     {
         // checking horizontally (rows)
         switch (checkHorizontally())
@@ -350,7 +385,7 @@ int checkGameBoard()
         }
 
         // checking for draw
-        if (checkDraw() == 1) { return 0; }
+        if (checkDraw()) { return 0; }
     }
 
     return -1;     // else the game continues
@@ -367,7 +402,6 @@ int main()
 
     while (game.playGame)
     {
-        game.activePlayer++;
         int playerMove = getPlayerMove();
         updateGameBoard(playerMove);
         int gameStatus = checkGameBoard();
@@ -376,17 +410,20 @@ int main()
         {
             case -1: continue;   // game continues
 
-            case  0:  
+            case  0:
+                Sleep(230);     // a little pause before printing results
                 printf("\n==================\n[ >< ]  DRAW!  [ >< ]\n================");
                 game.playGame = false;      // break from the top while loop
                 break;
             case  1:
+                Sleep(230); 
                 printf("\n==========================\n[* * *] WINNER: Player 1!\n==========================");
-                game.playGame = false;      // break from the top while loop
+                game.playGame = false;
                 break;
             case  2:
+                Sleep(230);
                 printf("\n==========================\n[* * *] WINNER: Player 2!\n==========================");
-                game.playGame = false;      // break from the top while loop
+                game.playGame = false;
                 break;
         }
     }
