@@ -1,19 +1,38 @@
 /*
-    CLI
-    menu
-    replayable
-    2 local players
-    choosable gameBoard
-    animations
-    input validation
+
+                                        بسم اللہ الرحمان الرحیم   
+
+    CONNECT FOUR
+    >    V1: Awwal (اول)
+
+    Features
+        > CLI
+        > Menu
+        > Replayable
+        > 2 local players
+        > Animated Moves
+        > Input Validation
+        > Variable boardSizes
 
     boardSizes
         1) 6 x 5
         2) 7 x 6
         3) 8 x 7
 
-    started: 8am-ish 4/10/25
+    [Started]   Sep 4th, 25 @ 0800ish
+    [Completed] 
+
+                                                الحمد للہ
 */
+
+/*
+    TODO
+    -> make exhaustive comments for all
+    -> check game win logic
+    -> write code to validate all inputs
+    -> check all inputs
+*/
+
 
 #include <stdio.h>
 #include <windows.h>
@@ -89,25 +108,29 @@ void initializeGame()
     game.sleepTime = 400;
 
 
+    // these both took longggg...
     getchar();      // to get rid of the newline char in the buffer
-    printf("\n[Player 1]");
-    printf("\nEnter your name: ");
+    printf("\n[Player 1]\n");
+    printf("Enter your name: ");
     fgets(game.player1Name, sizeof(game.player1Name), stdin);
-    if   (strlen(game.player1Name) == 1) { strcpy(game.player1Name, "Player 1"); }     // if the user didnt enter anything, sets p1name to {Player 1}
-    else                                 { game.player1Name[strlen(game.player1Name) - 1] = '\0'; }      // setting the trailing newline char to the null terminator char
+    if   ((strlen(game.player1Name) == 1) || !(strcmp(game.player1Name, "Player 2\n"))) { strcpy(game.player1Name, "Player 1"); }     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
+    else                                                                                { game.player1Name[strlen(game.player1Name) - 1] = '\0';}      // setting the trailing newline char to the null terminator char
     printf("Enter your symbol: ");
     scanf(" %c", game.player1Symbol);
-    if ((game.player1Symbol == ' ') || (game.player1Symbol == '\n')){ game.player1Symbol = '1'; }
+    if ((game.player1Symbol == ' ') || (game.player1Symbol == '\n') || (game.player1Symbol == '2')){ game.player1Symbol = '1'; }
 
     getchar();
-    printf("\n[Player 2]");
-    printf("\nEnter your name: ");
+    printf("\n[Player 2]\n");
+    printf("Enter your name: ");
     fgets(game.player2Name, sizeof(game.player2Name), stdin);
-    if   (strlen(game.player2Name) == 1) { strcpy(game.player2Name, "Player 2"); }
-    else                                 { game.player2Name[strlen(game.player2Name) - 1] = '\0'; }
+    if   ((strlen(game.player2Name) == 1) || !(strcmp(game.player2Name, "Player 1\n"))) { strcpy(game.player2Name, "Player 2"); }        // sets player2Name to {Player 2} if length is 1, or the user entered {Player 1}
+    else{ 
+        game.player2Name[strlen(game.player2Name) - 1] = '\0';
+        if (!(strcmp(game.player1Name, game.player2Name))){ strcpy(game.player2Name, "Player 2"); }     // if player1name is same as player2name so sets player2name as "Player 2"
+    }
     printf("Enter your symbol: ");
     scanf(" %c", game.player2Symbol);
-    if ((game.player2Symbol == ' ') || (game.player2Symbol == '\n')){ game.player2Symbol = '2'; }
+    if ((game.player2Symbol == ' ') || (game.player2Symbol == '\n') || (game.player2Symbol == '1') || (game.player1Symbol == game.player2Symbol)){ game.player2Symbol = '2'; }
 
     char userChoice;
     while (true)
@@ -243,8 +266,8 @@ int checkHorizontally()
                 ((game.gameBoard[i][j + 1]) == (game.gameBoard[i][j + 2])) && 
                 ((game.gameBoard[i][j + 2]) == (game.gameBoard[i][j + 3]))    )
             { 
-                if      (game.gameBoard[i][j] == '1') { return 1; }     // player 1 won
-                else if (game.gameBoard[i][j] == '2') { return 2; }     // player 2 won
+                if      (game.gameBoard[i][j] == game.player1Symbol) { return 1; }     // player 1 won
+                else if (game.gameBoard[i][j] == game.player2Symbol) { return 2; }     // player 2 won
             }
         }
     }
@@ -269,8 +292,8 @@ int checkVertically()
                 ((game.gameBoard[i][j + 1]) == (game.gameBoard[i][j + 2])) && 
                 ((game.gameBoard[i][j + 2]) == (game.gameBoard[i][j + 3]))    )
             { 
-                if      (game.gameBoard[i][j] == '1') { return 1; }     // player 1 won
-                else if (game.gameBoard[i][j] == '2') { return 2; }     // player 2 won
+                if      (game.gameBoard[i][j] == game.player1Symbol) { return 1; }     // player 1 won
+                else if (game.gameBoard[i][j] == game.player2Symbol) { return 2; }     // player 2 won
             }
         }
     }
@@ -298,8 +321,8 @@ int checkPosDiagonals()
                 ((game.gameBoard[row-1][column+1]) == (game.gameBoard[row-2][column+2])) && 
                 ((game.gameBoard[row-2][column+2]) == (game.gameBoard[row-3][column+3])))
                 {
-                    if      (game.gameBoard[i][j] == '1') { return 1; }     // player 1 won
-                    else if (game.gameBoard[i][j] == '2') { return 2; }     // player 2 won
+                    if      (game.gameBoard[i][j] == game.player1Symbol) { return 1; }     // player 1 won
+                    else if (game.gameBoard[i][j] == game.player2Symbol) { return 2; }     // player 2 won
                 }    
         }
     }
@@ -327,8 +350,8 @@ int checkNegDiagonals()
                 ((game.gameBoard[row-1][column-1]) == (game.gameBoard[row-2][column-2])) && 
                 ((game.gameBoard[row-2][column-2]) == (game.gameBoard[row-3][column-3])))
                 {
-                    if      (game.gameBoard[i][j] == '1') { return 1; }     // player 1 won
-                    else if (game.gameBoard[i][j] == '2') { return 2; }     // player 2 won
+                    if      (game.gameBoard[i][j] == game.player1Symbol) { return 1; }     // player 1 won
+                    else if (game.gameBoard[i][j] == game.player2Symbol) { return 2; }     // player 2 won
                 }    
         }
     }
@@ -394,37 +417,40 @@ int checkGameBoard()
 
 int main()
 {
-    mainMenu();
-    initializeGame();
-    printf("\n This is the gameBoard:");
-    printGameBoard();
-    Sleep(3000);    // wait 3s
-
-    while (game.playGame)
+    while (true)
     {
-        int playerMove = getPlayerMove();
-        updateGameBoard(playerMove);
-        int gameStatus = checkGameBoard();
+        mainMenu();
 
-        switch (gameStatus)
+        initializeGame();
+        printf("\n This is the gameBoard:");
+        printGameBoard();
+        Sleep(3000);    // wait 3s
+
+        while (game.playGame)
         {
-            case -1: continue;   // game continues
+            int playerMove = getPlayerMove();
+            updateGameBoard(playerMove);
+            int gameStatus = checkGameBoard();
 
-            case  0:
-                Sleep(230);     // a little pause before printing results
-                printf("\n==================\n[ >< ]  DRAW!  [ >< ]\n================");
-                game.playGame = false;      // break from the top while loop
-                break;
-            case  1:
-                Sleep(230); 
-                printf("\n==========================\n[* * *] WINNER: Player 1!\n==========================");
-                game.playGame = false;
-                break;
-            case  2:
-                Sleep(230);
-                printf("\n==========================\n[* * *] WINNER: Player 2!\n==========================");
-                game.playGame = false;
-                break;
+            switch (gameStatus)
+            {
+                case -1: continue;   // game continues
+
+                case  0:
+                    Sleep(230);     // a little pause before printing results
+                    printf("\n==================\n[ >< ]  DRAW!  [ >< ]\n==================");
+                    break;
+                case  1:
+                    Sleep(230); 
+                    printf("\n==========================\n[* * *] WINNER: %s!\n===========================", game.player1Name);
+                    break;
+                case  2:
+                    Sleep(230);
+                    printf("\n==========================\n[* * *] WINNER: %s!\n===========================", game.player2Name);
+                    break;
+            }
+            Sleep(3000);    // wait 3s
+            game.playGame = false;      // breaks from the inner while loop
         }
     }
 
