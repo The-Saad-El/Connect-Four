@@ -101,16 +101,20 @@ void mainMenu()
     }
 }
 
-void setGame()          // game setup
+// initializing game
+void setGame()
 {
+    // game setup
     game.playGame = true;
     game.activePlayer = 0;
     game.totalMoves = 0;
     game.sleepTime = 300;
 }
-void setPlayers()       // players setup
+void setPlayers()
 {
+    // players setup
     // these both took longggg...
+
     getchar();      // to get rid of the newline char in the buffer
     printf("\n[Player 1]\n");
     printf("Enter your name: ");
@@ -134,8 +138,10 @@ void setPlayers()       // players setup
     scanf(" %c", game.player2Symbol);
     if ((game.player2Symbol == ' ') || (game.player2Symbol == '\n') || (game.player2Symbol == '1') || (game.player1Symbol == game.player2Symbol)){ game.player2Symbol = '2'; }
 }
-void setGameBoard()     // gameBoard setup
+void setGameBoard()
 {
+    // gameBoard setup
+    
     game.emptyChar = ' ';
 
     getchar();
@@ -261,6 +267,7 @@ void updateGameBoard(int columnToUpdate)
     }
 }
 
+// checking the gameBoard for win, draw, or nothing
 int checkHorizontally()
 {
     /*
