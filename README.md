@@ -26,3 +26,5 @@ PF Lab Project
 
 ### V3: Thalith (ثالث)
 * GUI
+
+الحمد للہ
