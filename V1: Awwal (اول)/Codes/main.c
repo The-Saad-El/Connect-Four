@@ -28,8 +28,8 @@
 /*
     TODO
     [!] -> check & validate all inputs
+        -> see wa output
         -> int getPlayerMove()     // use str for input instead
-        -> make variable final result # size calculator
         -> make exhaustive comments for all
 */
 
@@ -118,7 +118,7 @@ void setGame()
     game.activePlayer = 0;
     game.playerMove = 0;
     game.gameState = -1;
-    game.sleepTime = 123;
+    game.sleepTime = 350;
 }
 void setPlayers()
 {
@@ -447,15 +447,46 @@ void evaluateGameBoard()
         Sleep(330);     // a little pause before printing results
         switch (game.gameState)
         {
-            case 0: animateText("\n\n=====================\n[ >< ]  DRAW!  [ >< ]\n=====================", 123);                                                                           break;
-            case 1: animateText("\n\n==========================\n[* * *] WINNER: ", 123); animateText(game.player1Name, 123); animateText("! [* * *]\n==========================\n", 123); break;
-            case 2: animateText("\n\n==========================\n[* * *] WINNER: ", 123); animateText(game.player2Name, 123); animateText("! [* * *]\n==========================\n", 123); break;
+            // u cant even imagine how long this took me.
+            case 0: 
+                animateText("\n\n=====================\n[ >< ]  DRAW!  [ >< ]\n=====================", 123);
+                break;
+
+            case 1: 
+            {   // animateText("\n\n==========================\n[* * *] WINNER: ", 123); animateText(game.player1Name, 123); animateText("! [* * *]\n==========================\n", 123); break;
+                //char startStr[] = "[* * *] WINNER: ", endStr[] = "! [* * *]";
+                //char resultStr[] =  strcat(strcat(startStr, game.player1Name), endStr);
+                int numBars = strlen("[* * *] WINNER: ") + strlen(game.player1Name) + strlen("! [* * *]");
+                char bars[numBars + 1];     // + 1 for '\0'
+                for (int i = 0; i < numBars; i++){ bars[i] = '='; }
+                bars[numBars] = '\0';
+                animateText("\n\n", 123); animateText(bars, 123); animateText("\n[* * *] WINNER: ", 123); animateText(game.player1Name, 123); animateText("! [* * *]\n", 123); animateText(bars, 123); animateText("\n", 123);
+                break;
+            }
+
+            case 2: 
+            {    /*
+                animateText("\n\n==========================\n[* * *] WINNER: ", 123); animateText(game.player2Name, 123); animateText("! [* * *]\n==========================\n", 123); break;
+                char resultStr[] =  strcat(strcat("[* * *] WINNER: ", game.player2Name), "! [* * *]");
+                char bars[strlen(resultStr)];
+                for (int i = 0; i < strlen(resultStr); i++){ bars[i] = '='; }
+                strcpy(resultStr, strcat(strcat(strcat(strcat("\n\n", bars), '\n'), resultStr), "\n==========================\n"));
+                animateText(resultStr, 123);
+                */
+                int numBars = strlen("[* * *] WINNER: ") + strlen(game.player2Name) + strlen("! [* * *]");
+                char bars[numBars + 1];     // + 1 for '\0'
+                for (int i = 0; i < numBars; i++){ bars[i] = '='; }
+                bars[numBars] = '\0';
+                animateText("\n\n", 123); animateText(bars, 123); animateText("\n[* * *] WINNER: ", 123); animateText(game.player2Name, 123); animateText("! [* * *]\n", 123); animateText(bars, 123); animateText("\n", 123);
+                break;
+            }
         }
-        Sleep(1500);    // wait 1.5s
+
         game.playGame = false;      // breaks from the inner while loop in main()
+        Sleep(1500);    // wait 1.5s
         getchar();      // clearing the '\n' from the buffer
         printf("\n\nPress Enter to continue: ");
-        char uselessStr[40];
+        char uselessStr[40];    // size 40 so the user can enter anything, even a faltoo long string, without the program breaking
         fgets(uselessStr, sizeof(uselessStr), stdin);    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
     }
 }
@@ -469,7 +500,7 @@ int main()
         initializeGame();
         printf("\nThis is the gameBoard:");
         printGameBoard();
-        Sleep(1500);    // wait 1.5s
+        Sleep(2000);    // wait 2s
 
         while (game.playGame)
         {
