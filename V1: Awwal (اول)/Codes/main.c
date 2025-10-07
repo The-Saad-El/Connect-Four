@@ -28,48 +28,59 @@
 /*
     TODO
     [!] -> check & validate all inputs
+        -> int getPlayerMove()     // use str for input instead
         -> make variable final result # size calculator
         -> make exhaustive comments for all
 */
 
 
 #include <stdio.h>
+#include <string.h>
 #include <windows.h>
 #include <stdbool.h>
 
 
 typedef struct 
 {    
+    // game setup
+    bool playGame;              // flag used for the main while loop in main()
+    int totalMoves;             // counter for the total number of moves made
+    int activePlayer;           // 0: game not started, 1: player1, 2: player2
+    int playerMove;             // holds the move (ie the column position) of the current activePlayer
+    int gameState;              // flag for the current gameBoard state; -1: continue, 0: draw, 1: player1 won, 2: player2 won
+    int sleepTime;              // the time, in ms, used for the argument of the Sleep() function, for animating gameBoard updates
+    
+    // player setup
+    char player1Name[25];       // name/title of player1
+    char player1Symbol;         // the symbol/mark/token for player1's spaces
+    char player2Name[25];       // name/title of player2
+    char player2Symbol;         // the symbol/mark/token for player2's spaces
+
     // gameBoard setup
     char gameBoard[8][7];       // the gameBoard, initialized to the max possible size
     int rowCount;               // number of rows of the gameBoard
     int colCount;               // number of columns of the gameBoard
     char emptyChar;             // the char used to represent an empty/unfilled position
-    
-    // player setup
-    char player1Name[25];       // name of player1
-    char player1Symbol;         // symbol for player1's spaces
-    char player2Name[25];       // name of player2
-    char player2Symbol;         // symbol for player2's spaces
-    
-    // game setup
-    bool playGame;              // flag used for the main while loop in main()
-    int totalMoves;             // counter for the total number of moves made
-    int activePlayer;           // 0: game not started, 1: player1, 2: player2 
-    int sleepTime;              // the time, in ms, used for the argument of the Sleep() function, for animating gameBoard updates
 
 } gameConfig;
 
 gameConfig game;
 
 
+void animateText(char strToAnimate[], int timeDelayms)      // is there even a use for this??
+{
+    for (int i = 0; i < strlen(strToAnimate); i++)
+    {
+        printf("%c", strToAnimate[i]);
+        Sleep(timeDelayms);
+    }
+}
+
 void mainMenu()
 {
     system("cls");      // clears the terminal screen
 
-    printf("\n==================");
-    printf("\n=> Connect Four <=");
-    printf("\n==================\n\n");
+    animateText("==================\n=> Connect Four <=\n==================\n\n\n", 163);
 
     printf("[Main Menu]\n  [1] Play\n  [2] Exit");
     int userChoice;
@@ -103,35 +114,39 @@ void setGame()
 {
     // game setup
     game.playGame = true;
-    game.activePlayer = 0;
     game.totalMoves = 0;
-    game.sleepTime = 230;
+    game.activePlayer = 0;
+    game.playerMove = 0;
+    game.gameState = -1;
+    game.sleepTime = 123;
 }
 void setPlayers()
 {
     // players setup
     // these both took longggg...
 
+    printf("\n\n[Players Information]");
+
     getchar();      // to get rid of the newline char in the buffer (from mainMenu())
-    printf("\n[Player 1]\n");
-    printf("Enter your name: ");
+    printf("\n> Player 1\n");
+    printf("\tEnter your name: ");
     fgets(game.player1Name, sizeof(game.player1Name), stdin);
     if   ((strlen(game.player1Name) == 1) || !(strcmp(game.player1Name, "Player 2\n"))) { strcpy(game.player1Name, "Player 1"); }     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
     else                                                                                { game.player1Name[strlen(game.player1Name) - 1] = '\0';}      // setting the trailing newline char to the null terminator char
-    printf("Enter your symbol: ");
+    printf("\tEnter your symbol: ");
     scanf(" %c", &game.player1Symbol);
     if ((game.player1Symbol == ' ') || (game.player1Symbol == '\n') || (game.player1Symbol == '2')){ game.player1Symbol = '1'; }
 
     getchar();
-    printf("\n[Player 2]\n");
-    printf("Enter your name: ");
+    printf("> Player 2\n");
+    printf("\tEnter your name: ");
     fgets(game.player2Name, sizeof(game.player2Name), stdin);
     if   ((strlen(game.player2Name) == 1) || !(strcmp(game.player2Name, "Player 1\n"))) { strcpy(game.player2Name, "Player 2"); }        // sets player2Name to {Player 2} if length is 1, or the user entered {Player 1}
     else{ 
         game.player2Name[strlen(game.player2Name) - 1] = '\0';
         if (!(strcmp(game.player1Name, game.player2Name))){ strcpy(game.player2Name, "Player 2"); }     // if player1name is same as player2name so sets player2name as "Player 2"
     }
-    printf("Enter your symbol: ");
+    printf("\tEnter your symbol: ");
     scanf(" %c", &game.player2Symbol);
     if ((game.player2Symbol == ' ') || (game.player2Symbol == '\n') || (game.player2Symbol == '1') || (game.player1Symbol == game.player2Symbol)){ game.player2Symbol = '2'; }
 }
@@ -142,17 +157,18 @@ void setGameBoard()
     game.emptyChar = ' ';
 
     getchar();
+    printf("\n\nChoose your gameBoard size\n  1) Blitz: 6 x 5\n  2) Classic: 7 x 6\n  3) Large: 8 x 7");
     char userChoice;
     while (true)
     {
-        printf("\nChoose your gameBoard size\n  1) Blitz: 6 x 5\n  2) Classic: 7 x 6\n  3) Large: 8 x 7\nEnter [1-3]: ");   // baby, titan
+        printf("\nEnter [1 - 3]: ");   // baby, titan
         scanf(" %c", &userChoice);
         if (userChoice == '1' || userChoice == '2' || userChoice == '3')
         {
-            printf("> Accepted\n");
+            printf("> Accepted\n\n");
             break;
         }
-        printf("> Enter between 1 and 3\n");
+        printf("> Enter between 1 and 3");
     }
 
     switch (userChoice)
@@ -214,7 +230,7 @@ void printGameBoard()
 
 int getPlayerMove()     // use str for input instead
 {
-    // returns the column number of a player's move
+    // sets the column number of a player's move to game.playerMove
 
     switch (game.activePlayer)
     {
@@ -234,30 +250,31 @@ int getPlayerMove()     // use str for input instead
             printf("> That column doesn't exist!");
             continue;
         }
-        else if (game.gameBoard[0][userMove - 1] != game.emptyChar){       // checks if the very top row is full or not
+        else if (game.gameBoard[0][userMove - 1] != game.emptyChar){       // checks if the very top row/position of the chosen column is full or not
             printf("> That column is already filled!");
             continue;
         }
-        else { break; }
+        else{ 
+            game.playerMove = userMove;
+            break; 
+        }
     }
-
-    return userMove;
 }
 
-void updateGameBoard(int columnToUpdate)
+void updateGameBoard()
 {
     game.totalMoves++;
     char playerMark = ((game.activePlayer == 1)? game.player1Symbol : game.player2Symbol);
-    columnToUpdate--;
+    int columnToUpdate = --game.playerMove;
 
-    for (int i = 0; i <= game.rowCount; i++)    // why <= and not just < ???
+    for (int row = 0; row <= game.rowCount; row++)    // why <= and not just < ???
     {
         system("cls");
         printGameBoard();
-        if (game.gameBoard[i][columnToUpdate] == game.emptyChar)
+        if (game.gameBoard[row][columnToUpdate] == game.emptyChar)
         {
-            if (i > 0){ game.gameBoard[i - 1][columnToUpdate] = game.emptyChar; }
-            game.gameBoard[i][columnToUpdate] = playerMark;
+            if (row > 0){ game.gameBoard[row - 1][columnToUpdate] = game.emptyChar; }
+            game.gameBoard[row][columnToUpdate] = playerMark;
             Sleep(game.sleepTime);
         }
         else { break; }
@@ -397,68 +414,51 @@ int checkDraw()
     }
     return 1;
 }
-int checkGameBoard()
+void checkGameBoard()
 {    
     if (game.totalMoves >= 7)     // the min num of moves required for any player to have won is 7 (ie 4 by the player 1)
     {
-        // checking horizontally (rows)
-        switch (checkHorizontally())
+        // checking if player1 won
+        if ((checkHorizontally() == 1) || (checkVertically() == 1) || (checkPosDiagonals() == 1) || (checkNegDiagonals() == 1))
         {
-            case 1: return 1;
-            case 2: return 2;
+            game.gameState = 1;     // player1 wins
         }
-        
-        // checking vertically (columns)
-        switch (checkVertically())  
+        // checking if player2 won
+        else if ((checkHorizontally() == 2) || (checkVertically() == 2) || (checkPosDiagonals() == 2) || (checkNegDiagonals() == 2))
         {
-            case 1: return 1;
-            case 2: return 2;
+            game.gameState = 2;     // player2 wins
         }
-        
-        // checking +ve diagonals (diagonals with a +ve gradient)
-        switch (checkPosDiagonals())
+        // checking if the game was a draw
+        else if (checkDraw() == 1)
         {
-            case 1: return 1;
-            case 2: return 2;
-        }
-        
-        // checking -ve diagonals (diagonals with a -ve gradient)
-        switch (checkNegDiagonals())
-        {
-            case 1: return 1;
-            case 2: return 2;
-        }
-        
-        // checking for draw
-        if (checkDraw()) { return 0; }  
+            game.gameState = 0;     // game draws
+        }   // else gamestate remains -1
     }
-
-    return -1;     // else the game continues
 }
 void temp_Debugging_Func()     // for debugging the check functions
 {
-    printf("\n\n[Check Functions Summary]\n\t[1] checkHorizontally(): %d\n\t[2] checkVertically():   %d\n\t[3] checkPosDiagonals(): %d\n\t[4] checkNegDiagonals(): %d\n\t[5] checkDraw():         %d\n\t[6] checkGameBoard():    %d\n\n", checkHorizontally(), checkVertically(), checkPosDiagonals(), checkNegDiagonals(), checkDraw(), checkGameBoard());
+    printf("\n\n[Check Functions Summary]\n\t[1] checkHorizontally(): %d\n\t[2] checkVertically():   %d\n\t[3] checkPosDiagonals(): %d\n\t[4] checkNegDiagonals(): %d\n\t[5] checkDraw():         %d\n\t[6] checkGameBoard():    %d\n\n", checkHorizontally(), checkVertically(), checkPosDiagonals(), checkNegDiagonals(), checkDraw(), game.gameState);
 }
 
-void evaluateGameBoard(int gameState)
+void evaluateGameBoard()
 {
-    if (gameState != -1)        // continue the round if gameState == -1; will only work for totalMoves >= 7
+    if (game.gameState != -1)        // continue the round if gameState == -1; will only work for totalMoves >= 7
     {
         Sleep(330);     // a little pause before printing results
-        switch (gameState)
+        switch (game.gameState)
         {
-            case 0: printf("\n=====================\n[ >< ]  DRAW!  [ >< ]\n=====================");                                   break;
-            case 1: printf("\n==========================\n[* * *] WINNER: %s! [* * *]\n==========================\n", game.player1Name); break;
-            case 2: printf("\n==========================\n[* * *] WINNER: %s! [* * *]\n==========================\n", game.player2Name); break;
+            case 0: animateText("\n\n=====================\n[ >< ]  DRAW!  [ >< ]\n=====================", 123);                                                                           break;
+            case 1: animateText("\n\n==========================\n[* * *] WINNER: ", 123); animateText(game.player1Name, 123); animateText("! [* * *]\n==========================\n", 123); break;
+            case 2: animateText("\n\n==========================\n[* * *] WINNER: ", 123); animateText(game.player2Name, 123); animateText("! [* * *]\n==========================\n", 123); break;
         }
-        Sleep(3000);    // wait 3s
+        Sleep(1500);    // wait 1.5s
         game.playGame = false;      // breaks from the inner while loop in main()
         getchar();      // clearing the '\n' from the buffer
         printf("\n\nPress Enter to continue: ");
-        scanf("%s");    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
+        char uselessStr[40];
+        fgets(uselessStr, sizeof(uselessStr), stdin);    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
     }
 }
-
 
 int main()
 {
@@ -469,15 +469,15 @@ int main()
         initializeGame();
         printf("\nThis is the gameBoard:");
         printGameBoard();
-        Sleep(3000);    // wait 3s
+        Sleep(1500);    // wait 1.5s
 
         while (game.playGame)
         {
-            int playerMove = getPlayerMove();
-            updateGameBoard(playerMove);
-            int gameState = checkGameBoard();
-            temp_Debugging_Func();
-            evaluateGameBoard(gameState);
+            getPlayerMove();
+            updateGameBoard();
+            checkGameBoard();
+            //temp_Debugging_Func();
+            evaluateGameBoard();
         }
     }
 
