@@ -29,8 +29,8 @@
     TODO
     [!] -> check & validate all inputs
         -> see wa output
+        -> terminal colors
         -> int getPlayerMove()     // use str for input instead
-        -> make exhaustive comments for all
 */
 
 
@@ -62,6 +62,8 @@ typedef struct
     int colCount;               // number of columns of the gameBoard
     char emptyChar;             // the char used to represent an empty/unfilled position
 
+    // winner Info
+
 } gameConfig;
 
 gameConfig game;
@@ -80,7 +82,7 @@ void mainMenu()
 {
     system("cls");      // clears the terminal screen
 
-    animateText("==================\n=> Connect Four <=\n==================\n\n\n", 163);
+    animateText("==================\n=> Connect Four <=\n==================\n\n\n", 123);   // keep at 123
 
     printf("[Main Menu]\n  [1] Play\n  [2] Exit");
     int userChoice;
@@ -112,7 +114,7 @@ void mainMenu()
 // initializing game
 void setGame()
 {
-    // game setup
+    // game setup 
     game.playGame = true;
     game.totalMoves = 0;
     game.activePlayer = 0;
@@ -205,7 +207,7 @@ void printGameBoard()
 {
     int numOfDashes = (6 * game.colCount);    // calculating the num of dashes required for rows
     char rowDashes[numOfDashes + 1];
-    for (int i = 0; i <= numOfDashes; i++){ rowDashes[i] = '-'; }
+    for (int i = 0; i <=  numOfDashes; i++){ rowDashes[i] = '-'; }
     rowDashes[numOfDashes + 1] = '\0';
 
     printf("\n  %s\n", rowDashes);    // topmost row of dashes
@@ -213,9 +215,12 @@ void printGameBoard()
     {
         for (int j = 0; j < game.colCount; j++)
         {
-            printf("  |  %c", game.gameBoard[i][j]);
+            printf("  |  ");
+            if      (game.gameBoard[i][j] == game.player1Symbol){ printf("\033[1;33m%c\033[0m", game.gameBoard[i][j]); }     // bold yellow color for player1
+            else if (game.gameBoard[i][j] == game.player2Symbol){ printf("\033[1;34m%c\033[0m", game.gameBoard[i][j]); }     // bold blue color for player2
+            else                                                { printf("%c",                  game.gameBoard[i][j]); }     // no color formatting if empty char
         }
-        printf("  |\n  %s\n", rowDashes);
+        printf("  |\n  %s\n", rowDashes);   // a row of dashes after every completed row
     }
     
     // for printing column numbers
@@ -239,7 +244,8 @@ int getPlayerMove()     // use str for input instead
         case 2: game.activePlayer = 1; break;
     }
 
-    printf("\n\n[%s]", ((game.activePlayer == 1)? game.player1Name : game.player2Name));
+    if  (game.activePlayer == 1){ printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name); }      // printing the playerName in color
+    else                        { printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); }
     int userMove;
     while (true)
     {
@@ -453,9 +459,7 @@ void evaluateGameBoard()
                 break;
 
             case 1: 
-            {   // animateText("\n\n==========================\n[* * *] WINNER: ", 123); animateText(game.player1Name, 123); animateText("! [* * *]\n==========================\n", 123); break;
-                //char startStr[] = "[* * *] WINNER: ", endStr[] = "! [* * *]";
-                //char resultStr[] =  strcat(strcat(startStr, game.player1Name), endStr);
+            {   
                 int numBars = strlen("[* * *] WINNER: ") + strlen(game.player1Name) + strlen("! [* * *]");
                 char bars[numBars + 1];     // + 1 for '\0'
                 for (int i = 0; i < numBars; i++){ bars[i] = '='; }
@@ -465,14 +469,7 @@ void evaluateGameBoard()
             }
 
             case 2: 
-            {    /*
-                animateText("\n\n==========================\n[* * *] WINNER: ", 123); animateText(game.player2Name, 123); animateText("! [* * *]\n==========================\n", 123); break;
-                char resultStr[] =  strcat(strcat("[* * *] WINNER: ", game.player2Name), "! [* * *]");
-                char bars[strlen(resultStr)];
-                for (int i = 0; i < strlen(resultStr); i++){ bars[i] = '='; }
-                strcpy(resultStr, strcat(strcat(strcat(strcat("\n\n", bars), '\n'), resultStr), "\n==========================\n"));
-                animateText(resultStr, 123);
-                */
+            {   
                 int numBars = strlen("[* * *] WINNER: ") + strlen(game.player2Name) + strlen("! [* * *]");
                 char bars[numBars + 1];     // + 1 for '\0'
                 for (int i = 0; i < numBars; i++){ bars[i] = '='; }
