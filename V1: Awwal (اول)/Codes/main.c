@@ -27,8 +27,7 @@
 
 /*
     TODO
-    [!] -> check & validate all inputs
-        -> int getPlayerMove()     // use str for input instead
+        -> 
 */
 
 
@@ -66,7 +65,7 @@ typedef struct
 gameConfig game;
 
 
-void animateText(char strToAnimate[], int timeDelayms)      // is there even a use for this??
+void animateText(char strToAnimate[], int timeDelayms)
 {
     for (int i = 0; i < strlen(strToAnimate); i++)
     {
@@ -79,9 +78,10 @@ void mainMenu()
 {
     system("cls");      // clears the terminal screen
 
-    animateText("==================\n=> Connect Four <=\n==================\n\n\n", 123);   // keep at 123
+    animateText("==================\n=> Connect Four <=\n==================", 123);   // keep at 123
+    Sleep(500);    // wait .5s
 
-    printf("[Main Menu]\n  [1] Play\n  [2] Exit");
+    printf("\n\n\n[Main Menu]\n  [1] Play\n  [2] Exit");
     int userChoice;
     while (true)
     {
@@ -125,28 +125,28 @@ void setPlayers()
     // players setup
     // these both took longggg...
 
-    printf("\n\n[Players Information]");
+    printf("\n\n[Players' Information]");
 
     getchar();      // to get rid of the newline char in the buffer (from mainMenu())
-    printf("\n> Player 1\n");
-    printf("\tEnter your name: ");
+    printf("\n> \033[1;33mPlayer 1\033[0m\n");
+    printf("      Enter your name: ");
     fgets(game.player1Name, sizeof(game.player1Name), stdin);
     if   ((strlen(game.player1Name) == 1) || !(strcmp(game.player1Name, "Player 2\n"))) { strcpy(game.player1Name, "Player 1"); }     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
     else                                                                                { game.player1Name[strlen(game.player1Name) - 1] = '\0';}      // setting the trailing newline char to the null terminator char
-    printf("\tEnter your symbol: ");
+    printf("      Enter your symbol: ");
     scanf(" %c", &game.player1Symbol);
     if ((game.player1Symbol == ' ') || (game.player1Symbol == '\n') || (game.player1Symbol == '2')){ game.player1Symbol = '1'; }
 
     getchar();
-    printf("> Player 2\n");
-    printf("\tEnter your name: ");
+    printf("> \033[1;34mPlayer 2\033[0m\n");
+    printf("      Enter your name: ");
     fgets(game.player2Name, sizeof(game.player2Name), stdin);
     if   ((strlen(game.player2Name) == 1) || !(strcmp(game.player2Name, "Player 1\n"))) { strcpy(game.player2Name, "Player 2"); }        // sets player2Name to {Player 2} if length is 1, or the user entered {Player 1}
     else{ 
         game.player2Name[strlen(game.player2Name) - 1] = '\0';
         if (!(strcmp(game.player1Name, game.player2Name))){ strcpy(game.player2Name, "Player 2"); }     // if player1name is same as player2name so sets player2name as "Player 2"
     }
-    printf("\tEnter your symbol: ");
+    printf("      Enter your symbol: ");
     scanf(" %c", &game.player2Symbol);
     if ((game.player2Symbol == ' ') || (game.player2Symbol == '\n') || (game.player2Symbol == '1') || (game.player1Symbol == game.player2Symbol)){ game.player2Symbol = '2'; }
 }
@@ -157,11 +157,11 @@ void setGameBoard()
     game.emptyChar = ' ';
 
     getchar();
-    printf("\n\nChoose your gameBoard size\n  1) Blitz: 6 x 5\n  2) Classic: 7 x 6\n  3) Large: 8 x 7");
+    printf("\n\n[GameBoard Size]\n  1) Blitz: 6 x 5\n  2) Classic: 7 x 6\n  3) Grand: 8 x 7");      // Mini, Titan
     char userChoice;
     while (true)
     {
-        printf("\nEnter [1-3]: ");   // baby, titan
+        printf("\nChoose your gameBoard [1-3]: ");
         scanf(" %c", &userChoice);
         if (userChoice == '1' || userChoice == '2' || userChoice == '3')
         {
@@ -323,18 +323,18 @@ int checkHorizontally()
     {
         for (int col = 0; col < (game.colCount - 3); col++)
         {
-            if ((game.gameBoard[row][col]     == game.gameBoard[row][col + 1]) && 
+            if ((game.gameBoard[row][col]     != game.emptyChar              ) &&
+                (game.gameBoard[row][col]     == game.gameBoard[row][col + 1]) && 
                 (game.gameBoard[row][col + 1] == game.gameBoard[row][col + 2]) && 
                 (game.gameBoard[row][col + 2] == game.gameBoard[row][col + 3])   )
             { 
-                if (game.gameBoard[row][col] != game.emptyChar){
-                    for (int i = 0; i < 4; i++){
-                        game.winningIndices[i][0] = (row);         // row indices remain constant
-                        game.winningIndices[i][1] = (col + i);     // col indices increment by 1 from 0
-                    }
+                for (int i = 0; i < 4; i++)
+                {
+                    game.winningIndices[i][0] = (row);         // row indices remain constant
+                    game.winningIndices[i][1] = (col + i);     // col indices increment by 1 from 0
                 }
-                if      (game.gameBoard[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                else if (game.gameBoard[row][col] == game.player2Symbol) { return 2; }     // player 2 won
+                if    (game.gameBoard[row][col] == game.player1Symbol) { return 1; }     // player 1 won
+                else                                                   { return 2; }     // player 2 won
             }
         }
     }
@@ -359,18 +359,18 @@ int checkVertically()
         for (int row = 0; row < (game.rowCount - 3); row++)   // top to bottom
         {
             // printf("\n[row(j) = %d][col(i) = %d] game.gameBoard[j][i]: %c game.gameBoard[j+1][i]: %c game.gameBoard[j + 2][i]: %c game.gameBoard[j + 3][i]: %c\n", i, j, game.gameBoard[j][i], game.gameBoard[j + 1][i], game.gameBoard[j + 2][i], game.gameBoard[j + 3][i]);
-            if ((game.gameBoard[row]    [col] == game.gameBoard[row + 1][col]) &&
+            if ((game.gameBoard[row][col]     != game.emptyChar              ) &&
+                (game.gameBoard[row]    [col] == game.gameBoard[row + 1][col]) &&
                 (game.gameBoard[row + 1][col] == game.gameBoard[row + 2][col]) &&
                 (game.gameBoard[row + 2][col] == game.gameBoard[row + 3][col])   )
             { 
-                if (game.gameBoard[row][col] != game.emptyChar){
-                    for (int i = 0; i < 4; i++){
-                        game.winningIndices[i][0] = (row + i);     // row indices increment by 1 from 0
-                        game.winningIndices[i][1] = (col);         // col indixes remain constant
-                    }
+                for (int i = 0; i < 4; i++)
+                {
+                    game.winningIndices[i][0] = (row + i);     // row indices increment by 1 from 0
+                    game.winningIndices[i][1] = (col);         // col indixes remain constant
                 }
-                if      (game.gameBoard[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                else if (game.gameBoard[row][col] == game.player2Symbol) { return 2; }     // player 2 won
+                if   (game.gameBoard[row][col] == game.player1Symbol) { return 1; }     // player 1 won
+                else                                                  { return 2; }     // player 2 won
             }
         }
     }
@@ -395,19 +395,19 @@ int checkPosDiagonals()
         for (int Col = 1; Col <= (game.colCount - 3); Col++)      // left to right
         {
             int row = (Row - 1), col = (Col - 1);
-            if ((game.gameBoard[row]    [col]     == game.gameBoard[row - 1][col + 1]) && 
+            if ((game.gameBoard[row][col]         != game.emptyChar                  ) &&
+                (game.gameBoard[row]    [col]     == game.gameBoard[row - 1][col + 1]) && 
                 (game.gameBoard[row - 1][col + 1] == game.gameBoard[row - 2][col + 2]) && 
                 (game.gameBoard[row - 2][col + 2] == game.gameBoard[row - 3][col + 3])   )
+            {
+                for (int i = 0; i < 4; i++)
                 {
-                    if (game.gameBoard[row][col] != game.emptyChar){
-                        for (int i = 0; i < 4; i++){
-                            game.winningIndices[i][0] = (row - i);     // row indices decrement by 1
-                            game.winningIndices[i][1] = (col + i);     // col indices increment by 1
-                        }
-                    }
-                    if      (game.gameBoard[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                    else if (game.gameBoard[row][col] == game.player2Symbol) { return 2; }     // player 2 won
-                }    
+                    game.winningIndices[i][0] = (row - i);     // row indices decrement by 1
+                    game.winningIndices[i][1] = (col + i);     // col indices increment by 1
+                }        
+                if   (game.gameBoard[row][col] == game.player1Symbol) { return 1; }     // player 1 won
+                else                                                  { return 2; }     // player 2 won
+            }    
         }
     }
 
@@ -430,19 +430,19 @@ int checkNegDiagonals()
         for (int Col = game.colCount; Col >= 4; Col--)     // from right to left
         {
             int row = (Row - 1), col = (Col - 1);
-            if ((game.gameBoard[row]    [col]     == game.gameBoard[row - 1][col - 1]) && 
+            if ((game.gameBoard[row][col]         != game.emptyChar                  ) &&
+                (game.gameBoard[row]    [col]     == game.gameBoard[row - 1][col - 1]) && 
                 (game.gameBoard[row - 1][col - 1] == game.gameBoard[row - 2][col - 2]) && 
                 (game.gameBoard[row - 2][col - 2] == game.gameBoard[row - 3][col - 3])   )
+            {
+                for (int i = 0; i < 4; i++)
                 {
-                    if (game.gameBoard[row][col] != game.emptyChar){
-                        for (int i = 0; i < 4; i++){
-                            game.winningIndices[i][0] = (row - i);     // row indices decrement by 1
-                            game.winningIndices[i][1] = (col - i);     // col indices decrement by 1
-                        }
-                    }
-                    if      (game.gameBoard[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                    else if (game.gameBoard[row][col] == game.player2Symbol) { return 2; }     // player 2 won
-                }    
+                    game.winningIndices[i][0] = (row - i);     // row indices decrement by 1
+                    game.winningIndices[i][1] = (col - i);     // col indices decrement by 1
+                }
+                if   (game.gameBoard[row][col] == game.player1Symbol) { return 1; }     // player 1 won
+                else                                                  { return 2; }     // player 2 won
+            }    
         }
     }
 
@@ -486,7 +486,9 @@ void checkGameBoard()
         }   // else gamestate remains -1
     }
 }
-void temp_Debugging_Func()     // for debugging the check functions
+
+// for debugging the check functions
+void shaykh_Debugger()
 {
     printf("\n\n[Shaykh Debugger]\n\t[1] checkHorizontally(): %d\n\t[2] checkVertically():   %d\n\t[3] checkPosDiagonals(): %d\n\t[4] checkNegDiagonals(): %d\n\t[5] checkDraw():         %d\n\t[6] game.gameState:      %d\n\t[7] game.winningIndices: ", checkHorizontally(), checkVertically(), checkPosDiagonals(), checkNegDiagonals(), checkDraw(), game.gameState);
     for (int i = 0; i < 4; i++){ printf("[%d, %d] ", game.winningIndices[i][1], game.winningIndices[i][2]); }
@@ -538,6 +540,7 @@ void evaluateGameBoard()
     }
 }
 
+
 int main()
 {
     while (true)
@@ -548,13 +551,15 @@ int main()
         printf("\nThis is the gameBoard:");
         printGameBoard();
         Sleep(2000);    // wait 2s
+        system("cls");
+        printGameBoard();
 
         while (game.playGame)
         {
             getPlayerMove();
             updateGameBoard();
             checkGameBoard();
-            // temp_Debugging_Func();
+            // shaykh_Debugger();
             evaluateGameBoard();
         }
     }
