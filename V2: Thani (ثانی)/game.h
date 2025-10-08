@@ -34,13 +34,17 @@ extern gameConfig game;
 
 void animateText(char strToAnimate[], int timeDelayms);
 void mainMenu();
+
 void setGame();
 void setPlayers();
 void setGameBoard();
 void initializeGame();
+
 void printGameBoard();
+void showGameBoard();
 int getPlayerMove();
 void updateGameBoard();
+
 int checkHorizontally();
 int checkVertically();
 int checkPosDiagonals();
@@ -48,6 +52,7 @@ int checkNegDiagonals();
 int checkDraw();
 void checkGameBoard();
 void shaykh_Debugger();
+
 void evaluateGameBoard();
 
 

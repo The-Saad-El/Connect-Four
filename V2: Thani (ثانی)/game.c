@@ -194,6 +194,17 @@ void printGameBoard()
     printf("\n");
 }
 
+void showGameBoard()
+{
+    // didnt wanna write all this in main so trashed it here :D
+    
+    printf("\nThis is the gameBoard:");
+    printGameBoard();
+    Sleep(2000);    // wait 2s
+    system("cls");
+    printGameBoard();
+}
+
 int getPlayerMove()
 {
     // sets the column number of a player's move to game.playerMove

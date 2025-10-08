@@ -21,6 +21,7 @@
         -> 
 */
 
+#include "ai.h"
 #include "game.h"
 #include <stdio.h>
 #include <windows.h>
@@ -31,13 +32,9 @@ int main()
     while (true)
     {
         mainMenu();
-
+        
         initializeGame();
-        printf("\nThis is the gameBoard:");
-        printGameBoard();
-        Sleep(2000);    // wait 2s
-        system("cls");
-        printGameBoard();
+        showGameBoard();
 
         while (game.playGame)
         {
