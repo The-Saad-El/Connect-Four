@@ -19,8 +19,8 @@
         2) 7 x 6
         3) 8 x 7
 
-    [Started]   Sep 4th, 25; ≈ 0800
-    [Completed]
+    [Started]   Sep 4th, 25; ≈ 08:00
+    [Completed] Sep 8th, 25; ≈ 21:35
 
                                                 الحمد للہ
 */
