@@ -29,7 +29,6 @@
     TODO
     [!] -> check & validate all inputs
         -> int getPlayerMove()     // use str for input instead
-        -> write better prompts (especially for enter move)
 */
 
 
@@ -162,7 +161,7 @@ void setGameBoard()
     char userChoice;
     while (true)
     {
-        printf("\nEnter [1 - 3]: ");   // baby, titan
+        printf("\nEnter [1-3]: ");   // baby, titan
         scanf(" %c", &userChoice);
         if (userChoice == '1' || userChoice == '2' || userChoice == '3')
         {
@@ -227,7 +226,6 @@ void printGameBoard()
             }
 
             printf("  |  ");
-
             if (isWinningIndex){
                 if   (game.gameBoard[i][j] == game.player1Symbol){ printf("\033[1;33;40m%c\033[0m", game.gameBoard[i][j]); }     // bold yellow color with grey highlighting for player1 (winner)
                 else                                             { printf("\033[1;34;40m%c\033[0m", game.gameBoard[i][j]); }     // bold blue color with grey highlighting for player2 (winner)
@@ -263,12 +261,16 @@ int getPlayerMove()
         case 2: game.activePlayer = 1; break;
     }
 
-    if  (game.activePlayer == 1){ printf("\n\n[\033[1;3;33m%s\033[0m]", game.player1Name); }      // printing the playerName in color
-    else                        { printf("\n\n[\033[1;3;34m%s\033[0m]", game.player2Name); }
+    if  (game.activePlayer == 1){ printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name); }      // printing the playerName in color
+    else                        { printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); }
+    
     int userMove;
     while (true)
     {
-        printf("\nEnter your move (column number): ");
+        // printf("\nEnter your move (column number): ");
+        //printf("\nEnter a column number (1-%d) to drop your piece: ", game.colCount);
+        printf("\nEnter your move (Column 1-%d): ", game.colCount);
+
         scanf("%d", &userMove);
 
         if ((userMove < 1) || (userMove > game.colCount)){
