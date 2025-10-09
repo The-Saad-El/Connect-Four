@@ -21,7 +21,6 @@
         -> 
 */
 
-#include "ai.h"
 #include "game.h"
 #include <stdio.h>
 #include <windows.h>
@@ -32,7 +31,7 @@ int main()
     while (true)
     {
         mainMenu();
-        
+
         initializeGame();
         showGameBoard();
 
