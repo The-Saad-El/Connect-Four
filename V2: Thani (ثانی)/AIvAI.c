@@ -1,3 +1,6 @@
+#include <stdio.h>
 
-
-void AIvAI();
+void AIvAI()
+{
+    printf("\n AIvAI()");
+}

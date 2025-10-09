@@ -1,5 +1,5 @@
-#ifndef PvP_H
-#define PvP_H
+#ifndef PVP_H
+#define PVP_H
 
 void PvP();
 

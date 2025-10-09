@@ -1,6 +1,6 @@
-#ifndef PvAI_H
-#define PvAI_H
+#ifndef PVAI_H
+#define PVAI_H
 
-
+void PvAI();
 
 #endif

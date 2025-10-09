@@ -1,3 +1,6 @@
+#include <stdio.h>
 
-
-void PvAI();
+void PvAI()
+{
+    printf("PvAI()");
+}
