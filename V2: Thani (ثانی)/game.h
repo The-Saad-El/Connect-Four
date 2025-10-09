@@ -38,7 +38,6 @@ typedef struct
 extern gameConfig game;
 
 void animateText(char strToAnimate[], int timeDelayms);
-void mainMenu();
 
 void setGame();
 void setPlayers();
