@@ -16,18 +16,23 @@ typedef struct
     int sleepTime;              // the time, in ms, used for the argument of the Sleep() function, for animating gameBoard updates
     int winningIndices[4][2];   // an array containing indices of the winning-row
 
+    // gameBoard setup
+    char gameBoard[8][7];       // the gameBoard, initialized to the max possible size
+    // int maxRows;                // max number of rows possible of the gameBoard
+    // int maxCols;                // max number of columns possible of the gameBoard
+    int rowCount;               // number of rows of the chosen gameBoard size
+    int colCount;               // number of columns of the chosen gameBoard size
+    char emptyChar;             // the char used to represent an empty/unfilled position
+
     // player setup         
     char player1Name[25];       // name/title of player1
     char player1Symbol;         // the symbol/mark/token for player1's spaces
     char player2Name[25];       // name/title of player2
     char player2Symbol;         // the symbol/mark/token for player2's spaces
 
-    // gameBoard setup
-    char gameBoard[8][7];       // the gameBoard, initialized to the max possible size
-    int rowCount;               // number of rows of the gameBoard
-    int colCount;               // number of columns of the gameBoard
-    char emptyChar;             // the char used to represent an empty/unfilled position
-
+    // ai setup
+    char aiSymbol;              // the symbol/mark/token for ai's spaces
+    
 } gameConfig;
 
 extern gameConfig game;

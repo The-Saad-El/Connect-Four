@@ -32,22 +32,42 @@ void mainMenu()
         printf("\nEnter your choice [1/2]: ");
         scanf("%d", &userChoice);
 
-        if (userChoice == 1){ break; }
-        else if (userChoice == 2)
-        { 
-            printf("\n");
-            for (int i = 5; i >= 1; i--)
-            {
-                printf("\rExiting in %d", i);
-                Sleep(1000);
-            }
-            printf("\rExiting now. <^-^>");
-            exit(0);
-        }
-        else    // ie ((userChoice != 1) && (userChoice != 2))
+        switch (userChoice)
         {
-            printf("> [!] Enter either 1 or 2");
-            continue;
+            case 1:
+                printf("\n\n\n[Choose GameMode]\n  [1] PvP: Player vs Player\n  [2] PvAI: Player vs AI\n  [3] AIvAI: AI vs AI");
+                printf("\nEnter your choice [1-3]: ");
+                scanf("%d", &userChoice);   
+                switch(userChoice)
+                {
+                    case 1:
+                        PvP();
+                        break;
+                    case 2:
+                        PvAI();
+                        break;
+                    case 3:
+                        AIvAI();
+                        break;
+                    default:
+                        printf("> [!] Enter either 1, 2, or 3");
+                        continue;
+                }
+                break;
+
+            case 2:
+                printf("\n");
+                for (int i = 5; i >= 1; i--)
+                {
+                    printf("\rExiting in %d", i);
+                    Sleep(1000);
+                }
+                printf("\rExiting now. <^-^>");
+                exit(0);
+
+            default:
+                printf("> [!] Enter either 1 or 2");
+                continue;
         }
     }
 }
@@ -67,7 +87,6 @@ void setGame()
 void setPlayers()
 {
     // players setup
-    // these both took longggg...
 
     printf("\n\n[Players' Information]");
 
@@ -222,10 +241,7 @@ int getPlayerMove()
     int userMove;
     while (true)
     {
-        // printf("\nEnter your move (column number): ");
-        //printf("\nEnter a column number (1-%d) to drop your piece: ", game.colCount);
         printf("\nEnter your move (Column 1-%d): ", game.colCount);
-
         scanf("%d", &userMove);
 
         if ((userMove < 1) || (userMove > game.colCount)){
@@ -306,9 +322,6 @@ int checkVertically()
         2 : player 2 won (has a complete, vertical row)
     */
 
-    // debugging this was hard...
-    // (previously had [i][j] instead of [j][i])
-
     for (int col = 0; col < game.colCount; col++)     // left to right
     {
         for (int row = 0; row < (game.rowCount - 3); row++)   // top to bottom
@@ -340,9 +353,6 @@ int checkPosDiagonals()
         -1: continue game (no complete, +ve diagonal)
         1 : player 1 won (has a complete, +ve diagonal)
         2 : player 2 won (has a complete, +ve diagonal)
-
-        this took longgggg to make...
-        and almost the same time to debug... (used i and j instead of row, column in if, else if part)
     */
 
     for (int Row = game.rowCount; Row >= 4; Row--)     // reverse loop (from the bottom row to the topmost)
@@ -376,8 +386,6 @@ int checkNegDiagonals()
         -1: continue game (no complete, -ve diagonal)
         1 : player 1 won (has a complete, -ve diagonal)
         2 : player 2 won (has a complete, -ve diagonal)
-
-        this took longgg...
     */
 
     for (int Row = game.rowCount; Row >= 4; Row--)     // reverse loop (from the bottom row to the topmost)
@@ -456,7 +464,6 @@ void evaluateGameBoard()
         Sleep(330);     // a little pause before printing results
         switch (game.gameState)
         {
-            // u cant even imagine how long this took me.
             case 0: 
                 animateText("\n\n=====================\n[ >< ]  DRAW!  [ >< ]\n=====================", 123);
                 break;
