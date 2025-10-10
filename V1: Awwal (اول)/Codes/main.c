@@ -117,7 +117,7 @@ void setGame()
     game.activePlayer = 0;
     game.playerMove = 0;
     game.gameState = -1;
-    game.sleepTime = 300;
+    game.sleepTime = 250;
     game.winningIndices[0][0];
 }
 void setPlayers()
@@ -227,8 +227,8 @@ void printGameBoard()
 
             printf("  |  ");
             if (isWinningIndex){
-                if   (game.gameBoard[i][j] == game.player1Symbol){ printf("\033[1;33;40m%c\033[0m", game.gameBoard[i][j]); }     // bold yellow color with grey highlighting for player1 (winner)
-                else                                             { printf("\033[1;34;40m%c\033[0m", game.gameBoard[i][j]); }     // bold blue color with grey highlighting for player2 (winner)
+                if   (game.gameBoard[i][j] == game.player1Symbol){ printf("\033[1;4;33;40m%c\033[0m", game.gameBoard[i][j]); }     // bold, underlined yellow text with grey highlighting for player1 (winner)
+                else                                             { printf("\033[1;4;34;40m%c\033[0m", game.gameBoard[i][j]); }     // bold, underlined blue text with grey highlighting for player2 (winner)
             }
             else
             {
@@ -302,7 +302,7 @@ void updateGameBoard()
         {
             if (row > 0){ game.gameBoard[row - 1][columnToUpdate] = game.emptyChar; }
             game.gameBoard[row][columnToUpdate] = playerMark;
-            Sleep(game.sleepTime);
+            Sleep(game.sleepTime - (row * 10));     // the tokens "accelerate" as they fall
         }
         else { break; }
     }
@@ -532,9 +532,9 @@ void evaluateGameBoard()
         }
 
         game.playGame = false;      // breaks from the inner while loop in main()
-        Sleep(1500);    // wait 1.5s
+        Sleep(2000);    // wait 2s
         getchar();      // clearing the '\n' from the buffer
-        printf("\n\nPress Enter to continue: ");
+        printf("\n\n\nPress Enter to continue: ");
         char uselessStr[40];    // size 40 so the user can enter anything, even a faltoo long string, without the program breaking
         fgets(uselessStr, sizeof(uselessStr), stdin);    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
     }
