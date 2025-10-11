@@ -17,7 +17,7 @@
 */
 
 
-// headers ------------------------------------------------------------------------------------------------------------------------------------
+// headers ---------------------------------------------------------------------------------------------------------------------------------------
 
 #include <time.h>
 #include <stdio.h>
@@ -30,7 +30,7 @@
 #endif
 
 
-// globals -------------------------------------------------------------------------------------------------------------------------------------
+// globals ---------------------------------------------------------------------------------------------------------------------------------------
 
 #define maxRows 8
 #define maxCols 7
@@ -44,8 +44,8 @@ typedef struct
     int activePlayer;                       // 0: game not started, 1: player1, 2: player2 (can be real players or AI)
     int playerMove;                         // holds the move (ie the column position) of the current activePlayer
     int gameState;                          // flag for the current gameBoard state; -1: continue, 0: draw, 1: player1 won, 2: player2 won
-    int sleepTime;                          // the time, in ms, used for the argument of the Sleep() function, for animating gameBoard updates
-    int winningIndices[4][2];                   // an array containing indices of the winning-row
+    int sleepTime;                          // the time, in ms, used for the argument of the wait() function, for animating gameBoard updates
+    int winningIndices[4][2];               // an array containing indices of the winning-row
 
     // gameBoard setup
     char gameBoard[maxRows][maxCols];       // the gameBoard, initialized to the max possible size
@@ -64,7 +64,7 @@ typedef struct
 gameConfig game;
 
 
-// helpers -------------------------------------------------------------------------------------------------------------------------------------
+// helpers ---------------------------------------------------------------------------------------------------------------------------------------
 
 void clearScreen()
 {
@@ -107,70 +107,97 @@ void animateText(char strToAnimate[], int timeDelayms)
 }
 
 
-// game -----------------------------------------------------------------------------------------------------------------------------------------
+// game -------------------------------------------------------------------------------------------------------------------------------------------
 
 // main() stuff
 int mainMenu()
 {
-    system("cls");      // clears the terminal screen
+    // printing the connect four title
+    clearScreen();      // clears the terminal screen
     animateText("==================\n=> Connect Four <=\n==================", 123);   // keep at 123
     wait(500);    // wait .5s
 
+    // the main menu
     printf("\n\n\n[Main Menu]\n  [1] Play\n  [2] Exit");
-    int userChoice;
+    char userChoice[25];
     while (true)
     {
+        emptyBuffer();      // will be relevant if there is a 2nd repetition
         printf("\nEnter your choice [1/2]: ");
-        scanf("%d", &userChoice);
-        switch(userChoice)
+        fgets(userChoice, sizeof(userChoice), stdin);
+        if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
-            case 1: 
-                return 1;
-            case 2: 
-                return 2;
-            default:
-                printf("> [!] Enter either 1 or 2");
-                continue;
+            printf("> Accepted\n\n");
+            break;
         }
+        else
+        {
+            printf("> [!] Enter either 1 or 2");
+            continue;
+        }
+    }
+
+    // returning value based on userChoice
+    switch(userChoice[0])
+    {
+        case '1': return 1;
+        case '2': return 2;
     }
 }
 void playGame()
 {
-    printf("\n\n[Choose GameMode]\n  [1] PvP: Player vs Player\n  [2] PvAI: Player vs AI\n  [3] AIvAI: AI vs AI");
+    /*
+        > choose gameMoade
+        > validates input
+        > clears buffer
+        > calls the respective functions: PvP(), PvAI(), or AIvAI()
+    */
 
-    int userChoice;
+    // choosing the gameMode
+    printf("\n\n[Choose GameMode]\n  [1] PvP: Player vs Player\n  [2] PvAI: Player vs AI\n  [3] AIvAI: AI vs AI");
+    char userChoice[25];
     while (true)
     {
+        emptyBuffer();
         printf("\nEnter your choice [1-3]: ");
-        scanf("%d", &userChoice);
-        if ((userChoice == 1) || (userChoice == 2) || (userChoice == 3)){ break; }
-        else                                                            { printf("> [!] Enter either 1, 2, or 3"); }
-    }    
-    switch(userChoice)
+        fgets(userChoice, sizeof(userChoice), stdin);
+        if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2') || (userChoice[1] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        {
+            printf("> Accepted\n\n");
+            break; 
+        }
+        else
+        { 
+            printf("> [!] Enter either 1, 2, or 3");
+            continue;
+        }
+    }
+
+    // calling gameMode function based on userChoice
+    switch(userChoice[0])
     {
-        case 1:
+        case '1':
             PvP();
             break;
-        case 2:
+        case '2':
             PvAI();
             break;
-        case 3:
+        case '3':
             AIvAI();
             break;
     }
-    
-    game.continueProgram = true;
 }
 void exitGame()
 {
+    // exiting animation mainly
+
     printf("\n\n");
     for (int i = 5; i >= 1; i--)
     {
         printf("\rExiting in %d", i);
-        Sleep(1000);
+        wait(1000);
     }
     printf("\rExiting now. <^-^>");
-    game.continueProgram = false;
 }
 
 // initializing game
@@ -182,60 +209,176 @@ void setGame()
     game.activePlayer = 0;
     game.playerMove = 0;
     game.gameState = -1;
+    game.player1Symbol = 'X';       // hard coding these symbols in this version
+    game.player2Symbol = 'O';
+    game.emptyChar = ' ';
     game.sleepTime = 300;
-    game.winningIndices[0][0];
 }
-void setPlayers()
+void setPlayers(int numOfHumanPlayers)
 {
     // players setup
-
     printf("\n\n[Players' Information]");
 
-    getchar();      // to get rid of the newline char in the buffer (from mainMenu())
-    printf("\n> \033[1;33mPlayer 1\033[0m\n");
-    printf("      Enter your name: ");
-    fgets(game.player1Name, sizeof(game.player1Name), stdin);
-    if   ((strlen(game.player1Name) == 1) || !(strcmp(game.player1Name, "Player 2\n"))) { strcpy(game.player1Name, "Player 1"); }     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
-    else                                                                                { game.player1Name[strlen(game.player1Name) - 1] = '\0';}      // setting the trailing newline char to the null terminator char
-    printf("      Enter your symbol: ");
-    scanf(" %c", &game.player1Symbol);
-    if ((game.player1Symbol == ' ') || (game.player1Symbol == '\n') || (game.player1Symbol == '2')){ game.player1Symbol = '1'; }
+    switch(numOfHumanPlayers)
+    {
+        case 0:
+        {
+            // AIvsAI
 
-    getchar();
-    printf("> \033[1;34mPlayer 2\033[0m\n");
-    printf("      Enter your name: ");
-    fgets(game.player2Name, sizeof(game.player2Name), stdin);
-    if   ((strlen(game.player2Name) == 1) || !(strcmp(game.player2Name, "Player 1\n"))) { strcpy(game.player2Name, "Player 2"); }        // sets player2Name to {Player 2} if length is 1, or the user entered {Player 1}
-    else{ 
-        game.player2Name[strlen(game.player2Name) - 1] = '\0';
-        if (!(strcmp(game.player1Name, game.player2Name))){ strcpy(game.player2Name, "Player 2"); }     // if player1name is same as player2name so sets player2name as "Player 2"
+            char userChoice[25];
+
+            // ai1 info
+            printf("\n> \033[1;33mChoose AI 1\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)\n");
+            while (true)
+            {
+                emptyBuffer();      // will be relevant if there is a 2nd repetition
+                printf("\nEnter your choice [1-3]: ");
+                fgets(userChoice, sizeof(userChoice), stdin);
+                if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2') || (userChoice[1] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+                {
+                    printf("> Accepted\n\n");
+                    break;
+                }
+                else
+                {
+                    printf("> [!] Enter either 1, 2, or 3");
+                    continue;
+                }
+            }
+
+            switch (userChoice[0])
+            {
+                case '1': strcpy(game.player2Name, "Awwal");   break;
+                case '2': strcpy(game.player2Name, "Thani");   break;
+                case '3': strcpy(game.player2Name, "Thalith"); break;
+            }
+
+            // ai2 info
+            printf("\n> \033[1;34mChoose AI 2\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)\n");
+            while (true)
+            {
+                emptyBuffer();      // will be relevant if there is a 2nd repetition
+                printf("\nEnter your choice [1-3]: ");
+                fgets(userChoice, sizeof(userChoice), stdin);
+                if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2') || (userChoice[1] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+                {
+                    printf("> Accepted\n\n");
+                    break;
+                }
+                else
+                {
+                    printf("> [!] Enter either 1, 2, or 3");
+                    continue;
+                }
+            }
+
+            switch (userChoice[0])
+            {
+                case '1': strcpy(game.player2Name, "Awwal");   break;
+                case '2': strcpy(game.player2Name, "Thani");   break;
+                case '3': strcpy(game.player2Name, "Thalith"); break;
+            }
+
+            break;
+        }
+
+        case 1:
+        {
+            // PvsAI
+            
+            // player info
+            emptyBuffer();
+            printf("\n> \033[1;33mPlayer 1\033[0m\n");
+            printf("      Enter your name: ");
+            fgets(game.player1Name, sizeof(game.player1Name), stdin);
+            if   ((strlen(game.player1Name) == 1) || !(strcmp(game.player1Name, "Player 2\n"))) { strcpy(game.player1Name, "Player 1"); }     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
+            else                                                                                { game.player1Name[strlen(game.player1Name) - 1] = '\0';}      // setting the trailing newline char to the null terminator char
+
+            // ai info
+            printf("\n> \033[1;34mChoose AI\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)\n");
+            char userChoice[25];
+            while (true)
+            {
+                emptyBuffer();      // will be relevant if there is a 2nd repetition
+                printf("\nEnter your choice [1-3]: ");
+                fgets(userChoice, sizeof(userChoice), stdin);
+                if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2') || (userChoice[1] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+                {
+                    printf("> Accepted\n\n");
+                    break;
+                }
+                else
+                {
+                    printf("> [!] Enter either 1, 2, or 3");
+                    continue;
+                }
+            }
+
+            switch (userChoice[0])
+            {
+                case '1': strcpy(game.player2Name, "Awwal");   break;
+                case '2': strcpy(game.player2Name, "Thani");   break;
+                case '3': strcpy(game.player2Name, "Thalith"); break;
+            }
+
+            break;
+        }
+
+        case 2:
+        {
+            // PvsP
+
+            // player1 info
+            emptyBuffer();
+            printf("\n> \033[1;33mPlayer 1\033[0m\n");
+            printf("      Enter your name: ");
+            fgets(game.player1Name, sizeof(game.player1Name), stdin);
+            if   ((strlen(game.player1Name) == 1) || !(strcmp(game.player1Name, "Player 2\n"))) { strcpy(game.player1Name, "Player 1"); }     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
+            else                                                                                { game.player1Name[strlen(game.player1Name) - 1] = '\0';}      // setting the trailing newline char to the null terminator char
+
+            // player2 info
+            emptyBuffer();
+            printf("> \033[1;34mPlayer 2\033[0m\n");
+            printf("      Enter your name: ");
+            fgets(game.player2Name, sizeof(game.player2Name), stdin);
+            if   ((strlen(game.player2Name) == 1) || !(strcmp(game.player2Name, "Player 1\n"))) { strcpy(game.player2Name, "Player 2"); }        // sets player2Name to {Player 2} if length is 1, or the user entered {Player 1}
+            else
+            { 
+                game.player2Name[strlen(game.player2Name) - 1] = '\0';
+                if (!(strcmp(game.player1Name, game.player2Name))){ strcpy(game.player2Name, "Player 2"); }     // if player1name is same as player2name so sets player2name as "Player 2"
+            }
+
+            break;
+        }
     }
-    printf("      Enter your symbol: ");
-    scanf(" %c", &game.player2Symbol);
-    if ((game.player2Symbol == ' ') || (game.player2Symbol == '\n') || (game.player2Symbol == '1') || (game.player1Symbol == game.player2Symbol)){ game.player2Symbol = '2'; }
+
 }
 void setGameBoard()
 {
     // gameBoard setup
     
-    game.emptyChar = ' ';
-
-    getchar();
+    // choosing the gameBoard's size
     printf("\n\n[GameBoard Size]\n  1) Blitz: 6 x 5\n  2) Classic: 7 x 6\n  3) Grand: 8 x 7");      // Mini, Titan
-    char userChoice;
+    char userChoice[25];
     while (true)
     {
+        emptyBuffer();
         printf("\nChoose your gameBoard [1-3]: ");
-        scanf(" %c", &userChoice);
-        if (userChoice == '1' || userChoice == '2' || userChoice == '3')
+        fgets(userChoice, sizeof(userChoice), stdin);
+        if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2') || (userChoice[1] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");
             break;
         }
-        printf("> Enter between 1 and 3");
+        else
+        {
+            printf("> [!] Enter either 1, 2, or 3");
+            continue;
+        }
     }
 
-    switch (userChoice)
+    // setting globals to selected size's settings
+    switch (userChoice[1])
     {
         case '1':   // 6 x 5
             game.rowCount = 6;
@@ -251,6 +394,7 @@ void setGameBoard()
             break;
     }
 
+    // initializing the spaces in the gameBoard to emptyChar
     for (int i = 0; i < game.rowCount; i++)
     {
         for (int j = 0; j < game.colCount; j++){
@@ -258,14 +402,8 @@ void setGameBoard()
         }
     }
 }
-void initializeGame()
-{
-    setGame();
-    setPlayers();
-    setGameBoard();
-}
 
-// player's gamePLay stuff
+// printing gameBoard
 void printGameBoard()
 {
     int numOfDashes = (6 * game.colCount);    // calculating the num of dashes required for rows
@@ -320,10 +458,11 @@ void showGameBoard()
     
     printf("\nThis is the gameBoard:");
     printGameBoard();
-    Sleep(2000);    // wait 2s
-    system("cls");
+    wait(2000);    // wait 2s
+    clearScreen();
     printGameBoard();
 }
+
 void getPlayerMove()
 {
     // sets the column number of a player's move to game.playerMove
@@ -366,13 +505,13 @@ void updateGameBoard()
 
     for (int row = 0; row <= game.rowCount; row++)    // why <= and not just < ???
     {
-        system("cls");
+        clearScreen();
         printGameBoard();
         if (game.gameBoard[row][columnToUpdate] == game.emptyChar)
         {
             if (row > 0){ game.gameBoard[row - 1][columnToUpdate] = game.emptyChar; }
             game.gameBoard[row][columnToUpdate] = playerMark;
-            Sleep(game.sleepTime);
+            wait(game.sleepTime);
         }
         else { break; }
     }
@@ -561,7 +700,7 @@ void evaluateGameBoard()
 {
     if (game.gameState != -1)        // continue the round if gameState == -1; will only work for totalMoves >= 7
     {
-        Sleep(330);     // a little pause before printing results
+        wait(330);     // a little pause before printing results
         switch (game.gameState)
         {
             case 0: 
@@ -570,7 +709,7 @@ void evaluateGameBoard()
 
             case 1: 
             {   
-                system("cls");
+                clearScreen();
                 printGameBoard();
                 int numBars = strlen("[* * *] WINNER: ") + strlen(game.player1Name) + strlen("! [* * *]");
                 char bars[numBars + 1];     // + 1 for '\0'
@@ -582,7 +721,7 @@ void evaluateGameBoard()
 
             case 2: 
             {   
-                system("cls");
+                clearScreen();
                 printGameBoard();
                 int numBars = strlen("[* * *] WINNER: ") + strlen(game.player2Name) + strlen("! [* * *]");
                 char bars[numBars + 1];     // + 1 for '\0'
@@ -594,7 +733,7 @@ void evaluateGameBoard()
         }
 
         game.playGame = false;      // breaks from the inner while loop in main()
-        Sleep(1500);    // wait 1.5s
+        wait(1500);    // wait 1.5s
         getchar();      // clearing the '\n' from the buffer
         printf("\n\nPress Enter to continue: ");
         char uselessStr[40];    // size 40 so the user can enter anything, even a faltoo long string, without the program breaking
@@ -603,7 +742,7 @@ void evaluateGameBoard()
 }
 
 
-// AI STUFF ----------------------------------------------------------------------------------------------------------------------------------
+// AI STUFF --------------------------------------------------------------------------------------------------------------------------------------
 
 // global variables;
 char gameBoardCopy[maxRows][maxCols];   //  a copy of the game.gameBoard
@@ -635,21 +774,19 @@ int positionNotFloating(int row, int col)
 }
 
 // checking functions
-int simpleUpdateGameBoard(char player, int columnToUpdate)
+int simpleUpdateGameBoard(char tokenToDrop, int columnToUpdate)
 {
-    // a: ai, o: opponent
-    char token = (player == 'a')? game.aiSymbol : game.player1Symbol;
     for (int row = 0; row < game.rowCount; row++)
     {
         if (gameBoardCopy[row][columnToUpdate] == game.emptyChar)
         {
-            gameBoardCopy[row][columnToUpdate] = token;
+            gameBoardCopy[row][columnToUpdate] = tokenToDrop;
             if (row > 0){ gameBoardCopy[row - 1][columnToUpdate] = game.emptyChar; }
         }
         else { return row; }        // returns the row num at which the token was dropped
     }
 }
-int simpleCheckHorizontally()
+int simpleCheckHorizontally(char myToken)
 {
     /*
         checking horizontally (rows)
@@ -668,15 +805,15 @@ int simpleCheckHorizontally()
                 (gameBoardCopy[row][col + 1] == gameBoardCopy[row][col + 2]) && 
                 (gameBoardCopy[row][col + 2] == gameBoardCopy[row][col + 3])   )
             { 
-                if    (gameBoardCopy[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                else                                                  { return 2; }     // player 2 won
+                if    (gameBoardCopy[row][col] == myToken) { return 1; }     // I (ai) won
+                else                                       { return 2; }     // opponent won
             }
         }
     }
 
     return -1;  // no four in a row horizontally
 }
-int simpleCheckVertically()
+int simpleCheckVertically(char myToken)
 {
     /*
         checking vertically (rows)
@@ -695,15 +832,15 @@ int simpleCheckVertically()
                 (gameBoardCopy[row + 1][col] == gameBoardCopy[row + 2][col]) &&
                 (gameBoardCopy[row + 2][col] == gameBoardCopy[row + 3][col])   )
             { 
-                if   (gameBoardCopy[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                else                                                 { return 2; }     // player 2 won
+                if   (gameBoardCopy[row][col] == myToken) { return 1; }     // I (ai) won
+                else                                      { return 2; }     // opponent won
             }
         }
     }
 
     return -1;  // no four in a row vertically
 }
-int simpleCheckPosDiagonals()
+int simpleCheckPosDiagonals(char myToken)
 {
     /*
         checking the +ve gradient diagonals
@@ -723,15 +860,15 @@ int simpleCheckPosDiagonals()
                 (gameBoardCopy[row - 1][col + 1] == gameBoardCopy[row - 2][col + 2]) && 
                 (gameBoardCopy[row - 2][col + 2] == gameBoardCopy[row - 3][col + 3])   )
             {      
-                if   (gameBoardCopy[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                else                                                 { return 2; }     // player 2 won
+                if   (gameBoardCopy[row][col] == myToken) { return 1; }     // I (ai) won
+                else                                      { return 2; }     // opponent won
             }    
         }
     }
 
     return -1;      // no complete +ve diagonal
 }
-int simpleCheckNegDiagonals()
+int simpleCheckNegDiagonals(char myToken)
 {
     /*
         checking the -ve gradient diagonals
@@ -751,8 +888,8 @@ int simpleCheckNegDiagonals()
                 (gameBoardCopy[row - 1][col - 1] == gameBoardCopy[row - 2][col - 2]) && 
                 (gameBoardCopy[row - 2][col - 2] == gameBoardCopy[row - 3][col - 3])   )
             {
-                if   (gameBoardCopy[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                else                                                 { return 2; }     // player 2 won
+                if   (gameBoardCopy[row][col] == myToken) { return 1; }     // I (ai) won
+                else                                      { return 2; }     // opponent won
             }    
         }
     }
@@ -777,7 +914,7 @@ int simpleCheckDraw()
 
     return 1;   // no emptyChar, so draw
 }
-int simpleCheckGameBoard()
+int simpleCheckGameBoard(char myToken)
 {    
     /*
         if (game.totalMoves >= 7)     // the min num of moves required for any player to have won is 7 (ie 4 by the player 1)
@@ -788,10 +925,10 @@ int simpleCheckGameBoard()
     if (simpleCheckDraw() == 1)
     { return 0; }       // game draws
 
-    else if ((simpleCheckHorizontally() == 1) || (simpleCheckVertically() == 1) || (simpleCheckPosDiagonals() == 1) || (simpleCheckNegDiagonals() == 1))
+    else if ((simpleCheckHorizontally(myToken) == 1) || (simpleCheckVertically(myToken) == 1) || (simpleCheckPosDiagonals(myToken) == 1) || (simpleCheckNegDiagonals(myToken) == 1))
     { return 1; }       // player1 wins
 
-    else if ((simpleCheckHorizontally() == 2) || (simpleCheckVertically() == 2) || (simpleCheckPosDiagonals() == 2) || (simpleCheckNegDiagonals() == 2))
+    else if ((simpleCheckHorizontally(myToken) == 2) || (simpleCheckVertically(myToken) == 2) || (simpleCheckPosDiagonals(myToken) == 2) || (simpleCheckNegDiagonals(myToken) == 2))
     { return 2; }       // player2 wins
 
     else 
@@ -802,11 +939,11 @@ int simpleCheckGameBoard()
 void _shaykh_Debugger()
 {
     // also put index, gameboardcopy, and emptycolumnindices
-    printf("\n\n[Shaykh Debugger]\n\t[1] simpleCheckHorizontally(): %d\n\t[2] simpleCheckVertically():   %d\n\t[3] simpleCheckPosDiagonals(): %d\n\t[4] simpleCheckNegDiagonals(): %d\n\t[5] simpleCheckDraw():         %d\n", simpleCheckHorizontally(), simpleCheckVertically(), simpleCheckPosDiagonals(), simpleCheckNegDiagonals(), simpleCheckDraw());
+    // printf("\n\n[Shaykh Debugger]\n\t[1] simpleCheckHorizontally(): %d\n\t[2] simpleCheckVertically():   %d\n\t[3] simpleCheckPosDiagonals(): %d\n\t[4] simpleCheckNegDiagonals(): %d\n\t[5] simpleCheckDraw():         %d\n", simpleCheckHorizontally(), simpleCheckVertically(), simpleCheckPosDiagonals(), simpleCheckNegDiagonals(), simpleCheckDraw());
 }
 
 // AIs
-int lvl1_win_playRandom()
+int lvl1awwal_win_playRandom(char myToken)
 {
     /*
         "if i can win now, i will win; else i will play a random position"
@@ -825,7 +962,7 @@ int lvl1_win_playRandom()
         makeGameBoardCopy();
         move = availableColumns[i];
         simpleUpdateGameBoard('a', move);
-        if ((simpleCheckGameBoard() == 0) || (simpleCheckGameBoard() == 2)){ return move; }    //  if ai wins or the game draws with the ai's move, return that move
+        if ((simpleCheckGameBoard(myToken) == 0) || (simpleCheckGameBoard(myToken) == 1)){ return move; }    //  if ai wins or the game draws with the ai's move, return that move
     }
 
     // playing a random move
@@ -834,7 +971,7 @@ int lvl1_win_playRandom()
     move = availableColumns[randomIndex];
     return move;
 }
-int lvl2_win_dontLose_playRandom()
+int lvl2thani_win_dontLose_playRandom(char myToken, char opponentToken)
 {
     /*
         "if i can win now, i will win; else if the opponent can win, i will block; else i will play a random position"
@@ -853,8 +990,8 @@ int lvl2_win_dontLose_playRandom()
     {
         makeGameBoardCopy();
         move = availableColumns[i];
-        simpleUpdateGameBoard('a', move);
-        if ((simpleCheckGameBoard() == 0) || (simpleCheckGameBoard() == 2)){ return move; }    //  if ai wins or the game draws with the ai's move, return that move
+        simpleUpdateGameBoard(myToken, move);
+        if ((simpleCheckGameBoard(myToken) == 0) || (simpleCheckGameBoard(myToken) == 1)){ return move; }    //  if ai wins or the game draws with the ai's move, return that move
     }
 
     // blocking opponent's win
@@ -862,8 +999,8 @@ int lvl2_win_dontLose_playRandom()
     {
         makeGameBoardCopy();
         move = availableColumns[i];
-        simpleUpdateGameBoard('o', move);
-        if ((simpleCheckGameBoard() == 1)){ return move; }    //  if the opponent can win in a move, return that move
+        simpleUpdateGameBoard(opponentToken, move);
+        if ((simpleCheckGameBoard(myToken) == 2)){ return move; }    //  if the opponent can win in a move, return that move
     }
 
     // playing a random move
@@ -872,7 +1009,7 @@ int lvl2_win_dontLose_playRandom()
     move = availableColumns[randomIndex];
     return move;
 }
-int lvl3_win_dontLose_prevent3InARow_playRandom()
+int lvl3thalith_win_dontLose_prevent3InARow_playRandom(char myToken, char opponentToken)
 {
     /*
         "win; block opponent's win; block opponent's potential 3-in-a-row; else play a random move"
@@ -891,8 +1028,8 @@ int lvl3_win_dontLose_prevent3InARow_playRandom()
     {
         makeGameBoardCopy();
         move = availableColumns[i];
-        simpleUpdateGameBoard('a', move);
-        if ((simpleCheckGameBoard() == 0) || (simpleCheckGameBoard() == 2)){ return move; }    //  if ai wins or the game draws with the ai's move, return that move
+        simpleUpdateGameBoard(myToken, move);
+        if ((simpleCheckGameBoard(myToken) == 0) || (simpleCheckGameBoard(myToken) == 1)){ return move; }    //  if ai wins or the game draws with the ai's move, return that move
     }
 
     // blocking opponent's win
@@ -900,8 +1037,8 @@ int lvl3_win_dontLose_prevent3InARow_playRandom()
     {
         makeGameBoardCopy();
         move = availableColumns[i];
-        simpleUpdateGameBoard('o', move);
-        if ((simpleCheckGameBoard() == 1)){ return move; }    //  if the opponent can win in a move, return that move
+        simpleUpdateGameBoard(opponentToken, move);
+        if ((simpleCheckGameBoard(myToken) == 2)){ return move; }    //  if the opponent can win in a move, return that move
     }
 
     // preventing the opponent's potential 3-in-a-row
@@ -910,7 +1047,7 @@ int lvl3_win_dontLose_prevent3InARow_playRandom()
     {
         makeGameBoardCopy();
         col = availableColumns[i];
-        row = simpleUpdateGameBoard('o', col);
+        row = simpleUpdateGameBoard(opponentToken, col);
         int filled, empty;
 
         // checking horizontally (rows)
@@ -920,7 +1057,7 @@ int lvl3_win_dontLose_prevent3InARow_playRandom()
             for (int k = 0; k < 4; k++)
             {
                 if      ((gameBoardCopy[row][j + k] == game.emptyChar) && (positionNotFloating(row, j + k))) { empty++;  }
-                else if (gameBoardCopy[row][j + k] == game.player1Symbol)                                    { filled++; }
+                else if (gameBoardCopy[row][j + k] == opponentToken)                                         { filled++; }
             }
             if ((empty == 1) && (filled == 3)) { return col; }
         }
@@ -928,7 +1065,7 @@ int lvl3_win_dontLose_prevent3InARow_playRandom()
         // checking vertically (columns)
         if (row < game.rowCount - 2)
         {
-            if ((gameBoardCopy[row + 1][col] == game.player1Symbol) && (gameBoardCopy[row + 2][col] == game.player1Symbol)){ return col; }
+            if ((gameBoardCopy[row + 1][col] == opponentToken) && (gameBoardCopy[row + 2][col] == opponentToken)){ return col; }
         }
 
         // checking pos diagonals
@@ -940,7 +1077,7 @@ int lvl3_win_dontLose_prevent3InARow_playRandom()
                 for (int l = 0; l < 4; l++)     // groups
                 {
                     if      ((gameBoardCopy[k - l][j + l] == game.emptyChar) && (positionNotFloating(k - l, j + l))) { empty++;  }
-                    else if (gameBoardCopy[k - l][j + l] == game.player1Symbol)                                      { filled++; }
+                    else if (gameBoardCopy[k - l][j + l] == opponentToken)                                           { filled++; }
                 }
                 if ((empty == 1) && (filled == 3)) { return col; }
             }
@@ -955,7 +1092,7 @@ int lvl3_win_dontLose_prevent3InARow_playRandom()
                 for (int l = 0; l < 4; l++)     // groups
                 {
                     if      ((gameBoardCopy[k - l][j - l] == game.emptyChar) && (positionNotFloating(k - l, j - l))) { empty++;  }
-                    else if (gameBoardCopy[k - l][j - l] == game.player1Symbol)                                      { filled++; }
+                    else if (gameBoardCopy[k - l][j - l] == opponentToken)                                           { filled++; }
                 }
                 if ((empty == 1) && (filled == 3)) { return col; }
             }
@@ -972,7 +1109,55 @@ int lvl3_win_dontLose_prevent3InARow_playRandom()
 int lvl4_simulates3Moves();     // 1st ai, 2nd opponent, 3rd ai
 int lvl5_simulates5Moves();     // 1st ai, 2nd opponent, 3rd ai, 4th opponent, 5th ai
 
-// --------------------------------------------------------------------------------------------------------------------------------------------
+
+//  gameModes ----------------------------------------------------------------------------------------------------------------------------------
+
+void PvP()
+{
+
+    setGame();
+    setGameBoard();
+    setPlayers(2);
+    // -------------------------------------
+
+    initializeGame();
+    showGameBoard();
+
+    while (game.playGame)
+    {
+        getPlayerMove();
+        updateGameBoard();
+        checkGameBoard();
+        evaluateGameBoard();
+    }
+}
+void PvAI()
+{
+    setGame();
+    setGameBoard();
+    setPlayers(1);
+
+    while (game.playGame)
+    {
+        evaluateGameBoard();
+        break;
+    }
+}
+void AIvAI()
+{
+    setGame();
+    setGameBoard();
+    setPlayers(0);
+
+    while (game.playGame)
+    {
+        evaluateGameBoard();
+        break;
+    }
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
 int main()
@@ -981,10 +1166,12 @@ int main()
         switch (mainMenu())
         {
             case 1:
+                game.continueProgram = true;
                 playGame();
                 break;
 
             case 2:
+                game.continueProgram = false;
                 exitGame();
                 break;
         }
