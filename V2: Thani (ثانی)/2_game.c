@@ -11,7 +11,6 @@
 gameConfig game;
 
 
-
 void animateText(char strToAnimate[], int timeDelayms)
 {
     for (int i = 0; i < strlen(strToAnimate); i++)

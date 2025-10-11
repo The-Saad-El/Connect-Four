@@ -3,12 +3,11 @@
 //  ---------------------------------------------------------------------------------------------------------------------------
 
 
-int lvl1_firstAvailable();
-int lvl2_randomPosition();
-int lvl3_checksWin();       // iterates through each column and calls the checkGameBoard() to check for win
-int lvl4_checksLoss();
-int lvl5_simulates2Turns();
-int lvl6_simulates3Turns();
+int lvl1_simulates1Move();
+int lvl2_simulates2Moves();
+int lvl3_simulates3Moves();
+int lvl4_simulates4Moves();
+int lvl5_simulates5Moves();
 
 
 //  ---------------------------------------------------------------------------------------------------------------------------
