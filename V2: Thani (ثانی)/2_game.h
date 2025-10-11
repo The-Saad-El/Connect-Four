@@ -68,6 +68,8 @@ int checkDraw();
 void checkGameBoard();
 void shaykh_Debugger();
 
+int lvl2_win_dontLose_playRandom();
+
 void evaluateGameBoard();
 
 
