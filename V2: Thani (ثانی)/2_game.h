@@ -22,8 +22,6 @@ typedef struct
 
     // gameBoard setup
     char gameBoard[maxRows][maxCols];       // the gameBoard, initialized to the max possible size
-    // int maxRows;                         // max number of rows possible of the gameBoard
-    // int maxCols;                         // max number of columns possible of the gameBoard
     int rowCount;                           // number of rows of the chosen gameBoard size
     int colCount;                           // number of columns of the chosen gameBoard size
     char emptyChar;                         // the char used to represent an empty/unfilled position
@@ -33,10 +31,6 @@ typedef struct
     char player1Symbol;                     // the symbol/mark/token for player1's spaces
     char player2Name[25];                   // name/title of player2;
     char player2Symbol;                     // the symbol/mark/token for player2's spaces
-
-    // ai setup
-    char aiSymbol;                          // the symbol/mark/token for ai's spaces
-    char gameBoardCopy[maxRows][maxCols];   // a replica of the gameBoard; used for simulating turns by AI
 
 } gameConfig;
 
@@ -67,8 +61,6 @@ int checkNegDiagonals();
 int checkDraw();
 void checkGameBoard();
 void shaykh_Debugger();
-
-int lvl2_win_dontLose_playRandom();
 
 void evaluateGameBoard();
 

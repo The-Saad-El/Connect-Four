@@ -20,9 +20,6 @@
 char gameBoardCopy[maxRows][maxCols];   //  a copy of the game.gameBoard
 int availableColumns[maxCols];          //  an array containing the indices of the empty/available/playable columns in gameBoardCopy
 int index;                              //  counter containing the num of elements in emptyColumnIndices
-int gameStatus;                         //  stores the result of simpleCheckGameBoard()
-int moveScore;                          //  stores the result of findMoveScore()
-
 
 void makeGameBoardCopy()
 {
@@ -39,6 +36,12 @@ void findAvailableColumns()
             index++;
         }
     }
+}
+int positionNotFloating(int row, int col)
+{
+    if      (row == (game.rowCount - 1))                    { return 1; }       // is the very last row
+    else if (gameBoardCopy[row + 1][col] != game.emptyChar) { return 1; }       // is not the last row, & the row after it is filled
+    else                                                    { return 0; }       // is not the last row, & the row after it is empty
 }
 
 // checking functions
@@ -204,22 +207,8 @@ int simpleCheckGameBoard()
     else 
     { return -1; }      // game continues as is
 }
-int findMoveScore()
-{
-    switch (simpleCheckGameBoard())
-    {
-        case  0:                   // draws
-            { return   5; }
-        case  1:                   // player wins
-            { return -10; }
-        case  2:                   // ai wins
-            { return  10; }
-        case -1:                   // continues
-            { return   0; }
-    }
-}
 
-void shaykh_Debugger()
+void _shaykh_Debugger()
 {
     // also put index, gameboardcopy, and emptycolumnindices
     printf("\n\n[Shaykh Debugger]\n\t[1] simpleCheckHorizontally(): %d\n\t[2] simpleCheckVertically():   %d\n\t[3] simpleCheckPosDiagonals(): %d\n\t[4] simpleCheckNegDiagonals(): %d\n\t[5] simpleCheckDraw():         %d\n", simpleCheckHorizontally(), simpleCheckVertically(), simpleCheckPosDiagonals(), simpleCheckNegDiagonals(), simpleCheckDraw());
@@ -255,7 +244,6 @@ int lvl1_win_playRandom()
     move = availableColumns[randomIndex];
     return move;
 }
-
 int lvl2_win_dontLose_playRandom()
 {
     /*
@@ -294,7 +282,6 @@ int lvl2_win_dontLose_playRandom()
     move = availableColumns[randomIndex];
     return move;
 }
-
 int lvl3_win_dontLose_prevent3InARow_playRandom()
 {
     /*
@@ -334,89 +321,56 @@ int lvl3_win_dontLose_prevent3InARow_playRandom()
         makeGameBoardCopy();
         col = availableColumns[i];
         row = simpleUpdateGameBoard('o', col);
+        int filled, empty;
 
         // checking horizontally (rows)
-        if (col )
-        if ((gameBoardCopy[row][col]     != game.emptyChar             ) &&
-            (gameBoardCopy[row][col]     == gameBoardCopy[row][col + 1]) && 
-            (gameBoardCopy[row][col + 1] == gameBoardCopy[row][col + 2]) && 
-            (gameBoardCopy[row][col + 2] == gameBoardCopy[row][col + 3])   )
-        { 
-            if    (gameBoardCopy[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-            else                                                  { return 2; }     // player 2 won
-        }
-
-
-    }
-
-
-    // checking horizontally (rows)
-    for (int row = 0; row < game.rowCount; row++)
-    {
-        for (int col = 0; col < (game.colCount - 3); col++)
+        for (int j = 0; j < (game.colCount - 3); j++)
         {
-            if ((gameBoardCopy[row][col]     != game.emptyChar             ) &&
-                (gameBoardCopy[row][col]     == gameBoardCopy[row][col + 1]) && 
-                (gameBoardCopy[row][col + 1] == gameBoardCopy[row][col + 2]) && 
-                (gameBoardCopy[row][col + 2] == gameBoardCopy[row][col + 3])   )
-            { 
-                if    (gameBoardCopy[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                else                                                  { return 2; }     // player 2 won
-            }
-        }
-    }
-
-
-    // checking vertically (rows)
-    for (int col = 0; col < game.colCount; col++)     // left to right
-    {
-        for (int row = 0; row < (game.rowCount - 3); row++)   // top to bottom
-        {
-            if ((gameBoardCopy[row]    [col] != game.emptyChar             ) &&
-                (gameBoardCopy[row]    [col] == gameBoardCopy[row + 1][col]) &&
-                (gameBoardCopy[row + 1][col] == gameBoardCopy[row + 2][col]) &&
-                (gameBoardCopy[row + 2][col] == gameBoardCopy[row + 3][col])   )
-            { 
-                if   (gameBoardCopy[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                else                                                 { return 2; }     // player 2 won
-            }
-        }
-    }
-
-    // simpleCheckPosDiagonals
-    for (int Row = game.rowCount; Row >= 4; Row--)     // reverse loop (from the bottom row to the topmost)
-    {
-        for (int Col = 1; Col <= (game.colCount - 3); Col++)      // left to right
-        {
-            int row = (Row - 1), col = (Col - 1);
-            if ((gameBoardCopy[row]    [col]     != game.emptyChar                 ) &&
-                (gameBoardCopy[row]    [col]     == gameBoardCopy[row - 1][col + 1]) && 
-                (gameBoardCopy[row - 1][col + 1] == gameBoardCopy[row - 2][col + 2]) && 
-                (gameBoardCopy[row - 2][col + 2] == gameBoardCopy[row - 3][col + 3])   )
-            {      
-                if   (gameBoardCopy[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                else                                                 { return 2; }     // player 2 won
-            }    
-        }
-    }
-
-    // simpleCheckNegDiagonals
-    for (int Row = game.rowCount; Row >= 4; Row--)     // reverse loop (from the bottom row to the topmost)
-    {
-        for (int Col = game.colCount; Col >= 4; Col--)     // from right to left
-        {
-            int row = (Row - 1), col = (Col - 1);
-            if ((gameBoardCopy[row]    [col]     != game.emptyChar                 ) &&
-                (gameBoardCopy[row]    [col]     == gameBoardCopy[row - 1][col - 1]) && 
-                (gameBoardCopy[row - 1][col - 1] == gameBoardCopy[row - 2][col - 2]) && 
-                (gameBoardCopy[row - 2][col - 2] == gameBoardCopy[row - 3][col - 3])   )
+            filled = 0, empty = 0;
+            for (int k = 0; k < 4; k++)
             {
-                if   (gameBoardCopy[row][col] == game.player1Symbol) { return 1; }     // player 1 won
-                else                                                 { return 2; }     // player 2 won
-            }    
+                if      ((gameBoardCopy[row][j + k] == game.emptyChar) && (positionNotFloating(row, j + k))) { empty++;  }
+                else if (gameBoardCopy[row][j + k] == game.player1Symbol)                                    { filled++; }
+            }
+            if ((empty == 1) && (filled == 3)) { return col; }
+        }
+
+        // checking vertically (columns)
+        if (row < game.rowCount - 2)
+        {
+            if ((gameBoardCopy[row + 1][col] == game.player1Symbol) && (gameBoardCopy[row + 2][col] == game.player1Symbol)){ return col; }
+        }
+
+        // checking pos diagonals
+        for (int j = 0; j < (game.colCount - 3); j++)   // columns: left to right
+        {
+            for (int k = (game.rowCount - 1); k > 2; k--)   // rows: bottom to top
+            {
+                filled = 0, empty = 0;
+                for (int l = 0; l < 4; l++)     // groups
+                {
+                    if      ((gameBoardCopy[k - l][j + l] == game.emptyChar) && (positionNotFloating(k - l, j + l))) { empty++;  }
+                    else if (gameBoardCopy[k - l][j + l] == game.player1Symbol)                                      { filled++; }
+                }
+                if ((empty == 1) && (filled == 3)) { return col; }
+            }
+        }
+
+        // checking neg diagonals
+        for (int j = (game.colCount - 1); j > 2; j--)   // columns: right to left
+        {
+            for (int k = (game.rowCount - 1); k > 2; k--)   // rows: bottom to top
+            {
+                filled = 0, empty = 0;
+                for (int l = 0; l < 4; l++)     // groups
+                {
+                    if      ((gameBoardCopy[k - l][j - l] == game.emptyChar) && (positionNotFloating(k - l, j - l))) { empty++;  }
+                    else if (gameBoardCopy[k - l][j - l] == game.player1Symbol)                                      { filled++; }
+                }
+                if ((empty == 1) && (filled == 3)) { return col; }
+            }
         }
     }
-
 
     // playing a random move
     srand(time(NULL));
@@ -425,42 +379,5 @@ int lvl3_win_dontLose_prevent3InARow_playRandom()
     return move;
 }
 
-
-int lvl2_win_dontLose_simulates2Moves()   // the min num of simulations is 2
-{
-    /*
-        "if i can win now, i will win; else if the opponent can win, i will block; else i will play a random position"
-
-        > simulates one move of his across all available columns
-        > if he wins by playing any of em or the game draws with his move, returns the index of that column
-        > else if the opponent can win next turn by playing a move, blocks that
-        > else plays a random available column and return its index
-    */
-
-    int move;
-    findAvailableColumns();
-
-    // checking for ai's instant win
-    for (int i = 0; i < index; i++)
-    {
-        makeGameBoardCopy();
-        move = availableColumns[i];
-        simpleUpdateGameBoard(2, move);
-        if ((simpleCheckGameBoard() == 0) || (simpleCheckGameBoard() == 2)){ return move; }    //  if ai wins or the game draws with the ai's move, return that move
-    }
-
-    // blocking opponent's win
-    for (int i = 0; i < index; i++)
-    {
-        makeGameBoardCopy();
-        move = availableColumns[i];
-        simpleUpdateGameBoard(1, move);
-        if ((simpleCheckGameBoard() == 1)){ return move; }    //  if the opponent can win in a move, return that move
-    }
-
-    return playRandomMove();
-}
-
-int lvl3_simulates3Moves();
-int lvl4_simulates4Moves();
-int lvl5_simulates5Moves();
+int lvl4_simulates3Moves();     // 1st ai, 2nd opponent, 3rd ai
+int lvl5_simulates5Moves();     // 1st ai, 2nd opponent, 3rd ai, 4th opponent, 5th ai
