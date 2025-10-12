@@ -40,6 +40,7 @@ typedef struct
     // game setup
     bool continueProgram;                   // flag used for the main while loop in main()
     bool playGame;                          // flag used for the individual game loops
+    bool randomSeeded;                      // flag used to indicate whether rand() has already been seeded in the program (using srand())
     int totalMoves;                         // counter for the total number of moves made
     int activePlayer;                       // 0: game not started, 1: player1, 2: player2 (can be real players or AI)
     int playerMove;                         // holds the move (ie the numOfAvailableColumns position of the chosen column) of the current activePlayer
@@ -77,8 +78,9 @@ void clearScreen()
 }
 void emptyBuffer()
 {
+    int count = 0;
     int tempChar;
-    while (true)
+    while (count < 123)     // arbitrary max count limit
     {
         tempChar = getchar();
         if ((tempChar == '\n') || (tempChar == EOF))   // continue while tempChar is not the newline char or the eof is not reach
@@ -88,6 +90,7 @@ void emptyBuffer()
         else
         {
             // do nothing, just consume characters
+            count++;
             continue;
         }
     }
@@ -201,21 +204,27 @@ void playGame()
             AIvAI();
             break;
         case '4':
-            mainMenu();
+            // mainMenu();      will result in infinite recursive loop
             break;
     }
 }
 void exitGame()
 {
     // exiting animation mainly
-
+    clearScreen();
+    printf("==================\n=> Connect Four <=\n==================\n");
     printf("\n\n");
+
     for (int i = 5; i >= 1; i--)
     {
         printf("\rExiting in %d", i);
         wait(1000);
     }
-    printf("\rExiting now. <^-^>");
+    //printf("\rExiting now. <^-^>\n");
+
+    animateText("\r            \rMade by Saad, bi-idhni'Allah Ta'ala  <^-^>", 63);
+    wait(2000);
+    animateText("\r                                          ", 63);
 }
 
 // initializing game
@@ -231,6 +240,7 @@ void setGame()
     game.player2Symbol = 'O';
     game.emptyChar = ' ';
     game.sleepTime = 300;
+    for (int i = 0; i < 4; i++){ game.winningIndices[i][0] = -1; game.winningIndices[i][1] = -1; }
 }
 void setPlayers()
 {
@@ -376,12 +386,12 @@ void setPlayers()
             printf("\n> \033[1;34mPlayer 2\033[0m\n");
             printf("      Enter your name: ");
             fgets(game.player2Name, sizeof(game.player2Name), stdin);
-            if   ((strlen(game.player2Name) == 1) || (!strcmp(game.player2Name, "Player 2\n"))){     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
-                strcpy(game.player2Name, "Player 1"); 
+            if   ((strlen(game.player2Name) == 1) || (!strcmp(game.player2Name, "Player 1\n"))){     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
+                strcpy(game.player2Name, "Player 2"); 
             }
-            else if (game.player2Name[strlen(game.player2Name - 1)] != '\n'){        // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+            else if (game.player2Name[strlen(game.player2Name) - 1 ] != '\n'){        // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
                 emptyBuffer();
-                strcpy(game.player2Name, "Player 1"); 
+                strcpy(game.player2Name, "Player 2"); 
             } 
             else{                   
                 game.player2Name[strlen(game.player2Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
@@ -400,13 +410,13 @@ void setGameBoard()
     printf("==================\n=> Connect Four <=\n==================\n");
     
     // choosing the gameBoard's size
-    printf("\n\n[GameBoard Size]\n  1) Blitz: 6 x 5\n  2) Classic: 7 x 6\n  3) Grand: 8 x 7");      // Mini, Titan
+    printf("\n\n[GameBoard Size]\n  [1] Blitz: 6 x 5\n  [2] Classic: 7 x 6\n  [3] Grand: 8 x 7\n  [4] Go Back");      // Mini, Titan
     char userChoice[25];
     while (true)
     {
-        printf("\nChoose your gameBoard [1-3]: ");
+        printf("\nChoose your gameBoard [1-4]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3') || (userChoice[0] == '4')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");
             break;
@@ -434,6 +444,9 @@ void setGameBoard()
             game.rowCount = 8;
             game.colCount = 7;
             break;
+        case '4':   // go back
+            setPlayers();
+            return;     // breaks from the whole function
     }
 
     // initializing the spaces in the gameBoard to emptyChar
@@ -764,7 +777,7 @@ void finishRound()
     printf("\n\nPress Enter to continue: ");
     char uselessStr[25];    // size 40 so the user can enter anything, even a faltoo long string, without the program breaking
     fgets(uselessStr, sizeof(uselessStr), stdin);    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
-    if (uselessStr[strlen(uselessStr - 1)] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+    if (uselessStr[strlen(uselessStr) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
 }
 
 
@@ -811,6 +824,7 @@ int simpleUpdateGameBoard(char tokenToDrop, int columnToUpdate)
         {
             gameBoardCopy[row][columnToUpdate] = tokenToDrop;
             if (row > 0){ gameBoardCopy[row - 1][columnToUpdate] = game.emptyChar; }
+            if (row == (game.rowCount - 1)){ return row; }    // the token reached the last row
         }
         else { return row; }        // returns the row num at which the token was dropped
     }
@@ -1269,7 +1283,7 @@ void getAIMove()
             break; 
     }
 
-    printf("\n--> %d", game.playerMove - 1);
+    printf("\n--> %d", game.playerMove + 1);        // game.playerMove contains index (ie columnPosition - 1)
 }
 
 
@@ -1300,7 +1314,7 @@ void PvAI()
     setPlayers();
     setGameBoard();
     showGameBoard();
-    srand(time(NULL));
+    if (!game.randomSeeded){ srand(time(NULL)); game.randomSeeded = true; }
 
     while (game.playGame)
     {
@@ -1320,7 +1334,7 @@ void AIvAI()
     setPlayers();
     setGameBoard();
     showGameBoard();
-    srand(time(NULL));
+    if (!game.randomSeeded){ srand(time(NULL)); game.randomSeeded = true; }
 
     while (game.playGame)
     {
@@ -1340,11 +1354,14 @@ void AIvAI()
 
 int main()
 {
-    do {
+    game.continueProgram = true;
+    game.randomSeeded = false;
+
+    while (game.continueProgram)
+    {
         switch (mainMenu())
         {
             case 1:
-                game.continueProgram = true;
                 playGame();
                 break;
 
@@ -1353,7 +1370,7 @@ int main()
                 exitGame();
                 break;
         }
-    } while (game.continueProgram);
+    } 
 
     return 0;
 }
