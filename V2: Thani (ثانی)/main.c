@@ -285,7 +285,7 @@ void setPlayers()
             }
 
             // ai2 info
-            printf("\n> \033[1;34mChoose AI 2\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)");
+            printf("> \033[1;34mChoose AI 2\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)");
             while (true)
             {
                 printf("\nEnter your choice [1-3]: ");
@@ -539,7 +539,7 @@ void updateGameBoard()
         {
             if (row > 0){ game.gameBoard[row - 1][game.playerMove] = game.emptyChar; }      // sets the previous/above position back to emptyChar
             game.gameBoard[row][game.playerMove] = playerMark;      // sets current position/space to playerMark
-            wait(game.sleepTime);
+            wait(game.sleepTime - (row * 15));      // accelerating :)
         }
         else { break; }
     }
@@ -1236,12 +1236,12 @@ void getAIMove()
                                 };
     
     printf("\n");
-    int randomIndex = (rand() % 20) + 1;
+    int randomIndex = (rand() % 19) + 1;
     animateText(AIDialogues[randomIndex], 123);
     wait(2000);
 
     printf("\n--> Col %d!", game.playerMove + 1);        // game.playerMove contains index (ie columnPosition - 1)
-    wait(350);
+    wait(500);  // wait .5s
 }
 
 
