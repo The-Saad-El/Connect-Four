@@ -17,7 +17,7 @@
 */
 
 
-// headers ---------------------------------------------------------------------------------------------------------------------------------------
+// headers ------------------------------------------------------------------------------------------------------------------------------------------
 
 #include <time.h>
 #include <stdio.h>
@@ -30,7 +30,7 @@
 #endif
 
 
-// globals ---------------------------------------------------------------------------------------------------------------------------------------
+// globals ------------------------------------------------------------------------------------------------------------------------------------------
 
 #define maxRows 8
 #define maxCols 7
@@ -42,7 +42,7 @@ typedef struct
     bool playGame;                          // flag used for the individual game loops
     int totalMoves;                         // counter for the total number of moves made
     int activePlayer;                       // 0: game not started, 1: player1, 2: player2 (can be real players or AI)
-    int playerMove;                         // holds the move (ie the column position) of the current activePlayer
+    int playerMove;                         // holds the move (ie the numOfAvailableColumns position of the chosen column) of the current activePlayer
     int gameState;                          // flag for the current gameBoard state; -1: continue, 0: draw, 1: player1 won, 2: player2 won
     int sleepTime;                          // the time, in ms, used for the argument of the wait() function, for animating gameBoard updates
     int winningIndices[4][2];               // an array containing indices of the winning-row
@@ -64,7 +64,7 @@ typedef struct
 gameConfig game;
 
 
-// helpers ---------------------------------------------------------------------------------------------------------------------------------------
+// helpers ------------------------------------------------------------------------------------------------------------------------------------------
 
 void clearScreen()
 {
@@ -107,7 +107,11 @@ void animateText(char strToAnimate[], int timeDelayms)
 }
 
 
-// game -------------------------------------------------------------------------------------------------------------------------------------------
+// game ---------------------------------------------------------------------------------------------------------------------------------------------
+
+void PvP();
+void PvAI();
+void AIvAI();
 
 // main() stuff
 int mainMenu()
@@ -421,7 +425,7 @@ void printGameBoard()
             {
                 for (int k = 0; k < 4; k++)
                 {
-                    if ((game.winningIndices[k][0] == i) && (game.winningIndices[k][1] == j)){   // [k][0] has the i value of the winning position's index & [k][1] the j value
+                    if ((game.winningIndices[k][0] == i) && (game.winningIndices[k][1] == j)){   // [k][0] has the i value of the winning position's numOfAvailableColumns & [k][1] the j value
                         isWinningIndex = true;
                         break;
                     }
@@ -463,54 +467,29 @@ void showGameBoard()
     printGameBoard();
 }
 
-void getPlayerMove()
+// gamePlay stuff
+void switchActivePlayer()
 {
-    // sets the column number of a player's move to game.playerMove
-
     switch (game.activePlayer)
     {
         case 0: game.activePlayer = 1; break;
         case 1: game.activePlayer = 2; break;
         case 2: game.activePlayer = 1; break;
     }
-
-    if  (game.activePlayer == 1){ printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name); }      // printing the playerName in color
-    else                        { printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); }
-    
-    int userMove;
-    while (true)
-    {
-        printf("\nEnter your move (Column 1-%d): ", game.colCount);
-        scanf("%d", &userMove);
-
-        if ((userMove < 1) || (userMove > game.colCount)){
-            printf("> That column doesn't exist!");
-            continue;
-        }
-        else if (game.gameBoard[0][userMove - 1] != game.emptyChar){       // checks if the very top row/position of the chosen column is full or not
-            printf("> That column is already filled!");
-            continue;
-        }
-        else{ 
-            game.playerMove = userMove;
-            break; 
-        }
-    }
 }
 void updateGameBoard()
 {
     game.totalMoves++;
     char playerMark = ((game.activePlayer == 1)? game.player1Symbol : game.player2Symbol);
-    int columnToUpdate = --game.playerMove;
 
     for (int row = 0; row <= game.rowCount; row++)    // why <= and not just < ???
     {
         clearScreen();
         printGameBoard();
-        if (game.gameBoard[row][columnToUpdate] == game.emptyChar)
+        if (game.gameBoard[row][game.playerMove] == game.emptyChar)
         {
-            if (row > 0){ game.gameBoard[row - 1][columnToUpdate] = game.emptyChar; }
-            game.gameBoard[row][columnToUpdate] = playerMark;
+            if (row > 0){ game.gameBoard[row - 1][game.playerMove] = game.emptyChar; }
+            game.gameBoard[row][game.playerMove] = playerMark;
             wait(game.sleepTime);
         }
         else { break; }
@@ -733,36 +712,42 @@ void evaluateGameBoard()
         }
 
         game.playGame = false;      // breaks from the inner while loop in main()
-        wait(1500);    // wait 1.5s
-        getchar();      // clearing the '\n' from the buffer
-        printf("\n\nPress Enter to continue: ");
-        char uselessStr[40];    // size 40 so the user can enter anything, even a faltoo long string, without the program breaking
-        fgets(uselessStr, sizeof(uselessStr), stdin);    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
     }
+}
+void finishRound()
+{
+    wait(1500);    // wait 1.5s
+    emptyBuffer();      // clearing the '\n' from the buffer
+    printf("\n\nPress Enter to continue: ");
+    char uselessStr[25];    // size 40 so the user can enter anything, even a faltoo long string, without the program breaking
+    fgets(uselessStr, sizeof(uselessStr), stdin);    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
 }
 
 
-// AI STUFF --------------------------------------------------------------------------------------------------------------------------------------
+// ai stuff ------------------------------------------------------------------------------------------------------------------------------------------
 
 // global variables;
 char gameBoardCopy[maxRows][maxCols];   //  a copy of the game.gameBoard
 int availableColumns[maxCols];          //  an array containing the indices of the empty/available/playable columns in gameBoardCopy
-int index;                              //  counter containing the num of elements in emptyColumnIndices
+int numOfAvailableColumns;              //  counter containing the num of elements in emptyColumnIndices
 
 // helper functions
 void makeGameBoardCopy()
 {
-    strcpy(gameBoardCopy, game.gameBoard);
+    for (int row = 0; row < maxRows; row++)
+    {
+        strcpy(gameBoardCopy[row], game.gameBoard[row]);  
+    }
 }
 void findAvailableColumns()
 {
-    index = 0;
+    numOfAvailableColumns = 0;
     for (int col = 0; col < game.colCount; col++)
     {
         if (game.gameBoard[0][col] == game.emptyChar)
         {
-            availableColumns[index] = col;
-            index++;
+            availableColumns[numOfAvailableColumns] = col;
+            numOfAvailableColumns++;
         }
     }
 }
@@ -938,7 +923,7 @@ int simpleCheckGameBoard(char myToken)
 // debugging stuff
 void _shaykh_Debugger()
 {
-    // also put index, gameboardcopy, and emptycolumnindices
+    // also put numOfAvailableColumns, gameboardcopy, and emptycolumnindices
     // printf("\n\n[Shaykh Debugger]\n\t[1] simpleCheckHorizontally(): %d\n\t[2] simpleCheckVertically():   %d\n\t[3] simpleCheckPosDiagonals(): %d\n\t[4] simpleCheckNegDiagonals(): %d\n\t[5] simpleCheckDraw():         %d\n", simpleCheckHorizontally(), simpleCheckVertically(), simpleCheckPosDiagonals(), simpleCheckNegDiagonals(), simpleCheckDraw());
 }
 
@@ -949,15 +934,15 @@ int lvl1awwal_win_playRandom(char myToken)
         "if i can win now, i will win; else i will play a random position"
 
         > simulates one move of his across all available columns
-        > if he wins by playing any of em or the game draws with his move, returns the index of that column
-        > else plays a random available column and return its index
+        > if he wins by playing any of em or the game draws with his move, returns the numOfAvailableColumns of that column
+        > else plays a random available column and return its numOfAvailableColumns
     */
 
     int move;
     findAvailableColumns();
 
     // checking for instant win
-    for (int i = 0; i < index; i++)
+    for (int i = 0; i < numOfAvailableColumns; i++)
     {
         makeGameBoardCopy();
         move = availableColumns[i];
@@ -967,7 +952,7 @@ int lvl1awwal_win_playRandom(char myToken)
 
     // playing a random move
     srand(time(NULL));
-    int randomIndex = (rand() % index);
+    int randomIndex = (rand() % numOfAvailableColumns);
     move = availableColumns[randomIndex];
     return move;
 }
@@ -977,16 +962,16 @@ int lvl2thani_win_dontLose_playRandom(char myToken, char opponentToken)
         "if i can win now, i will win; else if the opponent can win, i will block; else i will play a random position"
 
         > simulates one move of his across all available columns
-        > if he wins by playing any of em or the game draws with his move, returns the index of that column
+        > if he wins by playing any of em or the game draws with his move, returns the numOfAvailableColumns of that column
         > else if the opponent can win next turn by playing a move, blocks that
-        > else plays a random available column and return its index
+        > else plays a random available column and return its numOfAvailableColumns
     */
 
     int move;
     findAvailableColumns();
 
     // checking for ai's instant win
-    for (int i = 0; i < index; i++)
+    for (int i = 0; i < numOfAvailableColumns; i++)
     {
         makeGameBoardCopy();
         move = availableColumns[i];
@@ -995,7 +980,7 @@ int lvl2thani_win_dontLose_playRandom(char myToken, char opponentToken)
     }
 
     // blocking opponent's win
-    for (int i = 0; i < index; i++)
+    for (int i = 0; i < numOfAvailableColumns; i++)
     {
         makeGameBoardCopy();
         move = availableColumns[i];
@@ -1005,7 +990,7 @@ int lvl2thani_win_dontLose_playRandom(char myToken, char opponentToken)
 
     // playing a random move
     srand(time(NULL));
-    int randomIndex = (rand() % index);
+    int randomIndex = (rand() % numOfAvailableColumns);
     move = availableColumns[randomIndex];
     return move;
 }
@@ -1024,7 +1009,7 @@ int lvl3thalith_win_dontLose_prevent3InARow_playRandom(char myToken, char oppone
     findAvailableColumns();
 
     // checking for ai's instant win
-    for (int i = 0; i < index; i++)
+    for (int i = 0; i < numOfAvailableColumns; i++)
     {
         makeGameBoardCopy();
         move = availableColumns[i];
@@ -1033,7 +1018,7 @@ int lvl3thalith_win_dontLose_prevent3InARow_playRandom(char myToken, char oppone
     }
 
     // blocking opponent's win
-    for (int i = 0; i < index; i++)
+    for (int i = 0; i < numOfAvailableColumns; i++)
     {
         makeGameBoardCopy();
         move = availableColumns[i];
@@ -1043,7 +1028,7 @@ int lvl3thalith_win_dontLose_prevent3InARow_playRandom(char myToken, char oppone
 
     // preventing the opponent's potential 3-in-a-row
     int row, col;
-    for (int i = 0; i < index; i++)
+    for (int i = 0; i < numOfAvailableColumns; i++)
     {
         makeGameBoardCopy();
         col = availableColumns[i];
@@ -1101,7 +1086,7 @@ int lvl3thalith_win_dontLose_prevent3InARow_playRandom(char myToken, char oppone
 
     // playing a random move
     srand(time(NULL));
-    int randomIndex = (rand() % index);
+    int randomIndex = (rand() % numOfAvailableColumns);
     move = availableColumns[randomIndex];
     return move;
 }
@@ -1110,7 +1095,131 @@ int lvl4_simulates3Moves();     // 1st ai, 2nd opponent, 3rd ai
 int lvl5_simulates5Moves();     // 1st ai, 2nd opponent, 3rd ai, 4th opponent, 5th ai
 
 
-//  gameModes ----------------------------------------------------------------------------------------------------------------------------------
+// Getting PLayers Moves ---------------------------------------------------------------------------------------------------------------------------- 
+void getPlayerMove()
+{
+    // sets the column number of a player's move to game.playerMove
+
+    if  (game.activePlayer == 1){ printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name); }      // printing the playerName in color
+    else                        { printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); }
+    
+    int userMove;
+    while (true)
+    {
+        printf("\nEnter your move (Column 1-%d): ", game.colCount);
+        scanf("%d", &userMove);
+
+        if ((userMove < 1) || (userMove > game.colCount)){
+            printf("> That column doesn't exist!");
+            continue;
+        }
+        else if (game.gameBoard[0][userMove - 1] != game.emptyChar){       // checks if the very top row/position of the chosen column is full or not
+            printf("> That column is already filled!");
+            continue;
+        }
+        else{ 
+            game.playerMove = --userMove;
+            break; 
+        }
+    }
+}
+void getAIMove()
+{
+    if  (game.activePlayer == 1)
+    { 
+        printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name);      // printing the playerName in color
+        if (!strcmp(game.player1Name, "Awwal"))
+        {
+            game.playerMove = lvl1awwal_win_playRandom(game.player1Symbol);
+        }
+        else if (!strcmp(game.player1Name, "Thani"))
+        {
+            game.playerMove = lvl2thani_win_dontLose_playRandom(game.player1Symbol, game.player2Symbol);
+        }
+        else if (!strcmp(game.player1Name, "Thalith"))      // else wouldve worked fine but used elseif for expandibility
+        {
+            game.playerMove = lvl3thalith_win_dontLose_prevent3InARow_playRandom(game.player1Symbol, game.player2Symbol);
+        }
+    }
+    else                        
+    { 
+        printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); 
+        if (!strcmp(game.player2Name, "Awwal"))
+        {
+            game.playerMove = lvl1awwal_win_playRandom(game.player2Symbol);
+        }
+        else if (!strcmp(game.player2Name, "Thani"))
+        {
+            game.playerMove = lvl2thani_win_dontLose_playRandom(game.player2Symbol, game.player1Symbol);
+        }
+        else if (!strcmp(game.player2Name, "Thalith"))
+        {
+            game.playerMove = lvl3thalith_win_dontLose_prevent3InARow_playRandom(game.player2Symbol, game.player1Symbol);
+        }
+    }
+
+    srand(time(NULL));
+    int randomPrompt = (rand() % 10) + 1;
+
+    printf("\n");
+    switch (randomPrompt)
+    {
+        case 1:
+            animateText("I think imma play at umm... ", 123);
+            wait(2000);
+            break;
+
+        case 2:
+            printf("Hmm my turn huh... ");
+            wait(2000);
+            break;
+
+        case 3:
+            animateText("Lets go with umm... ", 123);
+            wait(2000);
+            break;
+        
+        case 4:
+            animateText("Oh noice move!\nLemme play... ", 123);
+            wait(2000);
+            break;
+
+        case 5:
+            animateText("I found a good one... :) ", 123);
+            wait(2000);
+            break;
+
+        case 6:
+            animateText("Why do u play so good?? ", 123);
+            wait(2000);
+            break;
+
+        case 7:
+            animateText("Am i losing already? ", 123);
+            wait(2000);
+            break;
+
+        case 8:
+            animateText("Lemme think a little... ", 123);
+            wait(2000);
+            break;    
+        
+        case 9:
+            animateText("You are smart, i will give you that... ", 123);
+            wait(2000);
+            break; 
+        
+        case 10:
+            animateText("My mom says to play... ", 123);
+            wait(2000);
+            break; 
+    }
+
+    printf("\n--> %d", game.playerMove - 1);
+}
+
+
+//  gameModes ---------------------------------------------------------------------------------------------------------------------------------------
 
 void PvP()
 {
@@ -1118,46 +1227,59 @@ void PvP()
     setGame();
     setGameBoard();
     setPlayers(2);
-    // -------------------------------------
-
-    initializeGame();
     showGameBoard();
 
     while (game.playGame)
     {
+        switchActivePlayer();
         getPlayerMove();
         updateGameBoard();
         checkGameBoard();
         evaluateGameBoard();
     }
+
+    finishRound();
 }
 void PvAI()
 {
     setGame();
     setGameBoard();
     setPlayers(1);
+    showGameBoard();
 
     while (game.playGame)
     {
+        switchActivePlayer();
+        if  (game.activePlayer == 1) { getPlayerMove(); }
+        else                         { getAIMove();     }
+        updateGameBoard();
+        checkGameBoard();
         evaluateGameBoard();
-        break;
     }
+
+    finishRound();
 }
 void AIvAI()
 {
     setGame();
     setGameBoard();
     setPlayers(0);
+    showGameBoard();
 
     while (game.playGame)
     {
+        switchActivePlayer();
+        getAIMove();
+        updateGameBoard();
+        checkGameBoard();
         evaluateGameBoard();
-        break;
     }
+
+    finishRound();
 }
 
 
-// ---------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 int main()
