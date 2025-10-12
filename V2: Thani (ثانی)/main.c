@@ -122,14 +122,14 @@ int mainMenu()
     wait(500);    // wait .5s
 
     // the main menu
-    printf("\n\n\n[Main Menu]\n  [1] Play\n  [2] Exit");
+    printf("\n\n\n[Main Menu]\n  [1] Play\n  [2] Exit\n");
     char userChoice[25];
     while (true)
     {
         emptyBuffer();      // will be relevant if there is a 2nd repetition
         printf("\nEnter your choice [1/2]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && (userChoice[0] == '1') || (userChoice[0] == '2'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");
             break;
@@ -162,10 +162,10 @@ void playGame()
     char userChoice[25];
     while (true)
     {
-        emptyBuffer();
+        // emptyBuffer();
         printf("\nEnter your choice [1-3]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2') || (userChoice[1] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && (userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");
             break; 
@@ -366,10 +366,10 @@ void setGameBoard()
     char userChoice[25];
     while (true)
     {
-        emptyBuffer();
+        // emptyBuffer();
         printf("\nChoose your gameBoard [1-3]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2') || (userChoice[1] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && (userChoice[10] == '1') || (userChoice[10] == '2') || (userChoice[0] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");
             break;
@@ -1225,8 +1225,8 @@ void PvP()
 {
 
     setGame();
-    setGameBoard();
     setPlayers(2);
+    setGameBoard();
     showGameBoard();
 
     while (game.playGame)
@@ -1243,8 +1243,8 @@ void PvP()
 void PvAI()
 {
     setGame();
-    setGameBoard();
     setPlayers(1);
+    setGameBoard();
     showGameBoard();
 
     while (game.playGame)
@@ -1262,8 +1262,8 @@ void PvAI()
 void AIvAI()
 {
     setGame();
-    setGameBoard();
     setPlayers(0);
+    setGameBoard();
     showGameBoard();
 
     while (game.playGame)
