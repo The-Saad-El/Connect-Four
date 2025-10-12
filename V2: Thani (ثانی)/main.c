@@ -58,6 +58,7 @@ typedef struct
     char player1Symbol;                     // the symbol/mark/token for player1's spaces
     char player2Name[25];                   // name/title of player2;
     char player2Symbol;                     // the symbol/mark/token for player2's spaces
+    int numOfHumanPlayers;                  // the num of Human (not AI) players
 
 } gameConfig;
 
@@ -121,15 +122,14 @@ int mainMenu()
 {
     // printing the connect four title
     clearScreen();      // clears the terminal screen
-    animateText("==================\n=> Connect Four <=\n==================", 123);   // keep at 123
+    animateText("==================\n=> Connect Four <=\n==================\n", 123);   // keep at 123
     wait(500);    // wait .5s
 
     // the main menu
-    printf("\n\n\n[Main Menu]\n  [1] Play\n  [2] Exit\n");
+    printf("\n\n[Main Menu]\n  [1] Play\n  [2] Exit");
     char userChoice[25];
     while (true)
     {
-        emptyBuffer();      // will be relevant if there is a 2nd repetition
         printf("\nEnter your choice [1/2]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
         if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
@@ -139,9 +139,11 @@ int mainMenu()
         }
         else
         {
+            if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
             printf("> [!] Enter either 1 or 2");
             continue;
         }
+
     }
 
     // returning value based on userChoice
@@ -160,22 +162,25 @@ void playGame()
         > calls the respective functions: PvP(), PvAI(), or AIvAI()
     */
 
+    clearScreen();
+    printf("==================\n=> Connect Four <=\n==================\n");
+
     // choosing the gameMode
-    printf("\n\n[Choose GameMode]\n  [1] PvP: Player vs Player\n  [2] PvAI: Player vs AI\n  [3] AIvAI: AI vs AI");
+    printf("\n\n[Choose GameMode]\n  [1] PvP: Player vs Player\n  [2] PvAI: Player vs AI\n  [3] AIvAI: AI vs AI\n  [4] Go Back");
     char userChoice[25];
     while (true)
     {
-        // emptyBuffer();
-        printf("\nEnter your choice [1-3]: ");
+        printf("\nEnter your choice [1-4]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3') || (userChoice[0] == '4')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");
             break; 
         }
         else
         { 
-            printf("> [!] Enter either 1, 2, or 3");
+            if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+            printf("> [!] Enter either 1, 2, 3, or 4");
             continue;
         }
     }
@@ -184,13 +189,19 @@ void playGame()
     switch(userChoice[0])
     {
         case '1':
+            game.numOfHumanPlayers = 2;
             PvP();
             break;
         case '2':
+            game.numOfHumanPlayers = 1;
             PvAI();
             break;
         case '3':
+            game.numOfHumanPlayers = 0;
             AIvAI();
+            break;
+        case '4':
+            mainMenu();
             break;
     }
 }
@@ -221,12 +232,16 @@ void setGame()
     game.emptyChar = ' ';
     game.sleepTime = 300;
 }
-void setPlayers(int numOfHumanPlayers)
+void setPlayers()
 {
     // players setup
+
+    clearScreen();
+    printf("==================\n=> Connect Four <=\n==================\n");
+
     printf("\n\n[Players' Information]");
 
-    switch(numOfHumanPlayers)
+    switch(game.numOfHumanPlayers)
     {
         case 0:
         {
@@ -238,7 +253,6 @@ void setPlayers(int numOfHumanPlayers)
             printf("\n> \033[1;33mChoose AI 1\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)\n");
             while (true)
             {
-                emptyBuffer();      // will be relevant if there is a 2nd repetition
                 printf("\nEnter your choice [1-3]: ");
                 fgets(userChoice, sizeof(userChoice), stdin);
                 if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
@@ -248,6 +262,7 @@ void setPlayers(int numOfHumanPlayers)
                 }
                 else
                 {
+                    if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
                     printf("> [!] Enter either 1, 2, or 3");
                     continue;
                 }
@@ -264,7 +279,6 @@ void setPlayers(int numOfHumanPlayers)
             printf("\n> \033[1;34mChoose AI 2\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)\n");
             while (true)
             {
-                emptyBuffer();      // will be relevant if there is a 2nd repetition
                 printf("\nEnter your choice [1-3]: ");
                 fgets(userChoice, sizeof(userChoice), stdin);
                 if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
@@ -274,6 +288,7 @@ void setPlayers(int numOfHumanPlayers)
                 }
                 else
                 {
+                    if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
                     printf("> [!] Enter either 1, 2, or 3");
                     continue;
                 }
@@ -294,19 +309,25 @@ void setPlayers(int numOfHumanPlayers)
             // PvsAI
             
             // player info
-            emptyBuffer();
             printf("\n> \033[1;33mPlayer 1\033[0m\n");
             printf("      Enter your name: ");
             fgets(game.player1Name, sizeof(game.player1Name), stdin);
-            if   ((strlen(game.player1Name) == 1) || !(strcmp(game.player1Name, "Player 2\n"))) { strcpy(game.player1Name, "Player 1"); }     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
-            else                                                                                { game.player1Name[strlen(game.player1Name) - 1] = '\0';}      // setting the trailing newline char to the null terminator char
+            if   ((strlen(game.player1Name) == 1) || (!strcmp(game.player1Name, "Player 2\n"))){     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
+                strcpy(game.player1Name, "Player 1"); 
+            }
+            else if (game.player1Name[strlen(game.player1Name) - 1] != '\n'){        // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+                emptyBuffer();
+                strcpy(game.player1Name, "Player 1"); 
+            } 
+            else{                   
+                game.player1Name[strlen(game.player1Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
+            }    
 
             // ai info
             printf("\n> \033[1;34mChoose AI\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)\n");
             char userChoice[25];
             while (true)
             {
-                emptyBuffer();      // will be relevant if there is a 2nd repetition
                 printf("\nEnter your choice [1-3]: ");
                 fgets(userChoice, sizeof(userChoice), stdin);
                 if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
@@ -315,7 +336,8 @@ void setPlayers(int numOfHumanPlayers)
                     break;
                 }
                 else
-                {
+                {            
+                    if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
                     printf("> [!] Enter either 1, 2, or 3");
                     continue;
                 }
@@ -336,24 +358,34 @@ void setPlayers(int numOfHumanPlayers)
             // PvsP
 
             // player1 info
-            emptyBuffer();
             printf("\n> \033[1;33mPlayer 1\033[0m\n");
             printf("      Enter your name: ");
             fgets(game.player1Name, sizeof(game.player1Name), stdin);
-            if   ((strlen(game.player1Name) == 1) || !(strcmp(game.player1Name, "Player 2\n"))) { strcpy(game.player1Name, "Player 1"); }     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
-            else                                                                                { game.player1Name[strlen(game.player1Name) - 1] = '\0';}      // setting the trailing newline char to the null terminator char
+            if   ((strlen(game.player1Name) == 1) || (!strcmp(game.player1Name, "Player 2\n"))){     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
+                strcpy(game.player1Name, "Player 1"); 
+            }
+            else if (game.player1Name[strlen(game.player1Name) - 1] != '\n'){        // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+                emptyBuffer();
+                strcpy(game.player1Name, "Player 1"); 
+            } 
+            else{                   
+                game.player1Name[strlen(game.player1Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
+            }   
 
             // player2 info
-            emptyBuffer();
-            printf("> \033[1;34mPlayer 2\033[0m\n");
+            printf("\n> \033[1;34mPlayer 2\033[0m\n");
             printf("      Enter your name: ");
             fgets(game.player2Name, sizeof(game.player2Name), stdin);
-            if   ((strlen(game.player2Name) == 1) || !(strcmp(game.player2Name, "Player 1\n"))) { strcpy(game.player2Name, "Player 2"); }        // sets player2Name to {Player 2} if length is 1, or the user entered {Player 1}
-            else
-            { 
-                game.player2Name[strlen(game.player2Name) - 1] = '\0';
-                if (!(strcmp(game.player1Name, game.player2Name))){ strcpy(game.player2Name, "Player 2"); }     // if player1name is same as player2name so sets player2name as "Player 2"
+            if   ((strlen(game.player2Name) == 1) || (!strcmp(game.player2Name, "Player 2\n"))){     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
+                strcpy(game.player2Name, "Player 1"); 
             }
+            else if (game.player2Name[strlen(game.player2Name - 1)] != '\n'){        // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+                emptyBuffer();
+                strcpy(game.player2Name, "Player 1"); 
+            } 
+            else{                   
+                game.player2Name[strlen(game.player2Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
+            }   
 
             break;
         }
@@ -363,13 +395,15 @@ void setPlayers(int numOfHumanPlayers)
 void setGameBoard()
 {
     // gameBoard setup
+
+    clearScreen();
+    printf("==================\n=> Connect Four <=\n==================\n");
     
     // choosing the gameBoard's size
     printf("\n\n[GameBoard Size]\n  1) Blitz: 6 x 5\n  2) Classic: 7 x 6\n  3) Grand: 8 x 7");      // Mini, Titan
     char userChoice[25];
     while (true)
     {
-        // emptyBuffer();
         printf("\nChoose your gameBoard [1-3]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
         if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
@@ -379,6 +413,7 @@ void setGameBoard()
         }
         else
         {
+            if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
             printf("> [!] Enter either 1, 2, or 3");
             continue;
         }
@@ -413,10 +448,10 @@ void setGameBoard()
 // printing gameBoard
 void printGameBoard()
 {
-    int numOfDashes = (6 * game.colCount);    // calculating the num of dashes required for rows
+    int numOfDashes = (6 * game.colCount) + 1;    // calculating the num of dashes required for rows
     char rowDashes[numOfDashes + 1];
-    for (int i = 0; i <=  numOfDashes; i++){ rowDashes[i] = '-'; }
-    rowDashes[numOfDashes + 1] = '\0';
+    for (int i = 0; i <  numOfDashes; i++){ rowDashes[i] = '-'; }
+    rowDashes[numOfDashes] = '\0';
 
     printf("\n  %s\n", rowDashes);    // topmost row of dashes
     for (int i = 0; i < game.rowCount; i++)
@@ -485,7 +520,7 @@ void updateGameBoard()
     game.totalMoves++;
     char playerMark = ((game.activePlayer == 1)? game.player1Symbol : game.player2Symbol);
 
-    for (int row = 0; row < game.rowCount; row++)    // why <= and not just < ???
+    for (int row = 0; row < game.rowCount; row++)
     {
         clearScreen();
         printGameBoard();
@@ -497,6 +532,9 @@ void updateGameBoard()
         }
         else { break; }
     }
+
+    clearScreen();
+    printGameBoard();
 }
 
 // checking the gameBoard for win, draw, or nothing
@@ -723,10 +761,10 @@ void evaluateGameBoard()
 void finishRound()
 {
     wait(1500);    // wait 1.5s
-    emptyBuffer();      // clearing the '\n' from the buffer
     printf("\n\nPress Enter to continue: ");
     char uselessStr[25];    // size 40 so the user can enter anything, even a faltoo long string, without the program breaking
     fgets(uselessStr, sizeof(uselessStr), stdin);    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
+    if (uselessStr[strlen(uselessStr - 1)] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
 }
 
 
@@ -1106,23 +1144,36 @@ void getPlayerMove()
     if  (game.activePlayer == 1){ printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name); }      // printing the playerName in color
     else                        { printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); }
     
+    char userInput[25];
     int userMove;
     while (true)
     {
         printf("\nEnter your move (Column 1-%d): ", game.colCount);
-        scanf("%d", &userMove);
-
-        if ((userMove < 1) || (userMove > game.colCount)){
-            printf("> That column doesn't exist!");
-            continue;
+        fgets(userInput, sizeof(userInput), stdin);
+        if ((strlen(userInput) == 2) && ((userInput[0] == '1') || (userInput[0] == '2') || (userInput[0] == '3') || (userInput[0] == '4') || (userInput[0] == '5') || (userInput[0] == '6') || (userInput[0] == '7') || (userInput[0] == '8') || (userInput[0] == '9')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        {
+            userMove = userInput[0] - '0';
+            if (userMove > game.colCount)
+            {
+                printf("> [!] That column doesn't exist!");
+                continue;
+            }
+            else if (game.gameBoard[0][userMove - 1] != game.emptyChar)       // checks if the very top row/position of the chosen column is full or not
+            {
+                printf("> [!] That column is already filled!");
+                continue;
+            }
+            else
+            {
+                game.playerMove = userMove - 1;
+                break; 
+            }
         }
-        else if (game.gameBoard[0][userMove - 1] != game.emptyChar){       // checks if the very top row/position of the chosen column is full or not
-            printf("> That column is already filled!");
+        else
+        { 
+            if (userInput[strlen(userInput) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+            printf("> [!] That column doesn't exist!");
             continue;
-        }
-        else{ 
-            game.playerMove = --userMove;
-            break; 
         }
     }
 }
@@ -1227,9 +1278,9 @@ void getAIMove()
 void PvP()
 {
 
-    setGame();
-    setPlayers(2);
-    setGameBoard();
+    setGame();          // initialize globals
+    setPlayers();       // choose players
+    setGameBoard();     // choose gameBoard size
     showGameBoard();
 
     while (game.playGame)
@@ -1246,7 +1297,7 @@ void PvP()
 void PvAI()
 {
     setGame();
-    setPlayers(1);
+    setPlayers();
     setGameBoard();
     showGameBoard();
     srand(time(NULL));
@@ -1266,7 +1317,7 @@ void PvAI()
 void AIvAI()
 {
     setGame();
-    setPlayers(0);
+    setPlayers();
     setGameBoard();
     showGameBoard();
     srand(time(NULL));
