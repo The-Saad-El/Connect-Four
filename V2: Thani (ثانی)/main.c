@@ -260,14 +260,13 @@ void setPlayers()
             char userChoice[25];
 
             // ai1 info
-            printf("\n> \033[1;33mChoose AI 1\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)\n");
+            printf("\n> \033[1;33mChoose AI 1\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)");
             while (true)
             {
                 printf("\nEnter your choice [1-3]: ");
                 fgets(userChoice, sizeof(userChoice), stdin);
                 if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
                 {
-                    printf("> Accepted\n\n");
                     break;
                 }
                 else
@@ -286,7 +285,7 @@ void setPlayers()
             }
 
             // ai2 info
-            printf("\n> \033[1;34mChoose AI 2\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)\n");
+            printf("\n> \033[1;34mChoose AI 2\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)");
             while (true)
             {
                 printf("\nEnter your choice [1-3]: ");
@@ -334,7 +333,7 @@ void setPlayers()
             }    
 
             // ai info
-            printf("\n> \033[1;34mChoose AI\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)\n");
+            printf("\n> \033[1;34mChoose AI\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)");
             char userChoice[25];
             while (true)
             {
@@ -342,7 +341,6 @@ void setPlayers()
                 fgets(userChoice, sizeof(userChoice), stdin);
                 if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
                 {
-                    printf("> Accepted\n\n");
                     break;
                 }
                 else
@@ -1206,8 +1204,7 @@ void getAIMove()
         }
         else if (!strcmp(game.player1Name, "Thalith"))      // else wouldve worked fine but used elseif for expandibility
         {
-            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(
-        game.player1Symbol, game.player2Symbol);
+            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(game.player1Symbol, game.player2Symbol);
         }
     }
     else                        
@@ -1228,62 +1225,23 @@ void getAIMove()
         }
     }
 
+    char AIDialogues[20][45] = {        // 19 dialogues, 45 arbitrary bytes/char max length per dialogue
+                                "I think imma play at umm...", "Hmm my turn huh... ", "Lets go with umm... ", 
+                                "I wont let u win that easily :> ", "Oh noice move!\nLemme play... ", "The player is here! :)", 
+                                "Am i losing already?! ",  "I found a good one... :) ", "Why do u play so good?? ", 
+                                "Lemme think a little... ", "You are smart, i will give you that... ", "Am i losing already?? ",
+                                "My mom told me to play at... ", "where do i play? where do i play? ", "i have a good feeling about this :)",
+                                "Argh, my turn again... ", "i think i figured it out... :] ", "boi you got some skills! ", 
+                                "i see wut you are trying to do there :>", "i guess i haveta play this properly now... "
+                                };
+    
     printf("\n");
-    int randomPrompt = (rand() % 10) + 1;
-    switch (randomPrompt)
-    {
-        case 1:
-            animateText("I think imma play at umm... ", 123);
-            wait(2000);
-            break;
+    int randomIndex = (rand() % 20) + 1;
+    animateText(AIDialogues[randomIndex], 123);
+    wait(2000);
 
-        case 2:
-            printf("Hmm my turn huh... ");
-            wait(2000);
-            break;
-
-        case 3:
-            animateText("Lets go with umm... ", 123);
-            wait(2000);
-            break;
-        
-        case 4:
-            animateText("Oh noice move!\nLemme play... ", 123);
-            wait(2000);
-            break;
-
-        case 5:
-            animateText("I found a good one... :) ", 123);
-            wait(2000);
-            break;
-
-        case 6:
-            animateText("Why do u play so good?? ", 123);
-            wait(2000);
-            break;
-
-        case 7:
-            animateText("Am i losing already? ", 123);
-            wait(2000);
-            break;
-
-        case 8:
-            animateText("Lemme think a little... ", 123);
-            wait(2000);
-            break;    
-        
-        case 9:
-            animateText("You are smart, i will give you that... ", 123);
-            wait(2000);
-            break; 
-        
-        case 10:
-            animateText("My mom says to play... ", 123);
-            wait(2000);
-            break; 
-    }
-
-    printf("\n--> %d", game.playerMove + 1);        // game.playerMove contains index (ie columnPosition - 1)
+    printf("\n--> Col %d!", game.playerMove + 1);        // game.playerMove contains index (ie columnPosition - 1)
+    wait(350);
 }
 
 
