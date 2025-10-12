@@ -80,10 +80,12 @@ void emptyBuffer()
     while (true)
     {
         tempChar = getchar();
-        if ((tempChar == '\n') || (tempChar == EOF)){   // continue while tempChar is not the newline char or the eof is not reach
+        if ((tempChar == '\n') || (tempChar == EOF))   // continue while tempChar is not the newline char or the eof is not reach
+        {    
             break;
         }
-        else{
+        else
+        {
             // do nothing, just consume characters
             continue;
         }
@@ -109,6 +111,7 @@ void animateText(char strToAnimate[], int timeDelayms)
 
 // game ---------------------------------------------------------------------------------------------------------------------------------------------
 
+// gameModes
 void PvP();
 void PvAI();
 void AIvAI();
@@ -129,7 +132,7 @@ int mainMenu()
         emptyBuffer();      // will be relevant if there is a 2nd repetition
         printf("\nEnter your choice [1/2]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && (userChoice[0] == '1') || (userChoice[0] == '2'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");
             break;
@@ -165,7 +168,7 @@ void playGame()
         // emptyBuffer();
         printf("\nEnter your choice [1-3]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && (userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");
             break; 
@@ -238,7 +241,7 @@ void setPlayers(int numOfHumanPlayers)
                 emptyBuffer();      // will be relevant if there is a 2nd repetition
                 printf("\nEnter your choice [1-3]: ");
                 fgets(userChoice, sizeof(userChoice), stdin);
-                if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2') || (userChoice[1] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+                if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
                 {
                     printf("> Accepted\n\n");
                     break;
@@ -252,9 +255,9 @@ void setPlayers(int numOfHumanPlayers)
 
             switch (userChoice[0])
             {
-                case '1': strcpy(game.player2Name, "Awwal");   break;
-                case '2': strcpy(game.player2Name, "Thani");   break;
-                case '3': strcpy(game.player2Name, "Thalith"); break;
+                case '1': strcpy(game.player1Name, "Awwal");   break;
+                case '2': strcpy(game.player1Name, "Thani");   break;
+                case '3': strcpy(game.player1Name, "Thalith"); break;
             }
 
             // ai2 info
@@ -264,7 +267,7 @@ void setPlayers(int numOfHumanPlayers)
                 emptyBuffer();      // will be relevant if there is a 2nd repetition
                 printf("\nEnter your choice [1-3]: ");
                 fgets(userChoice, sizeof(userChoice), stdin);
-                if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2') || (userChoice[1] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+                if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
                 {
                     printf("> Accepted\n\n");
                     break;
@@ -306,7 +309,7 @@ void setPlayers(int numOfHumanPlayers)
                 emptyBuffer();      // will be relevant if there is a 2nd repetition
                 printf("\nEnter your choice [1-3]: ");
                 fgets(userChoice, sizeof(userChoice), stdin);
-                if ((strlen(userChoice) == 2) && (userChoice[1] == '1') || (userChoice[1] == '2') || (userChoice[1] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+                if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
                 {
                     printf("> Accepted\n\n");
                     break;
@@ -369,7 +372,7 @@ void setGameBoard()
         // emptyBuffer();
         printf("\nChoose your gameBoard [1-3]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && (userChoice[10] == '1') || (userChoice[10] == '2') || (userChoice[0] == '3'))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");
             break;
@@ -382,7 +385,7 @@ void setGameBoard()
     }
 
     // setting globals to selected size's settings
-    switch (userChoice[1])
+    switch (userChoice[0])
     {
         case '1':   // 6 x 5
             game.rowCount = 6;
@@ -482,14 +485,14 @@ void updateGameBoard()
     game.totalMoves++;
     char playerMark = ((game.activePlayer == 1)? game.player1Symbol : game.player2Symbol);
 
-    for (int row = 0; row <= game.rowCount; row++)    // why <= and not just < ???
+    for (int row = 0; row < game.rowCount; row++)    // why <= and not just < ???
     {
         clearScreen();
         printGameBoard();
         if (game.gameBoard[row][game.playerMove] == game.emptyChar)
         {
-            if (row > 0){ game.gameBoard[row - 1][game.playerMove] = game.emptyChar; }
-            game.gameBoard[row][game.playerMove] = playerMark;
+            if (row > 0){ game.gameBoard[row - 1][game.playerMove] = game.emptyChar; }      // sets the previous/above position back to emptyChar
+            game.gameBoard[row][game.playerMove] = playerMark;      // sets current position/space to playerMark
             wait(game.sleepTime);
         }
         else { break; }
@@ -649,13 +652,15 @@ void checkGameBoard()
 {    
     if (game.totalMoves >= 7)     // the min num of moves required for any player to have won is 7 (ie 4 by the player 1)
     {
+        int checkHorizontal = checkHorizontally(), checkVertical = checkVertically(), checkPosDiagonal = checkPosDiagonals(), checkNegDiagonal = checkNegDiagonals(); 
+        
         // checking if player1 won
-        if ((checkHorizontally() == 1) || (checkVertically() == 1) || (checkPosDiagonals() == 1) || (checkNegDiagonals() == 1))
+        if ((checkHorizontal == 1) || (checkVertical == 1) || (checkPosDiagonal == 1) || (checkNegDiagonal == 1))
         {
             game.gameState = 1;     // player1 wins
         }
         // checking if player2 won
-        else if ((checkHorizontally() == 2) || (checkVertically() == 2) || (checkPosDiagonals() == 2) || (checkNegDiagonals() == 2))
+        else if ((checkHorizontal == 2) || (checkVertical == 2) || (checkPosDiagonal == 2) || (checkNegDiagonal == 2))
         {
             game.gameState = 2;     // player2 wins
         }
@@ -663,7 +668,8 @@ void checkGameBoard()
         else if (checkDraw() == 1)
         {
             game.gameState = 0;     // game draws
-        }   // else gamestate remains -1
+        }   
+        // else gamestate remains -1
     }
 }
 
@@ -671,7 +677,7 @@ void checkGameBoard()
 void shaykh_Debugger()
 {
     printf("\n\n[Shaykh Debugger]\n\t[1] checkHorizontally(): %d\n\t[2] checkVertically():   %d\n\t[3] checkPosDiagonals(): %d\n\t[4] checkNegDiagonals(): %d\n\t[5] checkDraw():         %d\n\t[6] game.gameState:      %d\n\t[7] game.winningIndices: ", checkHorizontally(), checkVertically(), checkPosDiagonals(), checkNegDiagonals(), checkDraw(), game.gameState);
-    for (int i = 0; i < 4; i++){ printf("[%d, %d] ", game.winningIndices[i][1], game.winningIndices[i][2]); }
+    for (int i = 0; i < 4; i++){ printf("[%d, %d] ", game.winningIndices[i][0], game.winningIndices[i][1]); }
 }
 
 // outcome checking
@@ -907,28 +913,27 @@ int simpleCheckGameBoard(char myToken)
         make it smthing like this: (game.totalMoves >= (7 - [aiType: 2 simulation, 4 simulation etc]))
     */
     
+
     if (simpleCheckDraw() == 1)
-    { return 0; }       // game draws
+    { return 0; }            // game draws
 
-    else if ((simpleCheckHorizontally(myToken) == 1) || (simpleCheckVertically(myToken) == 1) || (simpleCheckPosDiagonals(myToken) == 1) || (simpleCheckNegDiagonals(myToken) == 1))
-    { return 1; }       // player1 wins
+    else
+    {
+        int simpleCheckHorizontal = simpleCheckHorizontally(myToken), simpleCheckVertical = simpleCheckVertically(myToken), simpleCheckPosDiagonal = simpleCheckPosDiagonals(myToken), simpleCheckNegDiagonal = simpleCheckNegDiagonals(myToken);
 
-    else if ((simpleCheckHorizontally(myToken) == 2) || (simpleCheckVertically(myToken) == 2) || (simpleCheckPosDiagonals(myToken) == 2) || (simpleCheckNegDiagonals(myToken) == 2))
-    { return 2; }       // player2 wins
+        if ((simpleCheckHorizontal == 1) || (simpleCheckVertical == 1) || (simpleCheckPosDiagonal == 1) || (simpleCheckNegDiagonal == 1))
+        { return 1; }       // player1 wins
 
-    else 
-    { return -1; }      // game continues as is
-}
+        else if ((simpleCheckHorizontal == 2) || (simpleCheckVertical == 2) || (simpleCheckPosDiagonal == 2) || (simpleCheckNegDiagonal == 2))
+        { return 2; }       // player2 wins
 
-// debugging stuff
-void _shaykh_Debugger()
-{
-    // also put numOfAvailableColumns, gameboardcopy, and emptycolumnindices
-    // printf("\n\n[Shaykh Debugger]\n\t[1] simpleCheckHorizontally(): %d\n\t[2] simpleCheckVertically():   %d\n\t[3] simpleCheckPosDiagonals(): %d\n\t[4] simpleCheckNegDiagonals(): %d\n\t[5] simpleCheckDraw():         %d\n", simpleCheckHorizontally(), simpleCheckVertically(), simpleCheckPosDiagonals(), simpleCheckNegDiagonals(), simpleCheckDraw());
+        else 
+        { return -1; }      // game continues as is
+    }
 }
 
 // AIs
-int lvl1awwal_win_playRandom(char myToken)
+int lvl1_awwal_1win_2playRandom(char myToken)
 {
     /*
         "if i can win now, i will win; else i will play a random position"
@@ -951,12 +956,11 @@ int lvl1awwal_win_playRandom(char myToken)
     }
 
     // playing a random move
-    srand(time(NULL));
     int randomIndex = (rand() % numOfAvailableColumns);
     move = availableColumns[randomIndex];
     return move;
 }
-int lvl2thani_win_dontLose_playRandom(char myToken, char opponentToken)
+int lvl2_thani_1win_2dontLose_3playRandom(char myToken, char opponentToken)
 {
     /*
         "if i can win now, i will win; else if the opponent can win, i will block; else i will play a random position"
@@ -989,12 +993,11 @@ int lvl2thani_win_dontLose_playRandom(char myToken, char opponentToken)
     }
 
     // playing a random move
-    srand(time(NULL));
     int randomIndex = (rand() % numOfAvailableColumns);
     move = availableColumns[randomIndex];
     return move;
 }
-int lvl3thalith_win_dontLose_prevent3InARow_playRandom(char myToken, char opponentToken)
+int lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(char myToken, char opponentToken)  //
 {
     /*
         "win; block opponent's win; block opponent's potential 3-in-a-row; else play a random move"
@@ -1085,17 +1088,17 @@ int lvl3thalith_win_dontLose_prevent3InARow_playRandom(char myToken, char oppone
     }
 
     // playing a random move
-    srand(time(NULL));
     int randomIndex = (rand() % numOfAvailableColumns);
     move = availableColumns[randomIndex];
     return move;
 }
 
-int lvl4_simulates3Moves();     // 1st ai, 2nd opponent, 3rd ai
-int lvl5_simulates5Moves();     // 1st ai, 2nd opponent, 3rd ai, 4th opponent, 5th ai
+int lvl4_rabi_simulates3Moves();       // 1st ai, 2nd opponent, 3rd ai
+int lvl5_khamis_simulates5Moves();     // 1st ai, 2nd opponent, 3rd ai, 4th opponent, 5th ai
 
 
 // Getting PLayers Moves ---------------------------------------------------------------------------------------------------------------------------- 
+
 void getPlayerMove()
 {
     // sets the column number of a player's move to game.playerMove
@@ -1130,15 +1133,16 @@ void getAIMove()
         printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name);      // printing the playerName in color
         if (!strcmp(game.player1Name, "Awwal"))
         {
-            game.playerMove = lvl1awwal_win_playRandom(game.player1Symbol);
+            game.playerMove = lvl1_awwal_1win_2playRandom(game.player1Symbol);
         }
         else if (!strcmp(game.player1Name, "Thani"))
         {
-            game.playerMove = lvl2thani_win_dontLose_playRandom(game.player1Symbol, game.player2Symbol);
+            game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(game.player1Symbol, game.player2Symbol);
         }
         else if (!strcmp(game.player1Name, "Thalith"))      // else wouldve worked fine but used elseif for expandibility
         {
-            game.playerMove = lvl3thalith_win_dontLose_prevent3InARow_playRandom(game.player1Symbol, game.player2Symbol);
+            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(
+        game.player1Symbol, game.player2Symbol);
         }
     }
     else                        
@@ -1146,22 +1150,21 @@ void getAIMove()
         printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); 
         if (!strcmp(game.player2Name, "Awwal"))
         {
-            game.playerMove = lvl1awwal_win_playRandom(game.player2Symbol);
+            game.playerMove = lvl1_awwal_1win_2playRandom(game.player2Symbol);
         }
         else if (!strcmp(game.player2Name, "Thani"))
         {
-            game.playerMove = lvl2thani_win_dontLose_playRandom(game.player2Symbol, game.player1Symbol);
+            game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(game.player2Symbol, game.player1Symbol);
         }
         else if (!strcmp(game.player2Name, "Thalith"))
         {
-            game.playerMove = lvl3thalith_win_dontLose_prevent3InARow_playRandom(game.player2Symbol, game.player1Symbol);
+            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(
+        game.player2Symbol, game.player1Symbol);
         }
     }
 
-    srand(time(NULL));
-    int randomPrompt = (rand() % 10) + 1;
-
     printf("\n");
+    int randomPrompt = (rand() % 10) + 1;
     switch (randomPrompt)
     {
         case 1:
@@ -1246,6 +1249,7 @@ void PvAI()
     setPlayers(1);
     setGameBoard();
     showGameBoard();
+    srand(time(NULL));
 
     while (game.playGame)
     {
@@ -1265,6 +1269,7 @@ void AIvAI()
     setPlayers(0);
     setGameBoard();
     showGameBoard();
+    srand(time(NULL));
 
     while (game.playGame)
     {
