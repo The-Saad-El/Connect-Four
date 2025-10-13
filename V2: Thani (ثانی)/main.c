@@ -417,7 +417,7 @@ void setGameBoard()
     printf("==================\n=> Connect Four <=\n==================\n\n\n");
     
     // choosing the gameBoard's size
-    animateText("[GameBoard Size]\n  [1] Mini: 5 x 4\n  [2] Blitz: 6 x 5\n  [3] Classic: 7 x 6\n  [4] Grand: 8 x 7\n  [5] Titan: 9 x 8\n  [6] Go Back", animateTextDelay_63ms);      // Mini, Titan
+    animateText("[GameBoard Size]\n  [1] Mini (5 x 4)\n  [2] Blitz (6 x 5)\n  [3] Classic (7 x 6)\n  [4] Grand (8 x 7)\n  [5] Titan (9 x 8)\n  [6] Go Back", animateTextDelay_63ms);      // Mini, Titan
     char userChoice[arbitrarySize];
     while (true)
     {
@@ -439,29 +439,29 @@ void setGameBoard()
     // setting globals to selected size's settings
     switch (userChoice[0])
     {
-        case '1':   // 5 x 4
+        case '1':               // Mini (5 x 4)
             game.rowCount = 5;
             game.colCount = 4;
             break;
-        case '2':   // 6 x 5
+        case '2':               // Blitz (6 x 5)
             game.rowCount = 6;
             game.colCount = 5;
             break;
-        case '3':   // 7 x 6
+        case '3':               // CLassic (7 x 6)
             game.rowCount = 7;
             game.colCount = 6;
             break;
-        case '4':   // 8 x 7
+        case '4':               // Grand (8 x 7)
             game.rowCount = 8;
             game.colCount = 7;
             break;
-        case '5':   // 9 x 8
+        case '5':               // Titan (9 x 8)
             game.rowCount = 9;
             game.colCount = 8;
             break;    
-        case '6':   // go back
+        case '6':               // go back to setPlayers()
             setPlayers();
-            return;     // breaks from the whole function
+            return;             // breaks from the whole function
     }
 
     // initializing the spaces in the gameBoard to emptyChar
@@ -807,7 +807,7 @@ int numOfAvailableColumns;              //  counter containing the num of elemen
 // helper functions
 void makeGameBoardCopy()
 {
-    for (int row = 0; row < maxRows; row++)
+    for (int row = 0; row < game.rowCount; row++)
     {
         strcpy(gameBoardCopy[row], game.gameBoard[row]);  
     }
@@ -827,7 +827,7 @@ void findAvailableColumns()
 int positionNotFloating(int row, int col)
 {
     if      (row == (game.rowCount - 1))                    { return 1; }       // is the very last row
-    else if (gameBoardCopy[row + 1][col] != emptyChar) { return 1; }       // is not the last row, & the row after it is filled
+    else if (gameBoardCopy[row + 1][col] != emptyChar)      { return 1; }       // is not the last row, & the row after it is filled
     else                                                    { return 0; }       // is not the last row, & the row after it is empty
 }
 
