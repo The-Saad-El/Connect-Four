@@ -16,6 +16,15 @@
                                                 الحمد للہ
 */
 
+/*
+    TODO
+    -> seperate ai into its file
+    -> setup filing
+    -> break setPlayers() into 3 functions
+    -> miniMax
+
+*/
+
 
 // headers ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -218,7 +227,8 @@ void playGame()
             break;
         case '4':
             // mainMenu();      will result in infinite recursive loop
-            break;
+            //break;
+            return;
     }
 }
 void exitGame()
@@ -251,6 +261,9 @@ void setGame()
     game.gameState = -1;
     for (int i = 0; i < 4; i++){ game.winningIndices[i][0] = -1; game.winningIndices[i][1] = -1; }
 }
+void setPvPPlayers();
+void setPvAIPlayers();
+void setAIvAIPlayers();
 void setPlayers()
 {
     // players setup
@@ -740,13 +753,6 @@ void checkGameBoard()
     }
 }
 
-// for debugging the check functions
-void shaykh_Debugger()
-{
-    printf("\n\n[Shaykh Debugger]\n\t[1] checkHorizontally(): %d\n\t[2] checkVertically():   %d\n\t[3] checkPosDiagonals(): %d\n\t[4] checkNegDiagonals(): %d\n\t[5] checkDraw():         %d\n\t[6] game.gameState:      %d\n\t[7] game.winningIndices: ", checkHorizontally(), checkVertically(), checkPosDiagonals(), checkNegDiagonals(), checkDraw(), game.gameState);
-    for (int i = 0; i < 4; i++){ printf("[%d, %d] ", game.winningIndices[i][0], game.winningIndices[i][1]); }
-}
-
 // outcome checking
 void evaluateGameBoard()
 {
@@ -842,7 +848,7 @@ int simpleUpdateGameBoard(char tokenToDrop, int columnToUpdate)
             if (row > 0){ gameBoardCopy[row - 1][columnToUpdate] = emptyChar; }
             if (row == (game.rowCount - 1)){ return row; }    // the token reached the last row
         }
-        else { return row; }        // returns the row num at which the token was dropped
+        else { return (row - 1); }        // returns the row num at which the token was dropped
     }
 }
 int simpleCheckHorizontally(char myToken)
@@ -999,49 +1005,14 @@ int simpleCheckGameBoard(char myToken)
     }
 }
 
-// AIs
-int lvl1_awwal_1win_2playRandom(char myToken)
+// ai sub-modules
+int checkAIWin(char myToken)
 {
-    /*
-        "if i can win now, i will win; else i will play a random position"
-
-        > simulates one move of his across all available columns
-        > if he wins by playing any of em or the game draws with his move, returns the numOfAvailableColumns of that column
-        > else plays a random available column and return its numOfAvailableColumns
-    */
-
-    int move;
-    findAvailableColumns();
-
-    // checking for instant win
-    for (int i = 0; i < numOfAvailableColumns; i++)
-    {
-        makeGameBoardCopy();
-        move = availableColumns[i];
-        simpleUpdateGameBoard(myToken, move);
-        if ((simpleCheckGameBoard(myToken) == 0) || (simpleCheckGameBoard(myToken) == 1)){ return move; }    //  if ai wins or the game draws with the ai's move, return that move
-    }
-
-    // playing a random move
-    int randomIndex = (rand() % numOfAvailableColumns);
-    move = availableColumns[randomIndex];
-    return move;
-}
-int lvl2_thani_1win_2dontLose_3playRandom(char myToken, char opponentToken)
-{
-    /*
-        "if i can win now, i will win; else if the opponent can win, i will block; else i will play a random position"
-
-        > simulates one move of his across all available columns
-        > if he wins by playing any of em or the game draws with his move, returns the numOfAvailableColumns of that column
-        > else if the opponent can win next turn by playing a move, blocks that
-        > else plays a random available column and return its numOfAvailableColumns
-    */
-
-    int move;
-    findAvailableColumns();
-
     // checking for ai's instant win
+
+    int move;
+    findAvailableColumns();
+
     for (int i = 0; i < numOfAvailableColumns; i++)
     {
         makeGameBoardCopy();
@@ -1050,53 +1021,29 @@ int lvl2_thani_1win_2dontLose_3playRandom(char myToken, char opponentToken)
         if ((simpleCheckGameBoard(myToken) == 0) || (simpleCheckGameBoard(myToken) == 1)){ return move; }    //  if ai wins or the game draws with the ai's move, return that move
     }
 
+    return -1;      // no instant win
+}
+int blockOpponentWin(char opponentToken)
+{
     // blocking opponent's win
+
+    int move;
+    findAvailableColumns();
+
     for (int i = 0; i < numOfAvailableColumns; i++)
     {
         makeGameBoardCopy();
         move = availableColumns[i];
         simpleUpdateGameBoard(opponentToken, move);
-        if ((simpleCheckGameBoard(myToken) == 2)){ return move; }    //  if the opponent can win in a move, return that move
+        if ((simpleCheckGameBoard(opponentToken) == 1)){ return move; }    //  if the opponent can win in a move, return that move
     }
 
-    // playing a random move
-    int randomIndex = (rand() % numOfAvailableColumns);
-    move = availableColumns[randomIndex];
-    return move;
+    return -1;      // no opponent's instant win
 }
-int lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(char myToken, char opponentToken)  //
+int blockOpponent3InARow(char opponentToken)
 {
-    /*
-        "win; block opponent's win; block opponent's potential 3-in-a-row; else play a random move"
-
-        > if i can win, i will win
-        > else if the opponent can win, i will block
-        > else if the opponent can make 3 in a row, i will block
-        > else i will play a random position 
-    */
-
-    int move;
     findAvailableColumns();
 
-    // checking for ai's instant win
-    for (int i = 0; i < numOfAvailableColumns; i++)
-    {
-        makeGameBoardCopy();
-        move = availableColumns[i];
-        simpleUpdateGameBoard(myToken, move);
-        if ((simpleCheckGameBoard(myToken) == 0) || (simpleCheckGameBoard(myToken) == 1)){ return move; }    //  if ai wins or the game draws with the ai's move, return that move
-    }
-
-    // blocking opponent's win
-    for (int i = 0; i < numOfAvailableColumns; i++)
-    {
-        makeGameBoardCopy();
-        move = availableColumns[i];
-        simpleUpdateGameBoard(opponentToken, move);
-        if ((simpleCheckGameBoard(myToken) == 2)){ return move; }    //  if the opponent can win in a move, return that move
-    }
-
-    // preventing the opponent's potential 3-in-a-row
     int row, col;
     for (int i = 0; i < numOfAvailableColumns; i++)
     {
@@ -1112,7 +1059,7 @@ int lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(char myToken, char o
             for (int k = 0; k < 4; k++)
             {
                 if      ((gameBoardCopy[row][j + k] == emptyChar) && (positionNotFloating(row, j + k))) { empty++;  }
-                else if (gameBoardCopy[row][j + k] == opponentToken)                                         { filled++; }
+                else if (gameBoardCopy[row][j + k] == opponentToken)                                    { filled++; }
             }
             if ((empty == 1) && (filled == 3)) { return col; }
         }
@@ -1132,7 +1079,7 @@ int lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(char myToken, char o
                 for (int l = 0; l < 4; l++)     // groups
                 {
                     if      ((gameBoardCopy[k - l][j + l] == emptyChar) && (positionNotFloating(k - l, j + l))) { empty++;  }
-                    else if (gameBoardCopy[k - l][j + l] == opponentToken)                                           { filled++; }
+                    else if (gameBoardCopy[k - l][j + l] == opponentToken)                                      { filled++; }
                 }
                 if ((empty == 1) && (filled == 3)) { return col; }
             }
@@ -1147,21 +1094,94 @@ int lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(char myToken, char o
                 for (int l = 0; l < 4; l++)     // groups
                 {
                     if      ((gameBoardCopy[k - l][j - l] == emptyChar) && (positionNotFloating(k - l, j - l))) { empty++;  }
-                    else if (gameBoardCopy[k - l][j - l] == opponentToken)                                           { filled++; }
+                    else if (gameBoardCopy[k - l][j - l] == opponentToken)                                      { filled++; }
                 }
                 if ((empty == 1) && (filled == 3)) { return col; }
             }
         }
     }
 
+    return -1;      // no opponent's 3-in-a-row
+}
+int playRandomMove()
+{
     // playing a random move
+
+    findAvailableColumns();
+
     int randomIndex = (rand() % numOfAvailableColumns);
-    move = availableColumns[randomIndex];
-    return move;
+    int randomCol = availableColumns[randomIndex];
+    return randomCol;
 }
 
-int lvl4_rabi_simulates3Moves();       // 1st ai, 2nd opponent, 3rd ai
-int lvl5_khamis_simulates5Moves();     // 1st ai, 2nd opponent, 3rd ai, 4th opponent, 5th ai
+// AIs
+int lvl1_awwal_1win_2playRandom(char myToken)
+{
+    /*
+        "if i can win now, i will win; else i will play a random position"
+
+        > simulates one move of his across all available columns
+        > if he wins by playing any of em or the game draws with his move, returns the numOfAvailableColumns of that column
+        > else plays a random available column and return its numOfAvailableColumns
+    */
+
+    // checking for instant win
+    if (checkAIWin(myToken) != -1){ return checkAIWin(myToken); }
+
+    // playing a random move
+    return playRandomMove();
+}
+int lvl2_thani_1win_2dontLose_3playRandom(char myToken, char opponentToken)
+{
+    /*
+        "if i can win now, i will win; else if the opponent can win, i will block; else i will play a random position"
+
+        > simulates one move of his across all available columns
+        > if he wins by playing any of em or the game draws with his move, returns the numOfAvailableColumns of that column
+        > else if the opponent can win next turn by playing a move, blocks that
+        > else plays a random available column and return its numOfAvailableColumns
+    */
+
+    // checking for ai's instant win
+    int checkAIWin_result = checkAIWin(myToken);
+    if (checkAIWin_result != -1){ return checkAIWin_result; }
+
+    // blocking opponent's win
+    int blockOpponentWin_result = blockOpponentWin(opponentToken);
+    if (blockOpponentWin_result != -1){ return blockOpponentWin_result; }
+
+    // playing a random move
+    return playRandomMove();
+}
+int lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(char myToken, char opponentToken)  //
+{
+    /*
+        "win; block opponent's win; block opponent's potential 3-in-a-row; else play a random move"
+
+        > if i can win, i will win
+        > else if the opponent can win, i will block
+        > else if the opponent can make 3 in a row, i will block
+        > else i will play a random position 
+    */
+
+    // checking for ai's instant win
+    int checkAIWin_result = checkAIWin(myToken);
+    if (checkAIWin_result != -1){ return checkAIWin_result; }
+
+    // blocking opponent's win
+    int blockOpponentWin_result = blockOpponentWin(opponentToken);
+    if (blockOpponentWin_result != -1){ return blockOpponentWin_result; }
+
+    // preventing the opponent's potential 3-in-a-row
+    int blockOpponent3InARow_result = blockOpponent3InARow(opponentToken);
+    if (blockOpponent3InARow_result != -1){ return blockOpponent3InARow_result; }
+
+    // playing a random move
+    return playRandomMove();
+}
+
+int lvl4_rabi_simulates5Moves();       // 1st ai, 2nd opponent, 3rd ai
+int lvl5_khamis_simulates7Moves();     // 1st ai, 2nd opponent, 3rd ai, 4th opponent, 5th ai
 
 
 // Getting PLayers Moves ---------------------------------------------------------------------------------------------------------------------------- 
