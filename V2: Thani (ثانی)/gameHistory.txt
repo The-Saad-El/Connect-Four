@@ -1,0 +1,1 @@
+Date: [Wed Oct 15 22:12:07 2025] | Player 1: [Thalith] | Player 2: [Thalith] | GameMode: [AIvAI] | GameBoard: [Mini] | TotalMoves: [11] | Duration: [1.1 min] | Result: [Thalith Won]
