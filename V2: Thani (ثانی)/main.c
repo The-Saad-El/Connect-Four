@@ -21,6 +21,7 @@
     [!]  setup filing/files (save/load game, leaderboard, resume game, achievements)
     [!]  displayHistory() not working
     [!]  how to store and represent names of 2 same ai players
+    [!]  if someone initiates program for the 1st time and then clicks at history, he will see an error. fix that!
 
     [2]  seperate AIs & all the related stuff into its own file
     [3]  miniMax (rabi & khamis)
