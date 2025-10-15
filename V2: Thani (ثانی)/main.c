@@ -18,7 +18,10 @@
 
 /*
     TODO
-    [1]  setup filing/files (save/load game, leaderboard, resume game, achievements)
+    [!]  setup filing/files (save/load game, leaderboard, resume game, achievements)
+    [!]  displayHistory() not working
+    [!]  how to store and represent names of 2 same ai players
+
     [2]  seperate AIs & all the related stuff into its own file
     [3]  miniMax (rabi & khamis)
     [4]  break everything into files (main.c, game.c, ai.c, file_io.c, {files}.txt)
@@ -47,10 +50,10 @@
 #define emptyChar ' '                   // the char used to represent an empty/unfilled position
 #define player1Mark 'X'                 // the symbol/mark/token for player1's spaces
 #define player2Mark 'O'                 // the symbol/mark/token for player2's spaces
-#define arbitrarySize 25                // arbitrary size (of 25 bytes/char) of string pointers used in fgets
+#define arbitrarySize 25                // arbitrary size (of 25 bytes/char) of string pointers (used mainly in fgets)
 #define animateTextDelay_33ms 33        // the arbitrary timeDelay_ms of 33ms used as the argument of the animateText() in printing menus
 #define animateTextDelay_63ms 63        // the arbitrary timeDelay_ms of 63ms used as the argument of the animateText() for printing AI's dialogues
-#define animateTextDelay_123ms 123      // the arbitrary timeDelay_ms of 123ms for some of the animateText() strings such as animating connectFour at start & animating the round result
+// #define animateTextDelay_123ms 123      // the arbitrary timeDelay_ms of 123ms for some of the animateText() strings such as animating connectFour at start & animating the round result
 #define animateGameBoardDelay_ms 300    // the time, in ms, used for the argument of the wait() function, for animating gameBoard updates
 
 // variable struct
@@ -58,15 +61,18 @@ typedef struct
 {    
     // flags
     bool continueProgram;                   // flag used for the main while loop in main()
-    bool playGame;                          // flag used for the individual game loops
-    bool randomSeeded;                      // flag used to indicate whether rand() has already been seeded in the program (using srand())
     bool mainMenuShown;                     // flag used to indicate whether the mainMenu() ran once (used to terminate the connectFour animation after it ran once)      
+    bool randomSeeded;                      // flag used to indicate whether rand() has already been seeded in the program (using srand())
+    bool playGame;                          // flag used for the individual game loops
     
     // game setup
+    time_t startTime;                       // stores the result of time(NULL) at the start of a game/round (time_t is a typedef for long or long long); is used while saving gameData in file
+    time_t endTime;                         // stores the result of time(NULL) at the end of a game/round (time(NULL) gives the elapsed time (in sec) since the unix epoch (ie jan 1st, 1970))
+    char gameMode[5];                       // stores the abbreviated name of the current gameMode (PvP/PvAI/AIvAI)
+    int gameState;                          // flag for the current gameBoard state; -1: continue, 0: draw, 1: player1 won, 2: player2 won
     int totalMoves;                         // counter for the total number of moves made
     int activePlayer;                       // 0: game not started, 1: player1, 2: player2 (can be real players or AI)
     int playerMove;                         // holds the move (ie the numOfAvailableColumns position of the chosen column) of the current activePlayer
-    int gameState;                          // flag for the current gameBoard state; -1: continue, 0: draw, 1: player1 won, 2: player2 won
     int winningIndices[4][2];               // an array containing indices of the winning-row
 
     // gameBoard setup
@@ -76,8 +82,7 @@ typedef struct
 
     // player setup         
     char player1Name[arbitrarySize];        // name/title of player1
-    char player2Name[arbitrarySize];        // name/title of player2;
-    int numOfHumanPlayers;                  // the num of Human (not AI) players
+    char player2Name[arbitrarySize];        // name/title of player2
 
 } gameConfig;
 
@@ -129,14 +134,23 @@ void animateText(char strToAnimate[], int timeDelay_ms)
         wait(timeDelay_ms);
     }
 }
-
+void pressEnterToContinue()
+{
+    wait(1500);    // wait 1.5s
+    printf("\n\n\nPress Enter to continue: ");
+    char uselessStr[arbitrarySize];    // size 40 so the user can enter anything, even a faltoo long string, without the program breaking
+    fgets(uselessStr, sizeof(uselessStr), stdin);    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
+    if (uselessStr[strlen(uselessStr) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+}
 
 // game ---------------------------------------------------------------------------------------------------------------------------------------------
 
-// gameModes
+// declarations
 void PvP();
 void PvAI();
 void AIvAI();
+void saveGame();
+void displayHistory();
 
 // main() stuff
 int mainMenu()
@@ -145,20 +159,20 @@ int mainMenu()
     clearScreen();      // clears the terminal screen
     if   (!game.mainMenuShown)
     { 
-        animateText("==================\n=> Connect Four <=\n==================\n", animateTextDelay_123ms);   // keep at animateTextDelay_123ms
+        animateText("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n", animateTextDelay_63ms);   // keep at animateTextDelay_63ms
         wait(500);    // wait .5s
     }
-    else { printf("==================\n=> Connect Four <=\n==================\n"); }
+    else { printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n"); }
     game.mainMenuShown = true;
 
     // the main menu
-    animateText("\n\n[Main Menu]\n  [1] Play\n  [2] Exit", animateTextDelay_33ms);
+    animateText("\n\n[Main Menu]\n  [1] Play\n  [2] History\n  [3] Exit", animateTextDelay_33ms);
     char userChoice[arbitrarySize];
     while (true)
     {
-        printf("\nEnter your choice [1/2]: ");
+        printf("\nEnter your choice [1-3]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");
             break;
@@ -166,7 +180,7 @@ int mainMenu()
         else
         {
             if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-            printf("> [!] Enter either 1 or 2");
+            printf("> [!] Enter either 1, 2, or 3");
             continue;
         }
 
@@ -177,6 +191,7 @@ int mainMenu()
     {
         case '1': return 1;
         case '2': return 2;
+        case '3': return 3;
     }
 }
 void playGame()
@@ -189,7 +204,7 @@ void playGame()
     */
 
     clearScreen();
-    printf("==================\n=> Connect Four <=\n==================\n\n\n");
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
     // choosing the gameMode
     animateText("[Choose GameMode]\n  [1] PvP: Player vs Player\n  [2] PvAI: Player vs AI\n  [3] AIvAI: AI vs AI\n  [4] Go Back", animateTextDelay_33ms);
@@ -215,15 +230,15 @@ void playGame()
     switch(userChoice[0])
     {
         case '1':
-            game.numOfHumanPlayers = 2;
+            strcpy(game.gameMode, "PvP");
             PvP();
             break;
         case '2':
-            game.numOfHumanPlayers = 1;
+            strcpy(game.gameMode, "PvAI");
             PvAI();
             break;
         case '3':
-            game.numOfHumanPlayers = 0;
+            strcpy(game.gameMode, "AIvAI");
             AIvAI();
             break;
         case '4':
@@ -236,8 +251,7 @@ void exitGame()
 {
     // exiting animation mainly
     clearScreen();
-    printf("==================\n=> Connect Four <=\n==================\n");
-    printf("\n\n");
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
     for (int i = 5; i >= 1; i--)
     {
@@ -397,36 +411,12 @@ void setPlayers()
     // players setup
 
     clearScreen();
-    printf("==================\n=> Connect Four <=\n==================\n\n\n");
-
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
     animateText("[Players' Information]", animateTextDelay_33ms);
 
-    switch(game.numOfHumanPlayers)
-    {
-        case 0:
-        {
-            // AIvsAI
-
-            setAIvAIPlayers();
-            break;
-        }
-
-        case 1:
-        {
-            // PvsAI
-            
-            setPvAIPlayers();
-            break;
-        }
-
-        case 2:
-        {
-            // PvsP
-
-            setPvPPlayers();
-            break;
-        }
-    }
+    if      (!strcmp(game.gameMode, "PvP"))  { setPvPPlayers();   }     // PvP
+    else if (!strcmp(game.gameMode, "PvAI")) { setPvAIPlayers();  }     // PvAI
+    else                                     { setAIvAIPlayers(); }     // AIvAI
 
 }
 void setGameBoard()
@@ -434,7 +424,7 @@ void setGameBoard()
     // gameBoard setup
 
     clearScreen();
-    printf("==================\n=> Connect Four <=\n==================\n\n\n");
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
     
     // choosing the gameBoard's size
     animateText("[GameBoard Size]\n  [1] Mini (5 x 4)\n  [2] Blitz (6 x 5)\n  [3] Classic (7 x 6)\n  [4] Grand (8 x 7)\n  [5] Titan (9 x 8)\n  [6] Go Back", animateTextDelay_33ms);
@@ -554,6 +544,7 @@ void showGameBoard()
     wait(2000);    // wait 2s
     clearScreen();
     printGameBoard();
+    game.startTime = time(NULL);    // starting the stopwatch
 }
 
 // gamePlay stuff
@@ -767,6 +758,9 @@ void evaluateGameBoard()
 {
     if (game.gameState != -1)        // continue the round if gameState == -1; will only work for totalMoves >= 7
     {
+        game.endTime = time(NULL);      // stoppin the stopwatch when the game reaches a terminal state
+        saveGame();
+
         wait(330);     // a little pause before printing results
         switch (game.gameState)
         {
@@ -782,7 +776,7 @@ void evaluateGameBoard()
                 char bars[numBars + 1];     // + 1 for '\0'
                 for (int i = 0; i < numBars; i++){ bars[i] = '='; }
                 bars[numBars] = '\0';
-                animateText("\n\n", animateTextDelay_123ms); animateText(bars, animateTextDelay_123ms); animateText("\n[* * *] WINNER: ", animateTextDelay_123ms); animateText(game.player1Name, animateTextDelay_123ms); animateText("! [* * *]\n", animateTextDelay_123ms); animateText(bars, animateTextDelay_123ms); animateText("\n", animateTextDelay_123ms);
+                animateText("\n\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n[* * *] WINNER: ", animateTextDelay_63ms); animateText(game.player1Name, animateTextDelay_63ms); animateText("! [* * *]\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n", animateTextDelay_63ms);
                 break;
             }
 
@@ -794,21 +788,13 @@ void evaluateGameBoard()
                 char bars[numBars + 1];     // + 1 for '\0'
                 for (int i = 0; i < numBars; i++){ bars[i] = '='; }
                 bars[numBars] = '\0';
-                animateText("\n\n", animateTextDelay_123ms); animateText(bars, animateTextDelay_123ms); animateText("\n[* * *] WINNER: ", animateTextDelay_123ms); animateText(game.player2Name, animateTextDelay_123ms); animateText("! [* * *]\n", animateTextDelay_123ms); animateText(bars, animateTextDelay_123ms); animateText("\n", animateTextDelay_123ms);
+                animateText("\n\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n[* * *] WINNER: ", animateTextDelay_63ms); animateText(game.player2Name, animateTextDelay_63ms); animateText("! [* * *]\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n", animateTextDelay_63ms);
                 break;
             }
         }
 
         game.playGame = false;      // breaks from the inner while loop in main()
     }
-}
-void finishRound()
-{
-    wait(1500);    // wait 1.5s
-    printf("\n\nPress Enter to continue: ");
-    char uselessStr[arbitrarySize];    // size 40 so the user can enter anything, even a faltoo long string, without the program breaking
-    fgets(uselessStr, sizeof(uselessStr), stdin);    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
-    if (uselessStr[strlen(uselessStr) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
 }
 
 
@@ -1310,7 +1296,7 @@ void PvP()
         evaluateGameBoard();
     }
 
-    finishRound();
+    pressEnterToContinue();
 }
 void PvAI()
 {
@@ -1330,7 +1316,7 @@ void PvAI()
         evaluateGameBoard();
     }
 
-    finishRound();
+    pressEnterToContinue();
 }
 void AIvAI()
 {
@@ -1349,11 +1335,104 @@ void AIvAI()
         evaluateGameBoard();
     }
 
-    finishRound();
+    pressEnterToContinue();
 }
 
 
-// ------------------------------------------------------------------------------------------------------------------------------------------------
+// filing -------------------------------------------------------------------------------------------------------------------------------------------
+
+void saveGame()
+{   
+    // for games history: players, serial number, winner, elapsed time
+
+    FILE *fPtr = fopen("gameHistory.txt", "a");
+    if (fPtr == NULL)
+    { 
+        printf("[!] ERROR: Couldn't open file 'gameHistory.txt'"); 
+    }
+    else
+    {
+        char gameBoard[8];
+        switch (game.colCount)
+        {
+            case 5: strcpy(gameBoard, "Mini");    break;
+            case 6: strcpy(gameBoard, "Blitz");   break;
+            case 7: strcpy(gameBoard, "Classic"); break;
+            case 8: strcpy(gameBoard, "Grand");   break;
+            case 9: strcpy(gameBoard, "Titan");   break;
+        }
+
+        char result[30];
+        switch(game.gameState)
+        {
+            case 0: 
+                strcpy(result, "Draw");
+                break;
+            case 1: 
+                strcpy(result, game.player1Name);
+                strcat(result, " Won");
+                break;
+            case 2: 
+                strcpy(result, game.player2Name);
+                strcat(result, " Won");
+                break;
+        }
+
+        // char dateTime[] = ctime(&game.startTime);
+        char dateTime[25];
+        strcpy(dateTime, ctime(&game.startTime));
+        dateTime[strlen(dateTime) - 1] = '\0';
+
+        fprintf(fPtr, "Date: [%s] | Player 1: [%s] | Player 2: [%s] | GameMode: [%s] | GameBoard: [%s] | TotalMoves: [%d] | Duration: [%.1f min] | Result: [%s]\n", 
+                        dateTime, game.player1Name, game.player2Name, game.gameMode, gameBoard, game.totalMoves, difftime(game.endTime, game.startTime)/60.0, result);
+        
+        fclose(fPtr);
+    }
+}
+void displayHistory()
+{
+    clearScreen();
+
+    FILE *fPtr = fopen("gameHistory.txt", "r");
+    if (fPtr == NULL)
+    { 
+        printf("[!] ERROR: Couldn't open file 'gameHistory.txt'"); 
+    }
+    else
+    {
+        char dateTime[arbitrarySize], player1Name[arbitrarySize], player2Name[arbitrarySize], gameMode[5], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
+        int numOfScans, totalMoves, count = 0;
+        float duration;
+
+        printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+        printf("|| %4s | %-25s | %-25s | %-25s | %10s | %10s | %10s | %10s | %-29s ||\n", "Game", "dateTime", "player1Name", "player2Name", "gameMode", "gameBoard", "totalMoves", "Duration", "Result");
+        printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+        while (true)
+        {
+            numOfScans = fscanf(fPtr, "Date: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameMode: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
+                                        dateTime, player1Name, player2Name, gameMode, gameBoard, &totalMoves, &duration, result);
+            if (numOfScans != 8) { break; }    // no items read (ie max num of lines (EOF) reached)
+            printf("|| %4d | %-25s | %-25s | %-25s | %10s | %10s | %10d | %5.1f mins | %-29s ||\n", ++count, dateTime, player1Name, player2Name, gameMode, gameBoard, totalMoves, duration, result);
+        }
+
+        /*
+        char line[200];
+        while (fgets(line, sizeof(line), fPtr) != NULL)
+        {
+            printf("%s", line);
+        }
+        */
+
+        printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+
+        fclose(fPtr);
+    }
+
+    pressEnterToContinue();
+}
+
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 int main()
@@ -1371,6 +1450,10 @@ int main()
                 break;
 
             case 2:
+                displayHistory();
+                break;
+
+            case 3:
                 game.continueProgram = false;
                 exitGame();
                 break;
