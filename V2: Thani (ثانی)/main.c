@@ -456,28 +456,30 @@ void setGameBoard()
         }
     }
 
-    // setting globals to selected size's settings
+    // setting globals to user's selected size's settings
     switch (userChoice[0])
     {
+        // although (n x m) conventially means n rows and m columns, it is the opposite in connectFour & so refers to n columns and m rows
+
         case '1':               // Mini (5 x 4)
-            game.rowCount = 5;
-            game.colCount = 4;
-            break;
-        case '2':               // Blitz (6 x 5)
-            game.rowCount = 6;
+            game.rowCount = 4;
             game.colCount = 5;
             break;
-        case '3':               // CLassic (7 x 6)
-            game.rowCount = 7;
+        case '2':               // Blitz (6 x 5)
+            game.rowCount = 5;
             game.colCount = 6;
             break;
-        case '4':               // Grand (8 x 7)
-            game.rowCount = 8;
+        case '3':               // CLassic (7 x 6)
+            game.rowCount = 6;
             game.colCount = 7;
             break;
-        case '5':               // Titan (9 x 8)
-            game.rowCount = 9;
+        case '4':               // Grand (8 x 7)
+            game.rowCount = 7;
             game.colCount = 8;
+            break;
+        case '5':               // Titan (9 x 8)
+            game.rowCount = 8;
+            game.colCount = 9;
             break;    
         case '6':               // go back to setPlayers()
             setPlayers();
