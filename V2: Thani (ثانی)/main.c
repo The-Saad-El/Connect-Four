@@ -18,13 +18,12 @@
 
 /*
     TODO
-    [!]  setup filing/files (save/load game, leaderboard, resume game, achievements)
-    [!]  quickMatch mode [quickMatch()]
-    [!]  play: custom match, quick match           view: achievements, leaderboards, gameHistory, resumeGame
+    [!]  play: custom match[N], quick match[N]           view: achievements[N], leaderboards[N], gameHistory[Y], help[Y]
     
     [2]  seperate AIs & all the related stuff into its own file
-    [3]  miniMax (rabi & khamis)
-    [4]  break everything into files (main.c, game.c, ai.c, file_io.c, {files}.txt)
+    [3]  break everything into files (main.c, game.c, ai.c, file_io.c, {files}.txt)
+    [4]  miniMax (rabi & khamis)
+    [ ]  reverse back rows & col?
     
 */
 
@@ -51,6 +50,7 @@
 #define player1Mark 'X'                 // the symbol/mark/token for player1's spaces
 #define player2Mark 'O'                 // the symbol/mark/token for player2's spaces
 #define arbitrarySize 35                // arbitrary size (of 35 bytes/char) of string pointers (used mainly in fgets)
+#define animateTextDelay_13ms 13        // the arbitrary timeDelay_ms of 33ms used as the argument of the animateText() chiefly in view()'s subfunctions
 #define animateTextDelay_33ms 33        // the arbitrary timeDelay_ms of 33ms used as the argument of the animateText() in printing menus
 #define animateTextDelay_63ms 63        // the arbitrary timeDelay_ms of 63ms used as the argument of the animateText() for printing AI's dialogues
 #define animateGameBoardDelay_ms 300    // the time, in ms, used for the argument of the wait() function, for animating gameBoard updates
@@ -143,14 +143,20 @@ void pressEnterToContinue()
     if (uselessStr[strlen(uselessStr) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
 }
 
+
 // game ---------------------------------------------------------------------------------------------------------------------------------------------
 
 // declarations
 void PvP();
 void PvAI();
 void AIvAI();
-void saveGame();
-void displayHistory();
+void saveGameHistory();
+void displayGameHistory();
+void saveLeaderBoards();
+void displayLeaderBoards();
+void saveAchievements();
+void displayAchievements();
+void displayHelp();
 
 // main() stuff
 int mainMenu()
@@ -166,7 +172,7 @@ int mainMenu()
     game.mainMenuShown = true;
 
     // the main menu
-    animateText("\n\n[Main Menu]\n  [1] Play\n  [2] History\n  [3] Exit", animateTextDelay_33ms);
+    animateText("\n\n[Main Menu]\n  [1] Play\n  [2] View\n  [3] Exit", animateTextDelay_33ms);
     char userChoice[arbitrarySize];
     while (true)
     {
@@ -194,7 +200,7 @@ int mainMenu()
         case '3': return 3;
     }
 }
-void playGame()
+void play()
 {
     /*
         > choose gameMoade
@@ -247,7 +253,49 @@ void playGame()
             return;
     }
 }
-void _quickMatch();
+void view()
+{
+    /*
+        1> Games' History
+        2> leaderBoards
+        3> Achievements
+        4> Help
+        5> Go Back
+    */
+
+    clearScreen();
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
+
+    // choosing the gameMode
+    animateText("[View]\n  [1] History\n  [2] LeaderBoards\n  [3] Achievements\n  [4] Help\n  [5] Go Back", animateTextDelay_33ms);
+    char userChoice[arbitrarySize];
+    while (true)
+    {
+        printf("\nEnter your choice [1-5]: ");
+        fgets(userChoice, sizeof(userChoice), stdin);
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3') || (userChoice[0] == '4') || (userChoice[0] == '5')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        {
+            printf("> Accepted\n\n");       // (is effectively useless)
+            break; 
+        }
+        else
+        { 
+            if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+            printf("> [!] Enter either 1, 2, 3, 4, or 5");
+            continue;
+        }
+    }
+
+    // calling functions based on userChoice
+    switch(userChoice[0])
+    {
+        case '1':  displayGameHistory();   break;     // history
+        case '2':  displayLeaderBoards();  break;     // leaderboards
+        case '3':  displayAchievements();  break;     // achievements
+        case '4':  displayHelp();          break;     // help
+        case '5':  return;                            // go back [will return to the mainMenu()]
+    }
+}
 void exitGame()
 {
     // exiting animation mainly
@@ -766,7 +814,7 @@ void evaluateGameBoard()
     if (game.gameState != -1)        // continue the round if gameState == -1; will only work for totalMoves >= 7
     {
         game.endTime = time(NULL);      // stoppin the stopwatch when the game reaches a terminal state
-        saveGame();
+        saveGameHistory();
 
         wait(330);     // a little pause before printing results
         switch (game.gameState)
@@ -1351,11 +1399,12 @@ void AIvAI()
 
 // filing -------------------------------------------------------------------------------------------------------------------------------------------
 
-void saveGame()
+// gameHistory
+void saveGameHistory()
 {   
     // for games history: players, serial number, winner, elapsed time
 
-    FILE *fPtr = fopen("gameHistory.txt", "a");
+    FILE *fPtr = fopen("gameFiles/gameHistory.txt", "a");       // / instead of \\ (the former works on all platforms while the latter is windows-dependent)
     if (fPtr == NULL)
     { 
         printf("[!] ERROR: Couldn't open file 'gameHistory.txt'"); 
@@ -1399,12 +1448,13 @@ void saveGame()
         fclose(fPtr);
     }
 }
-void displayHistory()
+void displayGameHistory()
 {
     clearScreen();
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
     // FILE *fPtr = fopen("gameHistory.txt", "r");
-    FILE *fPtr = fopen("gameHistory.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameHistory.txt file not exisitng; rather the file will be created 
+    FILE *fPtr = fopen("gameFiles/gameHistory.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameHistory.txt file not exisitng; rather the file will be created 
     if (fPtr == NULL)
     { 
         printf("[!] ERROR: Couldn't open file 'gameHistory.txt'"); 
@@ -1415,17 +1465,15 @@ void displayHistory()
         int numOfScans, totalMoves, count = 0;
         float duration;
 
-        printf("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
-        //printf("||                                                                                                                                                                                ||\n");
-        printf("|| %5s | %-25s | %10s | %-25s | %-25s | %10s | %11s | %10s | %-29s ||\n", "Game", "dateTime", "gameMode", "player1Name", "player2Name", "gameBoard", "totalMoves", "Duration", "Result");
-        //printf("||                                                                                                                                                                                ||\n");
-        printf("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+        animateText("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        printf("| %5s | %-27s | %10s | %-25s | %-25s | %10s | %11s | %10s | %-29s |\n", "Game", "dateTime", "gameMode", "player1Name", "player2Name", "gameBoard", "totalMoves", "Duration", "Result");
+        animateText("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
         while (true)
         {
             numOfScans = fscanf(fPtr, "Date: [%[^]]] | GameMode: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
                                         dateTime, gameMode, player1Name, player2Name, gameBoard, &totalMoves, &duration, result);
             if (numOfScans != 8) { break; }    // no items read (ie max num of lines (EOF) reached)
-            printf("|| %5d | %-25s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s ||\n", ++count, dateTime, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
+            printf("| %5d | %-27s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |\n", ++count, dateTime, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
         }
 
         /*
@@ -1436,10 +1484,179 @@ void displayHistory()
         }
         */
 
-        printf("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+        animateText("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
 
         fclose(fPtr);
     }
+
+    pressEnterToContinue();
+}
+
+// leaderBoards
+void saveLeaderBoards()
+{   
+    // for games history: players, serial number, winner, elapsed time
+
+    FILE *fPtr = fopen("gameFiles/leaderBoards.txt", "a");      // used / instead of (\\); a will create file if it no exist
+    if (fPtr == NULL)
+    { 
+        printf("[!] ERROR: Couldn't open file 'leaderBoards.txt'"); 
+    }
+    else
+    {
+        /*
+        char gameBoard[8];
+        switch (game.colCount)
+        {
+            case 5: strcpy(gameBoard, "Mini");    break;
+            case 6: strcpy(gameBoard, "Blitz");   break;
+            case 7: strcpy(gameBoard, "Classic"); break;
+            case 8: strcpy(gameBoard, "Grand");   break;
+            case 9: strcpy(gameBoard, "Titan");   break;
+        }
+
+        char result[30];
+        switch(game.gameState)
+        {
+            case 0: 
+                strcpy(result, "Draw");
+                break;
+            case 1: 
+                strcpy(result, game.player1Name);
+                strcat(result, " Won");
+                break;
+            case 2: 
+                strcpy(result, game.player2Name);
+                strcat(result, " Won");
+                break;
+        }
+
+        char dateTime[25];
+        strcpy(dateTime, ctime(&game.startTime));
+        dateTime[strlen(dateTime) - 1] = '\0';
+
+        fprintf(fPtr, "Date: [%s] | GameMode: [%s] | Player 1: [%s] | Player 2: [%s] | GameBoard: [%s] | TotalMoves: [%d] | Duration: [%.1f min] | Result: [%s]\n", 
+                        dateTime, game.gameMode, game.player1Name, game.player2Name, gameBoard, game.totalMoves, difftime(game.endTime, game.startTime)/60.0, result);
+        */
+        fclose(fPtr);
+    }
+}
+void displayLeaderBoards()
+{
+    clearScreen();
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
+
+    FILE *fPtr = fopen("gameFiles/leaderBoards.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameHistory.txt file not exisitng; rather the file will be created 
+    if (fPtr == NULL)
+    { 
+        printf("[!] ERROR: Couldn't open file 'leaderBoards.txt'"); 
+    }
+    else
+    {
+        //char dateTime[arbitrarySize], player1Name[arbitrarySize], player2Name[arbitrarySize], gameMode[6], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
+        //int numOfScans, totalMoves, count = 0;
+        //float duration;
+
+        animateText("-----------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        printf("| %7s | %-25s | %-17s | %-17s | %-17s | %-17s |\n", "Rank", "Player Name", "Games Played", "PvP Played", "PvAI Played", "Score");
+        animateText("-----------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        
+        /*
+        while (true)
+        {
+            numOfScans = fscanf(fPtr, "Date: [%[^]]] | GameMode: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
+                                        dateTime, gameMode, player1Name, player2Name, gameBoard, &totalMoves, &duration, result);
+            if (numOfScans != 8) { break; }    // no items read (ie max num of lines (EOF) reached)
+            printf("|| %5d | %-25s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s ||\n", ++count, dateTime, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
+        }
+        */
+
+        animateText("-----------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+
+        fclose(fPtr);
+    }
+
+    pressEnterToContinue();
+}
+
+// achievements
+void saveAchievements()
+{
+    return;
+}
+void displayAchievements()
+{
+    clearScreen();
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
+
+    printf("To be added insha'Allah...");
+    pressEnterToContinue();
+}
+
+// help
+void displayHelp()
+{
+    clearScreen();
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
+
+    animateText
+            (
+            "\n========================================\n\n"
+            "ABOUT THE GAME:\n"
+            "Connect Four is a two-player strategy game where players\n"
+            "take turns dropping colored discs into a vertical grid.\n"
+            "The objective is to connect four discs in a row before\n"
+            "your opponent does.\n\n"
+            "HOW TO WIN:\n"
+            "Be the first to connect four of your discs in a row:\n"
+            "  - Horizontally (left to right)\n"
+            "  - Vertically (top to bottom)\n"
+            "  - Diagonally (any direction)\n\n"
+            "HOW TO PLAY:\n"
+            "1. Choose a column number to drop your disc\n"
+            "2. The disc falls to the lowest available position\n"
+            "3. Players alternate turns until someone wins or the board fills\n\n"
+            "MAIN MENU OPTIONS:\n"
+            "  [1] PLAY - Start a new game\n"
+            "      - Quickmatch: Choose only the game mode and start playing\n"
+            "        with default settings (Classic board, standard rules)\n"
+            "      - Custom Match: Customize all game settings including\n"
+            "        board size, players, and AI difficulty\n"
+            "  [2] VIEW - Access game information\n"
+            "      - Game History: Review past matches\n"
+            "      - Leaderboards: See top players and rankings\n"
+            "      - Achievements: Check unlocked achievements\n"
+            "      - Help: Display this help section\n"
+            "      - Go Back: Return to main menu\n"
+            "  [3] EXIT - Quit the game\n\n"
+            "GAME BOARD SIZES:\n"
+            "(Available in Custom Match mode)\n"
+            "  [1] Mini (5 x 4) - Quick games, 5 columns, 4 rows\n"
+            "  [2] Blitz (6 x 5) - Fast-paced, 6 columns, 5 rows\n"
+            "  [3] Classic (7 x 6) - Traditional size, 7 columns, 6 rows\n"
+            "  [4] Grand (8 x 7) - Extended play, 8 columns, 7 rows\n"
+            "  [5] Titan (9 x 8) - Epic battles, 9 columns, 8 rows\n\n"
+            "GAME MODES:\n"
+            "  [1] PvP (Player vs Player)\n"
+            "      Two human players compete against each other\n\n"
+            "  [2] PvAI (Player vs AI)\n"
+            "      Challenge an AI opponent of your choice\n\n"
+            "  [3] AIvAI (AI vs AI)\n"
+            "      Watch two AI opponents battle each other\n\n"
+            "AI DIFFICULTY LEVELS:\n"
+            "  - Awwal (Beginner)\n"
+            "    Basic AI that focuses on winning moves but plays\n"
+            "    randomly otherwise. Good for learning the game.\n\n"
+            "  - Thani (Intermediate)\n"
+            "    Smarter AI that attempts to win, blocks your winning\n"
+            "    moves, and plays strategically. A balanced challenge.\n\n"
+            "  - Thalith (Advanced)\n"
+            "    Expert AI that plays to win, prevents your wins, stops\n"
+            "    you from building 3-in-a-row threats, and uses advanced\n"
+            "    strategies. The ultimate challenge!\n\n"
+            "========================================\n"
+            "(Generated using Claude.ai on 16/10/2025 @ 9:53pm)\n", animateTextDelay_13ms
+            );
 
     pressEnterToContinue();
 }
@@ -1459,11 +1676,11 @@ int main()
         switch (mainMenu())
         {
             case 1:
-                playGame();
+                play();
                 break;
 
             case 2:
-                displayHistory();
+                view();
                 break;
 
             case 3:
