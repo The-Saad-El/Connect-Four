@@ -19,9 +19,9 @@
 /*
     TODO
     [!]  setup filing/files (save/load game, leaderboard, resume game, achievements)
-    [!]  displayHistory() not working
     [!]  how to store and represent names of 2 same ai players
     [!]  if someone initiates program for the 1st time and then clicks at history, he will see an error. fix that!
+    {!}  make ai's names like imam, qadi, shaykh, ustad etc
 
     [2]  seperate AIs & all the related stuff into its own file
     [3]  miniMax (rabi & khamis)
@@ -51,10 +51,9 @@
 #define emptyChar ' '                   // the char used to represent an empty/unfilled position
 #define player1Mark 'X'                 // the symbol/mark/token for player1's spaces
 #define player2Mark 'O'                 // the symbol/mark/token for player2's spaces
-#define arbitrarySize 25                // arbitrary size (of 25 bytes/char) of string pointers (used mainly in fgets)
+#define arbitrarySize 35                // arbitrary size (of 35 bytes/char) of string pointers (used mainly in fgets)
 #define animateTextDelay_33ms 33        // the arbitrary timeDelay_ms of 33ms used as the argument of the animateText() in printing menus
 #define animateTextDelay_63ms 63        // the arbitrary timeDelay_ms of 63ms used as the argument of the animateText() for printing AI's dialogues
-// #define animateTextDelay_123ms 123      // the arbitrary timeDelay_ms of 123ms for some of the animateText() strings such as animating connectFour at start & animating the round result
 #define animateGameBoardDelay_ms 300    // the time, in ms, used for the argument of the wait() function, for animating gameBoard updates
 
 // variable struct
@@ -69,7 +68,7 @@ typedef struct
     // game setup
     time_t startTime;                       // stores the result of time(NULL) at the start of a game/round (time_t is a typedef for long or long long); is used while saving gameData in file
     time_t endTime;                         // stores the result of time(NULL) at the end of a game/round (time(NULL) gives the elapsed time (in sec) since the unix epoch (ie jan 1st, 1970))
-    char gameMode[5];                       // stores the abbreviated name of the current gameMode (PvP/PvAI/AIvAI)
+    char gameMode[6];                       // stores the abbreviated name of the current gameMode (PvP/PvAI/AIvAI) (5 max size, 1 '\0')
     int gameState;                          // flag for the current gameBoard state; -1: continue, 0: draw, 1: player1 won, 2: player2 won
     int totalMoves;                         // counter for the total number of moves made
     int activePlayer;                       // 0: game not started, 1: player1, 2: player2 (can be real players or AI)
@@ -137,10 +136,10 @@ void animateText(char strToAnimate[], int timeDelay_ms)
 }
 void pressEnterToContinue()
 {
-    wait(1500);    // wait 1.5s
+    wait(1500);                                                         // wait 1.5s
     printf("\n\n\nPress Enter to continue: ");
-    char uselessStr[arbitrarySize];    // size 40 so the user can enter anything, even a faltoo long string, without the program breaking
-    fgets(uselessStr, sizeof(uselessStr), stdin);    // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
+    char uselessStr[arbitrarySize];                                     // size 25 so the user can enter anything, even a faltoo long string, without the program breaking
+    fgets(uselessStr, sizeof(uselessStr), stdin);                       // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
     if (uselessStr[strlen(uselessStr) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
 }
 
@@ -292,7 +291,7 @@ void setPvPPlayers()
     } 
     else{                   
         game.player1Name[strlen(game.player1Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
-    }   
+    }
 
     // player2 info
     animateText("> \033[1;34mPlayer 2\033[0m\n", animateTextDelay_33ms);
@@ -307,7 +306,7 @@ void setPvPPlayers()
     } 
     else{                   
         game.player2Name[strlen(game.player2Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
-    }   
+    }
 }
 void setPvAIPlayers()
 {
@@ -324,7 +323,7 @@ void setPvAIPlayers()
     } 
     else{                   
         game.player1Name[strlen(game.player1Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
-    }    
+    }
 
     // ai info
     animateText("> \033[1;34mChoose AI\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)", animateTextDelay_33ms);
@@ -405,6 +404,12 @@ void setAIvAIPlayers()
         case '1': strcpy(game.player2Name, "Awwal");   break;
         case '2': strcpy(game.player2Name, "Thani");   break;
         case '3': strcpy(game.player2Name, "Thalith"); break;
+    }
+
+    if (!strcmp(game.player1Name, game.player2Name))        // if both the ais are the same, suffixes each of their names appropriately to distinguish them
+    {
+        strcat(game.player1Name, "_theFirst");
+        strcat(game.player2Name, "_theSecond");
     }
 }
 void setPlayers()
@@ -514,13 +519,13 @@ void printGameBoard()
             printf("  |  ");
             if (isWinningIndex){
                 if   (game.gameBoard[i][j] == player1Mark){ printf("\033[1;4;33;40m%c\033[0m", game.gameBoard[i][j]); }     // bold yellow color with grey highlighting for player1 (winner)
-                else                                             { printf("\033[1;4;34;40m%c\033[0m", game.gameBoard[i][j]); }     // bold blue color with grey highlighting for player2 (winner)
+                else                                      { printf("\033[1;4;34;40m%c\033[0m", game.gameBoard[i][j]); }     // bold blue color with grey highlighting for player2 (winner)
             }
             else
             {
                 if      (game.gameBoard[i][j] == player1Mark){ printf("\033[1;33m%c\033[0m", game.gameBoard[i][j]); }     // bold yellow color for player1
                 else if (game.gameBoard[i][j] == player2Mark){ printf("\033[1;34m%c\033[0m", game.gameBoard[i][j]); }     // bold blue color for player2
-                else                                                { printf("%c",                  game.gameBoard[i][j]); }     // no color formatting if empty char
+                else                                         { printf("%c",                  game.gameBoard[i][j]); }     // no color formatting if empty char
             }
         }
         printf("  |\n  %s\n", rowDashes);   // a row of dashes after every completed row
@@ -1227,34 +1232,37 @@ void getAIMove()
     if  (game.activePlayer == 1)
     { 
         printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name);      // printing the playerName in color
-        if (!strcmp(game.player1Name, "Awwal"))
+        // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
+        if (!strncmp(game.player1Name, "Awwal", 5))         // lvl1_awwal
         {
             game.playerMove = lvl1_awwal_1win_2playRandom(player1Mark);
         }
-        else if (!strcmp(game.player1Name, "Thani"))
+        else if (!strncmp(game.player1Name, "Thani", 5))    // lvl2_thani
         {
             game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(player1Mark, player2Mark);
         }
-        else if (!strcmp(game.player1Name, "Thalith"))      // else wouldve worked fine but used elseif for expandibility
+        // else wouldve worked fine but used elseif for expandibility
+        else if (!strncmp(game.player1Name, "Thali", 5))    // lvl3_thalith
         {
             game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(player1Mark, player2Mark);
         }
     }
-    else                        
+    else    // game.activePlayer == 2                       
     { 
         printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); 
-        if (!strcmp(game.player2Name, "Awwal"))
+        // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
+        if (!strncmp(game.player2Name, "Awwal", 5))         // lvl1_awwal
         {
-            game.playerMove = lvl1_awwal_1win_2playRandom(player2Mark);
+            game.playerMove = lvl1_awwal_1win_2playRandom(player1Mark);
         }
-        else if (!strcmp(game.player2Name, "Thani"))
+        else if (!strncmp(game.player2Name, "Thani", 5))    // lvl2_thani
         {
-            game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(player2Mark, player1Mark);
+            game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(player1Mark, player2Mark);
         }
-        else if (!strcmp(game.player2Name, "Thalith"))
+        // else wouldve worked fine but used elseif for expandibility
+        else if (!strncmp(game.player2Name, "Thali", 5))    // lvl3_thalith
         {
-            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(
-        player2Mark, player1Mark);
+            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(player1Mark, player2Mark);
         }
     }
 
@@ -1394,26 +1402,29 @@ void displayHistory()
 {
     clearScreen();
 
-    FILE *fPtr = fopen("gameHistory.txt", "r");
+    // FILE *fPtr = fopen("gameHistory.txt", "r");
+    FILE *fPtr = fopen("gameHistory.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameHistory.txt file not exisitng; rather the file will be created 
     if (fPtr == NULL)
     { 
         printf("[!] ERROR: Couldn't open file 'gameHistory.txt'"); 
     }
     else
     {
-        char dateTime[arbitrarySize], player1Name[arbitrarySize], player2Name[arbitrarySize], gameMode[5], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
+        char dateTime[arbitrarySize], player1Name[arbitrarySize], player2Name[arbitrarySize], gameMode[6], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
         int numOfScans, totalMoves, count = 0;
         float duration;
 
-        printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
-        printf("|| %4s | %-25s | %-25s | %-25s | %10s | %10s | %10s | %10s | %-29s ||\n", "Game", "dateTime", "player1Name", "player2Name", "gameMode", "gameBoard", "totalMoves", "Duration", "Result");
-        printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+        printf("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+        printf("||                                                                                                                                                                                ||\n");
+        printf("|| %5s | %-25s | %-25s | %-25s | %10s | %10s | %11s | %10s | %-29s ||\n", "Game", "dateTime", "player1Name", "player2Name", "gameMode", "gameBoard", "totalMoves", "Duration", "Result");
+        printf("||                                                                                                                                                                                ||\n");
+        printf("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
         while (true)
         {
             numOfScans = fscanf(fPtr, "Date: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameMode: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
                                         dateTime, player1Name, player2Name, gameMode, gameBoard, &totalMoves, &duration, result);
             if (numOfScans != 8) { break; }    // no items read (ie max num of lines (EOF) reached)
-            printf("|| %4d | %-25s | %-25s | %-25s | %10s | %10s | %10d | %5.1f mins | %-29s ||\n", ++count, dateTime, player1Name, player2Name, gameMode, gameBoard, totalMoves, duration, result);
+            printf("|| %5d | %-25s | %-25s | %-25s | %10s | %10s | %11d | %5.1f mins | %-29s ||\n", ++count, dateTime, player1Name, player2Name, gameMode, gameBoard, totalMoves, duration, result);
         }
 
         /*
@@ -1424,7 +1435,7 @@ void displayHistory()
         }
         */
 
-        printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+        printf("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 
         fclose(fPtr);
     }
