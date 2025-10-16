@@ -2,3 +2,5 @@ Date: [Wed Oct 15 22:12:07 2025] | Player 1: [Thalith] | Player 2: [Thalith] | G
 Date: [Wed Oct 15 22:33:51 2025] | Player 1: [Awwal] | Player 2: [Thalith] | GameMode: [AIvAI] | GameBoard: [Mini] | TotalMoves: [13] | Duration: [1.4 min] | Result: [Thalith Won]
 Date: [Wed Oct 15 22:52:13 2025] | Player 1: [Thani] | Player 2: [Awwal] | GameMode: [AIvAI] | GameBoard: [Blitz] | TotalMoves: [15] | Duration: [1.7 min] | Result: [Thani Won]
 Date: [Thu Oct 16 11:14:53 2025] | Player 1: [Thani_theFirst] | Player 2: [Thani_theSecond] | GameMode: [AIvAI] | GameBoard: [Blitz] | TotalMoves: [26] | Duration: [2.6 min] | Result: [Thani_theSecond Won]
+Date: [Thu Oct 16 16:45:27 2025] | Player 1: [Thalith] | Player 2: [Awwal] | GameMode: [AIvAI] | GameBoard: [Titan] | TotalMoves: [27] | Duration: [3.1 min] | Result: [Thalith Won]
+Date: [Thu Oct 16 16:50:15 2025] | Player 1: [saad :)] | Player 2: [Thalith] | GameMode: [PvAI] | GameBoard: [Mini] | TotalMoves: [17] | Duration: [2.0 min] | Result: [saad :) Won]

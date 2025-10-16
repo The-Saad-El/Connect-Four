@@ -19,10 +19,9 @@
 /*
     TODO
     [!]  setup filing/files (save/load game, leaderboard, resume game, achievements)
-    [!]  how to store and represent names of 2 same ai players
-    [!]  if someone initiates program for the 1st time and then clicks at history, he will see an error. fix that!
-    {!}  make ai's names like imam, qadi, shaykh, ustad etc
-
+    [!]  make ai's names like imam, qadi, shaykh, ustad etc
+    [!]  quickMatch mode [quickMatch()]
+    
     [2]  seperate AIs & all the related stuff into its own file
     [3]  miniMax (rabi & khamis)
     [4]  break everything into files (main.c, game.c, ai.c, file_io.c, {files}.txt)
@@ -137,7 +136,8 @@ void animateText(char strToAnimate[], int timeDelay_ms)
 void pressEnterToContinue()
 {
     wait(1500);                                                         // wait 1.5s
-    printf("\n\n\nPress Enter to continue: ");
+    printf("\n\n\n");
+    animateText("Press Enter to continue: ", animateTextDelay_33ms);
     char uselessStr[arbitrarySize];                                     // size 25 so the user can enter anything, even a faltoo long string, without the program breaking
     fgets(uselessStr, sizeof(uselessStr), stdin);                       // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
     if (uselessStr[strlen(uselessStr) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
@@ -247,6 +247,7 @@ void playGame()
             return;
     }
 }
+void _quickMatch();
 void exitGame()
 {
     // exiting animation mainly
