@@ -19,8 +19,8 @@
 /*
     TODO
     [!]  setup filing/files (save/load game, leaderboard, resume game, achievements)
-    [!]  make ai's names like imam, qadi, shaykh, ustad etc
     [!]  quickMatch mode [quickMatch()]
+    [!]  play: custom match, quick match           view: achievements, leaderboards, gameHistory, resumeGame
     
     [2]  seperate AIs & all the related stuff into its own file
     [3]  miniMax (rabi & khamis)
@@ -45,8 +45,8 @@
 // globals ------------------------------------------------------------------------------------------------------------------------------------------
 
 // constants
-#define maxRows 9                       // the max num of rows possible
-#define maxCols 8                       // the max num of cols possible
+#define maxRows 8                       // the max num of rows possible
+#define maxCols 9                       // the max num of cols possible
 #define emptyChar ' '                   // the char used to represent an empty/unfilled position
 #define player1Mark 'X'                 // the symbol/mark/token for player1's spaces
 #define player2Mark 'O'                 // the symbol/mark/token for player2's spaces
@@ -135,7 +135,7 @@ void animateText(char strToAnimate[], int timeDelay_ms)
 }
 void pressEnterToContinue()
 {
-    wait(1500);                                                         // wait 1.5s
+    wait(1000);                                                         // wait 1s
     printf("\n\n\n");
     animateText("Press Enter to continue: ", animateTextDelay_33ms);
     char uselessStr[arbitrarySize];                                     // size 25 so the user can enter anything, even a faltoo long string, without the program breaking
@@ -1393,8 +1393,8 @@ void saveGame()
         strcpy(dateTime, ctime(&game.startTime));
         dateTime[strlen(dateTime) - 1] = '\0';
 
-        fprintf(fPtr, "Date: [%s] | Player 1: [%s] | Player 2: [%s] | GameMode: [%s] | GameBoard: [%s] | TotalMoves: [%d] | Duration: [%.1f min] | Result: [%s]\n", 
-                        dateTime, game.player1Name, game.player2Name, game.gameMode, gameBoard, game.totalMoves, difftime(game.endTime, game.startTime)/60.0, result);
+        fprintf(fPtr, "Date: [%s] | GameMode: [%s] | Player 1: [%s] | Player 2: [%s] | GameBoard: [%s] | TotalMoves: [%d] | Duration: [%.1f min] | Result: [%s]\n", 
+                        dateTime, game.gameMode, game.player1Name, game.player2Name, gameBoard, game.totalMoves, difftime(game.endTime, game.startTime)/60.0, result);
         
         fclose(fPtr);
     }
@@ -1416,16 +1416,16 @@ void displayHistory()
         float duration;
 
         printf("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
-        printf("||                                                                                                                                                                                ||\n");
-        printf("|| %5s | %-25s | %-25s | %-25s | %10s | %10s | %11s | %10s | %-29s ||\n", "Game", "dateTime", "player1Name", "player2Name", "gameMode", "gameBoard", "totalMoves", "Duration", "Result");
-        printf("||                                                                                                                                                                                ||\n");
+        //printf("||                                                                                                                                                                                ||\n");
+        printf("|| %5s | %-25s | %10s | %-25s | %-25s | %10s | %11s | %10s | %-29s ||\n", "Game", "dateTime", "gameMode", "player1Name", "player2Name", "gameBoard", "totalMoves", "Duration", "Result");
+        //printf("||                                                                                                                                                                                ||\n");
         printf("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
         while (true)
         {
-            numOfScans = fscanf(fPtr, "Date: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameMode: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
-                                        dateTime, player1Name, player2Name, gameMode, gameBoard, &totalMoves, &duration, result);
+            numOfScans = fscanf(fPtr, "Date: [%[^]]] | GameMode: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
+                                        dateTime, gameMode, player1Name, player2Name, gameBoard, &totalMoves, &duration, result);
             if (numOfScans != 8) { break; }    // no items read (ie max num of lines (EOF) reached)
-            printf("|| %5d | %-25s | %-25s | %-25s | %10s | %10s | %11d | %5.1f mins | %-29s ||\n", ++count, dateTime, player1Name, player2Name, gameMode, gameBoard, totalMoves, duration, result);
+            printf("|| %5d | %-25s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s ||\n", ++count, dateTime, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
         }
 
         /*
