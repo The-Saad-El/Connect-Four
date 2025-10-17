@@ -147,9 +147,7 @@ void pressEnterToContinue()
 
 // game ---------------------------------------------------------------------------------------------------------------------------------------------
 
-// declarations
-void quickMatch();
-void customMatch();
+// prototypes
 void PvP();
 void PvAI();
 void AIvAI();
@@ -1418,6 +1416,7 @@ void PvAI()
         setGameBoard();     // choose gameBoard size
     }
     if (!game.randomSeeded){ srand(time(NULL)); game.randomSeeded = true; }
+    showGameBoard();
 
     while (game.playGame)
     {
@@ -1447,6 +1446,7 @@ void AIvAI()
         setGameBoard();     // choose gameBoard size
     }
     if (!game.randomSeeded){ srand(time(NULL)); game.randomSeeded = true; }
+    showGameBoard();
 
     while (game.playGame)
     {
