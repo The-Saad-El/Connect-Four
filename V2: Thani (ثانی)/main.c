@@ -1574,26 +1574,69 @@ void saveLeaderBoards()
     }
     else
     {
-        char rank[5], playerName[arbitrarySize];
+        bool playerExistsInLeaderBoards;
+        char playerName[arbitrarySize];
         int gamesPlayed, wins, draws, defeats, score;
-        if (!strcmp(game.gameMode, "PvP"))      // saveLeaderboards for both p1 & p2
-        {    
-            while (true)
+
+        // saveLeaderboards for player1 (applicable in both pvp & pvai)
+        playerExistsInLeaderBoards = false;
+        while (true)
+        {
+            int numOfScans = fscanf(fPtr, "Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
+                                            playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
+            if (numOfScans != 6){ break; }      // max line reached
+            else
             {
-                int numOfScans = fscanf(fPtr, "Rank: [%[^]]] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
-                                        rank, playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
-                if (numOfScans != 7){ break; }
-                else
+                if (!strcmp(game.player1Name, playerName))     // p1 already exists in the leaderboards
                 {
-                    if (!strcmp(game.player1Name, playerName));
+                    gamesPlayed++;
+                    (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
+                    score = (wins*100 + draws*30 + defeats*10);       // random scoring formula/criteria;  4 draws > 1 win & 11 defeats > 1 win due to the volume of the amount of games played of the formers
+                    fprintf(fPtr, "Player Name: [%s] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", playerName, gamesPlayed, wins, draws, defeats, score);
+                    playerExistsInLeaderBoards = true;
+                    break;
                 }
             }
         }
-        else if (!strcmp(game.gameMode, "PvAI"))
-        {
-            // for only p1
+        if (!playerExistsInLeaderBoards)        // creates record of p2 in leaderBoard.txt if it doesnt exist
+        { 
+            wins = 0, draws = 0, defeats = 0;
+            (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
+            score = (wins*100 + draws*30 + defeats*10);
+            fprintf(fPtr, "Player Name: [%s] | Games Played: [1] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", game.player1Name, wins, draws, defeats, score); 
         }
-        fprintf(fPtr, "Rank: [%s] | Player Name: [%s] | Games Played: [%s] | Wins: [%s] | Draws: [%s] | Defeats: [%s] | Score: [%d]\n");
+        
+        // if the gameMode is PvP, saves data for P2 as well
+        if (!strcmp(game.gameMode, "PvP"))
+        {
+            playerExistsInLeaderBoards = false;
+            while (true)
+            {
+                int numOfScans = fscanf(fPtr, "Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
+                                                playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
+                if (numOfScans != 6){ break; }      // max line reached
+                else
+                {
+                    if (!strcmp(game.player2Name, playerName))     // p1 already exists in the leaderboards
+                    {
+                        gamesPlayed++;
+                        (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
+                        score = (wins*100 + draws*30 + defeats*10);       // random scoring formula/criteria;  4 draws > 1 win & 11 defeats > 1 win due to the volume of the amount of games played of the formers
+                        fprintf(fPtr, "Player Name: [%s] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", playerName, gamesPlayed, wins, draws, defeats, score);
+                        playerExistsInLeaderBoards = true;
+                        break;
+                    }
+                }
+            }
+            if (!playerExistsInLeaderBoards)        // if no record/leaderBoard-position occurs of p2, creates it
+            { 
+                wins = 0, draws = 0, defeats = 0;
+                (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
+                score = (wins*100 + draws*30 + defeats*10);
+                fprintf(fPtr, "Player Name: [%s] | Games Played: [1] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", game.player2Name, wins, draws, defeats, score); 
+            }
+        }
+
 
         fclose(fPtr);
     }
@@ -1610,21 +1653,20 @@ void displayLeaderBoards()
     }
     else
     {
-
         animateText("-------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
         printf("| %7s | %-25s | %-15s | %-9s | %-9s | %-9s | %-13s |\n", "Rank", "Player Name", "Games Played", "Wins", "Draw", "Defeats", "Score");
         animateText("-------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
         
-        char rank[5], playerName[arbitrarySize];
-        int gamesPlayed, wins, draws, defeats, score;
+        char playerName[arbitrarySize];
+        int rank = 0, gamesPlayed, wins, draws, defeats, score;
         while (true)
         {
-            int numOfScans = fscanf(fPtr, "Rank: [%[^]]] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
-                                    rank, playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
-            if (numOfScans != 7){ break; }
+            int numOfScans = fscanf(fPtr, "Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
+                                            playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
+            if (numOfScans != 6){ break; }
             else
             {
-                printf("| %7s | %-25s | %-13s | %-9s | %-9s | %-9s | %-13s |\n", rank, playerName, gamesPlayed, wins, draws, defeats, score);
+                printf("| %7s | %-25s | %-13d | %-9d | %-9d | %-9d | %-13d |\n", ++rank, playerName, gamesPlayed, wins, draws, defeats, score);
             }
         }
         
