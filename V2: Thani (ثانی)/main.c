@@ -305,11 +305,11 @@ void view()
     printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
     // choosing the gameMode
-    animateText("[View]\n  [1] History\n  [2] LeaderBoards\n  [3] Help\n  [4] Go Back", animateTextDelay_33ms);
+    animateText("[View]\n  [1] LeaderBoards\n  [2] History\n  [3] Help\n  [4] Go Back", animateTextDelay_33ms);
     char userChoice[arbitrarySize];
     while (true)
     {
-        printf("\nEnter your choice [1-5]: ");
+        printf("\nEnter your choice [1-4]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
         if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3') || (userChoice[0] == '4')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
@@ -327,8 +327,8 @@ void view()
     // calling functions based on userChoice
     switch(userChoice[0])
     {
-        case '1':  displayGameHistory();   break;     // history
-        case '2':  displayLeaderBoards();  break;     // leaderboards
+        case '1':  displayLeaderBoards();  break;     // history
+        case '2':  displayGameHistory();   break;     // leaderboards
         case '3':  displayHelp();          break;     // help
         case '4':  return;                            // go back [will return to the mainMenu()]
     }
@@ -1617,7 +1617,7 @@ void saveLeaderBoards()
                 if (numOfScans != 6){ break; }      // max line reached
                 else
                 {
-                    if (!strcmp(game.player2Name, playerName))     // p1 already exists in the leaderboards
+                    if (!strcmp(game.player2Name, playerName))     // p2 already exists in the leaderboards
                     {
                         gamesPlayed++;
                         (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
@@ -1666,7 +1666,7 @@ void displayLeaderBoards()
             if (numOfScans != 6){ break; }
             else
             {
-                printf("| %7s | %-25s | %-13d | %-9d | %-9d | %-9d | %-13d |\n", ++rank, playerName, gamesPlayed, wins, draws, defeats, score);
+                printf("| %7d | %-25s | %-15d | %-9d | %-9d | %-9d | %13d |\n", ++rank, playerName, gamesPlayed, wins, draws, defeats, score);
             }
         }
         
