@@ -18,11 +18,9 @@
 
 /*
     TODO
-    [!]  play: custom match[N], quick match[N]           view: achievements[N], leaderboards[N], gameHistory[Y], help[Y]
-    
-    [2]  seperate AIs & all the related stuff into its own file
-    [3]  break everything into files (main.c, game.c, ai.c, file_io.c, {files}.txt)
-    [4]  miniMax (rabi & khamis)
+    [1]  leaderboards
+    [2]  break everything into files (main.c, game.c, ai.c, file_io.c, {files}.txt)
+    [3]  miniMax (rabi & khamis)
     [ ]  reverse back rows & col?
     
 */
@@ -55,13 +53,19 @@
 #define animateTextDelay_63ms 63        // the arbitrary timeDelay_ms of 63ms used as the argument of the animateText() for printing AI's dialogues
 #define animateGameBoardDelay_ms 300    // the time, in ms, used for the argument of the wait() function, for animating gameBoard updates
 
-// variable struct
-typedef struct 
-{    
-    // flags
+// variables
+
+typedef struct
+{
     bool continueProgram;                   // flag used for the main while loop in main()
     bool mainMenuShown;                     // flag used to indicate whether the mainMenu() ran once (used to terminate the connectFour animation after it ran once)      
     bool randomSeeded;                      // flag used to indicate whether rand() has already been seeded in the program (using srand())
+
+} programConfig;
+
+typedef struct 
+{    
+    // flags
     bool quickMatch;                        // flag which holds true if the user chose quickMatch & false if not (ie if chose customMatch)
     bool playGame;                          // flag used for the individual game loops
     
@@ -86,7 +90,8 @@ typedef struct
 
 } gameConfig;
 
-gameConfig game;
+programConfig program;      // for whole program-level variables/globals
+gameConfig game;            // for individual game-level variables/globals
 
 
 // helpers ------------------------------------------------------------------------------------------------------------------------------------------
@@ -155,8 +160,6 @@ void saveGameHistory();
 void displayGameHistory();
 void saveLeaderBoards();
 void displayLeaderBoards();
-void saveAchievements();
-void displayAchievements();
 void displayHelp();
 
 // main() stuff
@@ -164,13 +167,13 @@ int mainMenu()
 {
     // printing the connect four title
     clearScreen();      // clears the terminal screen
-    if   (!game.mainMenuShown)
+    if   (!program.mainMenuShown)
     { 
         animateText("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n", animateTextDelay_63ms);   // keep at animateTextDelay_63ms
         wait(500);    // wait .5s
     }
     else { printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n"); }
-    game.mainMenuShown = true;
+    program.mainMenuShown = true;
 
     // the main menu
     animateText("\n\n[Main Menu]\n  [1] Play\n  [2] View\n  [3] Exit", animateTextDelay_33ms);
@@ -302,13 +305,13 @@ void view()
     printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
     // choosing the gameMode
-    animateText("[View]\n  [1] History\n  [2] LeaderBoards\n  [3] Achievements\n  [4] Help\n  [5] Go Back", animateTextDelay_33ms);
+    animateText("[View]\n  [1] History\n  [2] LeaderBoards\n  [3] Help\n  [4] Go Back", animateTextDelay_33ms);
     char userChoice[arbitrarySize];
     while (true)
     {
         printf("\nEnter your choice [1-5]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3') || (userChoice[0] == '4') || (userChoice[0] == '5')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3') || (userChoice[0] == '4')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");       // (is effectively useless)
             break; 
@@ -316,7 +319,7 @@ void view()
         else
         { 
             if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-            printf("> [!] Enter either 1, 2, 3, 4, or 5");
+            printf("> [!] Enter either 1, 2, 3, or 4");
             continue;
         }
     }
@@ -326,9 +329,8 @@ void view()
     {
         case '1':  displayGameHistory();   break;     // history
         case '2':  displayLeaderBoards();  break;     // leaderboards
-        case '3':  displayAchievements();  break;     // achievements
-        case '4':  displayHelp();          break;     // help
-        case '5':  return;                            // go back [will return to the mainMenu()]
+        case '3':  displayHelp();          break;     // help
+        case '4':  return;                            // go back [will return to the mainMenu()]
     }
 }
 void exitGame()
@@ -1207,7 +1209,7 @@ int lvl1_awwal_1win_2playRandom(char myToken)
         > simulates one move of his across all available columns
         > if he wins by playing any of em or the game draws with his move, returns the numOfAvailableColumns of that column
         > else plays a random available column and return its numOfAvailableColumns
-    */
+    */ 
 
     // checking for instant win
     if (checkAIWin(myToken) != -1){ return checkAIWin(myToken); }
@@ -1334,7 +1336,7 @@ void getAIMove()
     { 
         printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); 
         // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
-        if (!strncmp(game.player2Name, "Awwal", 5))         // lvl1_awwal
+        if (!strncmp(game.player2Name, "Awwal", 5))          // lvl1_awwal
         {
             game.playerMove = lvl1_awwal_1win_2playRandom(player1Mark);
         }
@@ -1415,7 +1417,7 @@ void PvAI()
         setPlayers();       // choose players
         setGameBoard();     // choose gameBoard size
     }
-    if (!game.randomSeeded){ srand(time(NULL)); game.randomSeeded = true; }
+    if (!program.randomSeeded){ srand(time(NULL)); program.randomSeeded = true; }
     showGameBoard();
 
     while (game.playGame)
@@ -1445,7 +1447,7 @@ void AIvAI()
         setPlayers();       // choose players
         setGameBoard();     // choose gameBoard size
     }
-    if (!game.randomSeeded){ srand(time(NULL)); game.randomSeeded = true; }
+    if (!program.randomSeeded){ srand(time(NULL)); program.randomSeeded = true; }
     showGameBoard();
 
     while (game.playGame)
@@ -1537,7 +1539,10 @@ void displayGameHistory()
             numOfScans = fscanf(fPtr, "Date: [%[^]]] | GameMode: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
                                         dateTime, gameMode, player1Name, player2Name, gameBoard, &totalMoves, &duration, result);
             if (numOfScans != 8) { break; }    // no items read (ie max num of lines (EOF) reached)
-            printf("| %5d | %-27s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |\n", ++count, dateTime, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
+            else
+            {
+                printf("| %5d | %-27s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |\n", ++count, dateTime, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
+            }
         }
 
         /*
@@ -1561,47 +1566,23 @@ void saveLeaderBoards()
 {   
     // for games history: players, serial number, winner, elapsed time
 
-    FILE *fPtr = fopen("gameFiles/leaderBoards.txt", "a");      // used / instead of (\\); a will create file if it no exist
+    FILE *fPtr = fopen("gameFiles/leaderBoards.txt", "a+");      // used / instead of (\\); [a+] allows reading, appending, & creation of file if not existant
     if (fPtr == NULL)
     { 
         printf("[!] ERROR: Couldn't open file 'leaderBoards.txt'"); 
     }
     else
     {
-        /*
-        char gameBoard[8];
-        switch (game.colCount)
+        char rank[5], playerName[arbitrarySize];
+        int gamesPlayed, wins, draws, defeats, score;
+        while (true)
         {
-            case 5: strcpy(gameBoard, "Mini");    break;
-            case 6: strcpy(gameBoard, "Blitz");   break;
-            case 7: strcpy(gameBoard, "Classic"); break;
-            case 8: strcpy(gameBoard, "Grand");   break;
-            case 9: strcpy(gameBoard, "Titan");   break;
+            int numOfScans = fscanf(fPtr, "Rank: [%[^]]] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
+                                    rank, playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
+            if (numOfScans != 7){ break; }
         }
+        fprintf(fPtr, "Rank: [%s] | Player Name: [%s] | Games Played: [%s] | Wins: [%s] | Draws: [%s] | Defeats: [%s] | Score: [%d]\n");
 
-        char result[30];
-        switch(game.gameState)
-        {
-            case 0: 
-                strcpy(result, "Draw");
-                break;
-            case 1: 
-                strcpy(result, game.player1Name);
-                strcat(result, " Won");
-                break;
-            case 2: 
-                strcpy(result, game.player2Name);
-                strcat(result, " Won");
-                break;
-        }
-
-        char dateTime[25];
-        strcpy(dateTime, ctime(&game.startTime));
-        dateTime[strlen(dateTime) - 1] = '\0';
-
-        fprintf(fPtr, "Date: [%s] | GameMode: [%s] | Player 1: [%s] | Player 2: [%s] | GameBoard: [%s] | TotalMoves: [%d] | Duration: [%.1f min] | Result: [%s]\n", 
-                        dateTime, game.gameMode, game.player1Name, game.player2Name, gameBoard, game.totalMoves, difftime(game.endTime, game.startTime)/60.0, result);
-        */
         fclose(fPtr);
     }
 }
@@ -1617,43 +1598,29 @@ void displayLeaderBoards()
     }
     else
     {
-        //char dateTime[arbitrarySize], player1Name[arbitrarySize], player2Name[arbitrarySize], gameMode[6], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
-        //int numOfScans, totalMoves, count = 0;
-        //float duration;
 
-        animateText("-----------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
-        printf("| %7s | %-25s | %-17s | %-17s | %-17s | %-17s |\n", "Rank", "Player Name", "Games Played", "PvP Played", "PvAI Played", "Score");
-        animateText("-----------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        animateText("-------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        printf("| %7s | %-25s | %-15s | %-9s | %-9s | %-9s | %-13s |\n", "Rank", "Player Name", "Games Played", "Wins", "Draw", "Defeats", "Score");
+        animateText("-------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
         
-        /*
+        char rank[5], playerName[arbitrarySize];
+        int gamesPlayed, wins, draws, defeats, score;
         while (true)
         {
-            numOfScans = fscanf(fPtr, "Date: [%[^]]] | GameMode: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
-                                        dateTime, gameMode, player1Name, player2Name, gameBoard, &totalMoves, &duration, result);
-            if (numOfScans != 8) { break; }    // no items read (ie max num of lines (EOF) reached)
-            printf("|| %5d | %-25s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s ||\n", ++count, dateTime, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
+            int numOfScans = fscanf(fPtr, "Rank: [%[^]]] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
+                                    rank, playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
+            if (numOfScans != 7){ break; }
+            else
+            {
+                printf("| %7s | %-25s | %-13s | %-9s | %-9s | %-9s | %-13s |\n", rank, playerName, gamesPlayed, wins, draws, defeats, score);
+            }
         }
-        */
-
-        animateText("-----------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        
+        animateText("-------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
 
         fclose(fPtr);
     }
 
-    pressEnterToContinue();
-}
-
-// achievements
-void saveAchievements()
-{
-    return;
-}
-void displayAchievements()
-{
-    clearScreen();
-    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
-
-    printf("To be added insha'Allah...");
     pressEnterToContinue();
 }
 
@@ -1719,7 +1686,7 @@ void displayHelp()
             "    you from building 3-in-a-row threats, and uses advanced\n"
             "    strategies. The ultimate challenge!\n\n"
             "========================================\n"
-            "(Generated using Claude.ai on 16/10/2025 @ 9:53pm)\n", animateTextDelay_13ms
+            "(Generated using Claude.ai on 16/10/2025 @ 9:53pm - Saad)\n", animateTextDelay_13ms
             );
 
     pressEnterToContinue();
@@ -1731,11 +1698,11 @@ void displayHelp()
 
 int main()
 {
-    game.continueProgram = true;
-    game.mainMenuShown = false;
-    game.randomSeeded = false;
+    program.continueProgram = true;
+    program.mainMenuShown = false;
+    program.randomSeeded = false;
 
-    while (game.continueProgram)
+    while (program.continueProgram)
     {
         switch (mainMenu())
         {
@@ -1748,7 +1715,7 @@ int main()
                 break;
 
             case 3:
-                game.continueProgram = false;
+                program.continueProgram = false;
                 exitGame();
                 break;
         }
