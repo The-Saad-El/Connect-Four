@@ -1316,7 +1316,7 @@ void getPlayerMove()
 }
 void getAIMove()
 {
-    if  (game.activePlayer == 1)
+    if  (game.activePlayer == 1)        // ai is player1
     { 
         printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name);      // printing the playerName in color
         // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
@@ -1334,22 +1334,22 @@ void getAIMove()
             game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(player1Mark, player2Mark);
         }
     }
-    else    // game.activePlayer == 2                       
+    else    // game.activePlayer == 2;  ai is player2                     
     { 
         printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); 
         // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
         if (!strncmp(game.player2Name, "Awwal", 5))          // lvl1_awwal
         {
-            game.playerMove = lvl1_awwal_1win_2playRandom(player1Mark);
+            game.playerMove = lvl1_awwal_1win_2playRandom(player2Mark);
         }
         else if (!strncmp(game.player2Name, "Thani", 5))    // lvl2_thani
         {
-            game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(player1Mark, player2Mark);
+            game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(player2Mark, player1Mark);
         }
         // else wouldve worked fine but used elseif for expandibility
         else if (!strncmp(game.player2Name, "Thali", 5))    // lvl3_thalith
         {
-            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(player1Mark, player2Mark);
+            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(player2Mark, player1Mark);
         }
     }
 
@@ -1364,7 +1364,7 @@ void getAIMove()
                                 };
     
     printf("\n");
-    int randomIndex = (rand() % 19) + 1;
+    int randomIndex = (rand() % 19);    // index 0 till 18  (19 is '\0')
     animateText(AIDialogues[randomIndex], animateTextDelay_63ms);
     wait(2000);
 
@@ -1472,7 +1472,7 @@ void saveGameHistory()
 {   
     // for games history: players, serial number, winner, elapsed time
 
-    FILE *fPtr = fopen("gameFiles/gameHistory.txt", "a");       // / instead of \\ (the former works on all platforms while the latter is windows-dependent)
+    FILE *fPtr = fopen("gameHistory.txt", "a");       // / instead of \\ (the former works on all platforms while the latter is windows-dependent)
     if (fPtr == NULL)
     { 
         printf("[!] ERROR: Couldn't open file 'gameHistory.txt'"); 
@@ -1522,7 +1522,7 @@ void displayGameHistory()
     printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
     // FILE *fPtr = fopen("gameHistory.txt", "r");
-    FILE *fPtr = fopen("gameFiles/gameHistory.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameHistory.txt file not exisitng; rather the file will be created 
+    FILE *fPtr = fopen("gameHistory.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameHistory.txt file not exisitng; rather the file will be created 
     if (fPtr == NULL)
     { 
         printf("[!] ERROR: Couldn't open file 'gameHistory.txt'"); 
@@ -1562,8 +1562,8 @@ void createTempLeaderBoards_PvP()
 {
     // creating a temp file with all leaderBoard records (new & old)
     
-    FILE *mainFile = fopen("gameFiles/leaderBoards.txt", "a+");         // used / instead of (\\);  [a+] mode will allow reading, appending, & creation of file (important when the program runs for the 1st time)
-    FILE *tempFile = fopen("gameFiles/temp.txt", "w");                  // will append all unique records to temp file
+    FILE *mainFile = fopen("leaderBoards.txt", "a+");         // used / instead of (\\);  [a+] mode will allow reading, appending, & creation of file (important when the program runs for the 1st time)
+    FILE *tempFile = fopen("temp.txt", "w");                  // will append all unique records to temp file
 
     if      (mainFile == NULL) { printf("[!] ERROR: Couldn't open file 'leaderBoards.txt, a+'"); }
     else if (tempFile == NULL) { printf("[!] ERROR: Couldn't open file 'temp.txt, w'");          }
@@ -1626,8 +1626,8 @@ void createTempLeaderBoards_PvP()
 }
 void createTempLeaderBoards_PvAI()
 {
-    FILE *mainFile = fopen("gameFiles/leaderBoards.txt", "a+");         // used / instead of (\\);  [a+] mode will allow reading, appending, & creation of file (important when the program runs for the 1st time)
-    FILE *tempFile = fopen("gameFiles/temp.txt", "w");                  // will append all unique records to temp file
+    FILE *mainFile = fopen("leaderBoards.txt", "a+");         // used / instead of (\\);  [a+] mode will allow reading, appending, & creation of file (important when the program runs for the 1st time)
+    FILE *tempFile = fopen("temp.txt", "w");                  // will append all unique records to temp file
 
     if      (mainFile == NULL) { printf("[!] ERROR: Couldn't open file 'leaderBoards.txt, a+'"); }
     else if (tempFile == NULL) { printf("[!] ERROR: Couldn't open file 'temp.txt, w'");         }
@@ -1677,8 +1677,8 @@ void updateMainLeaderBoards()
 {
     // reads records from temp.txt, sorts em & then writes em to the mainFile
 
-    FILE *mainFile = fopen("gameFiles/leaderBoards.txt", "w");          // reopening both files but in different modes than last time
-    FILE *tempFile = fopen("gameFiles/temp.txt", "r");                  
+    FILE *mainFile = fopen("leaderBoards.txt", "w");          // reopening both files but in different modes than last time
+    FILE *tempFile = fopen("temp.txt", "r");                  
 
     if      (mainFile == NULL) { printf("[!] ERROR: Couldn't open file 'leaderBoards.txt, w'"); }
     else if (tempFile == NULL) { printf("[!] ERROR: Couldn't open file 'temp.txt, r'");         }
@@ -1727,7 +1727,7 @@ void updateMainLeaderBoards()
     //  closing both files 
     if (mainFile != NULL) { fclose(mainFile); }         // intentionally didnt close these files inside the else block above
     if (tempFile != NULL) { fclose(tempFile); }         // if one file opened and the other didnt, i will print the error msg but 1 file will remain opened. isliye brought these outside the if block
-    remove("gameFiles/temp.txt");                       // deletes the temp file after finishing the processing & updating of leaderboards
+    remove("temp.txt");                                 // deletes the temp file after finishing the processing & updating of leaderboards
 }
 void updateLeaderBoards()
 {   
@@ -1743,7 +1743,7 @@ void displayLeaderBoards()
     clearScreen();
     printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
-    FILE *fPtr = fopen("gameFiles/leaderBoards.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameHistory.txt file not exisitng; rather the file will be created 
+    FILE *fPtr = fopen("leaderBoards.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameHistory.txt file not exisitng; rather the file will be created 
     if (fPtr == NULL)
     { 
         printf("[!] ERROR: Couldn't open file 'leaderBoards.txt'"); 
