@@ -62,6 +62,7 @@ typedef struct
     bool continueProgram;                   // flag used for the main while loop in main()
     bool mainMenuShown;                     // flag used to indicate whether the mainMenu() ran once (used to terminate the connectFour animation after it ran once)      
     bool randomSeeded;                      // flag used to indicate whether rand() has already been seeded in the program (using srand())
+    bool quickMatch;                        // flag which holds true if the user chose quickMatch & false if not (ie if chose customMatch)
     bool playGame;                          // flag used for the individual game loops
     
     // game setup
@@ -147,6 +148,8 @@ void pressEnterToContinue()
 // game ---------------------------------------------------------------------------------------------------------------------------------------------
 
 // declarations
+void quickMatch();
+void customMatch();
 void PvP();
 void PvAI();
 void AIvAI();
@@ -203,18 +206,51 @@ int mainMenu()
 void play()
 {
     /*
-        > choose gameMoade
+        > choose match 
         > validates input
         > clears buffer
-        > calls the respective functions: PvP(), PvAI(), or AIvAI()
+        > calls the respective functions: quickMatch(), customMatch()
     */
 
     clearScreen();
     printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
     // choosing the gameMode
-    animateText("[Choose GameMode]\n  [1] PvP: Player vs Player\n  [2] PvAI: Player vs AI\n  [3] AIvAI: AI vs AI\n  [4] Go Back", animateTextDelay_33ms);
+    animateText("[Choose Match]\n  [1] Quick Match\n  [2] Custom Match\n  [3] Go Back", animateTextDelay_33ms);
     char userChoice[arbitrarySize];
+    while (true)
+    {
+        printf("\nEnter your choice [1/3]: ");
+        fgets(userChoice, sizeof(userChoice), stdin);
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        {
+            printf("> Accepted\n\n");
+            break; 
+        }
+        else
+        { 
+            if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+            printf("> [!] Enter either 1, 2, or 3");
+            continue;
+        }
+    }
+
+    // calling gameMode function based on userChoice
+    switch(userChoice[0])
+    {
+        case '1': game.quickMatch = true;   break;      // quickMatch()
+        case '2': game.quickMatch = false;  break;      // customMatch()
+        case '3':
+            // mainMenu();      will result in infinite recursive loop
+            //break;
+            return;
+    }
+
+    clearScreen();
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
+
+    // choosing the gameMode
+    animateText("[Choose GameMode]\n  [1] PvP: Player vs Player\n  [2] PvAI: Player vs AI\n  [3] AIvAI: AI vs AI\n  [4] Go Back", animateTextDelay_33ms);
     while (true)
     {
         printf("\nEnter your choice [1-4]: ");
@@ -236,7 +272,7 @@ void play()
     switch(userChoice[0])
     {
         case '1':
-            strcpy(game.gameMode, "PvP");
+            strcpy(game.gameMode, "PvP");       // for setPlayers() & gamehistory
             PvP();
             break;
         case '2':
@@ -252,6 +288,7 @@ void play()
             //break;
             return;
     }
+
 }
 void view()
 {
@@ -310,9 +347,10 @@ void exitGame()
     //printf("\rExiting now. <^-^>\n");
 
     animateText("\r            \rMade by Saad, bi-idhni'Allah Ta'ala  <^-^>", animateTextDelay_33ms);
-    wait(2000);
+    wait(3000);
     animateText("\r                                          ", animateTextDelay_33ms);
 }
+
 
 // initializing game
 void setGame()
@@ -324,6 +362,12 @@ void setGame()
     game.playerMove = 0;
     game.gameState = -1;
     for (int i = 0; i < 4; i++){ game.winningIndices[i][0] = -1; game.winningIndices[i][1] = -1; }
+
+    // initializing the spaces in the gameBoard to emptyChar
+    for (int i = 0; i < maxRows; i++)
+    {
+        for (int j = 0; j < maxCols; j++){ game.gameBoard[i][j] = emptyChar; }
+    }
 }
 void setPvPPlayers()
 {
@@ -496,7 +540,7 @@ void setGameBoard()
         else
         {
             if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-            printf("> [!] Enter either 1, 2, or 3");
+            printf("> [!] Enter either 1, 2, 3, 4, 5, or 6");
             continue;
         }
     }
@@ -529,14 +573,6 @@ void setGameBoard()
         case '6':               // go back to setPlayers()
             setPlayers();
             return;             // breaks from the whole function
-    }
-
-    // initializing the spaces in the gameBoard to emptyChar
-    for (int i = 0; i < game.rowCount; i++)
-    {
-        for (int j = 0; j < game.colCount; j++){
-            game.gameBoard[i][j] = emptyChar;
-        }
     }
 }
 
@@ -1341,8 +1377,18 @@ void PvP()
 {
 
     setGame();          // initialize globals
-    setPlayers();       // choose players
-    setGameBoard();     // choose gameBoard size
+    if (game.quickMatch)
+    {
+        strcpy(game.player1Name, "Player 1");
+        strcpy(game.player2Name, "Player 2");
+        game.rowCount = 6;        // CLassic (7 x 6)
+        game.colCount = 7;
+    }
+    else
+    {    
+        setPlayers();       // choose players
+        setGameBoard();     // choose gameBoard size
+    }
     showGameBoard();
 
     while (game.playGame)
@@ -1359,9 +1405,18 @@ void PvP()
 void PvAI()
 {
     setGame();
-    setPlayers();
-    setGameBoard();
-    showGameBoard();
+    if (game.quickMatch)
+    {
+        strcpy(game.player1Name, "Player");
+        strcpy(game.player2Name, "Thalith");
+        game.rowCount = 6;        // CLassic (7 x 6)
+        game.colCount = 7;
+    }
+    else
+    {    
+        setPlayers();       // choose players
+        setGameBoard();     // choose gameBoard size
+    }
     if (!game.randomSeeded){ srand(time(NULL)); game.randomSeeded = true; }
 
     while (game.playGame)
@@ -1379,9 +1434,18 @@ void PvAI()
 void AIvAI()
 {
     setGame();
-    setPlayers();
-    setGameBoard();
-    showGameBoard();
+    if (game.quickMatch)
+    {
+        strcpy(game.player1Name, "Thalith_theFirst");
+        strcpy(game.player2Name, "Thalith_theSecond");
+        game.rowCount = 6;        // CLassic (7 x 6)
+        game.colCount = 7;
+    }
+    else
+    {    
+        setPlayers();       // choose players
+        setGameBoard();     // choose gameBoard size
+    }
     if (!game.randomSeeded){ srand(time(NULL)); game.randomSeeded = true; }
 
     while (game.playGame)
