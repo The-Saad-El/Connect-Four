@@ -851,6 +851,7 @@ void evaluateGameBoard()
     {
         game.endTime = time(NULL);      // stoppin the stopwatch when the game reaches a terminal state
         saveGameHistory();
+        if ((!game.quickMatch) && (strcmp(game.gameMode, "AIvAI"))){ saveLeaderBoards(); }      // leaderBoards will only be updated if the game is not quicMatch (is customMatch) & the mode is not AIvAI (is PvP or PvAI)
 
         wait(330);     // a little pause before printing results
         switch (game.gameState)
@@ -1575,11 +1576,22 @@ void saveLeaderBoards()
     {
         char rank[5], playerName[arbitrarySize];
         int gamesPlayed, wins, draws, defeats, score;
-        while (true)
+        if (!strcmp(game.gameMode, "PvP"))      // saveLeaderboards for both p1 & p2
+        {    
+            while (true)
+            {
+                int numOfScans = fscanf(fPtr, "Rank: [%[^]]] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
+                                        rank, playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
+                if (numOfScans != 7){ break; }
+                else
+                {
+                    if (!strcmp(game.player1Name, playerName));
+                }
+            }
+        }
+        else if (!strcmp(game.gameMode, "PvAI"))
         {
-            int numOfScans = fscanf(fPtr, "Rank: [%[^]]] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
-                                    rank, playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
-            if (numOfScans != 7){ break; }
+            // for only p1
         }
         fprintf(fPtr, "Rank: [%s] | Player Name: [%s] | Games Played: [%s] | Wins: [%s] | Draws: [%s] | Defeats: [%s] | Score: [%d]\n");
 
