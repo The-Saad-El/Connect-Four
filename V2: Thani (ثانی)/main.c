@@ -133,7 +133,8 @@ void wait(int milliseconds)
 }
 void animateText(char strToAnimate[], int timeDelay_ms)
 {
-    for (int i = 0; i < strlen(strToAnimate); i++)
+    int len = strlen(strToAnimate);
+    for (int i = 0; i < len; i++)
     {
         printf("%c", strToAnimate[i]);
         wait(timeDelay_ms);
@@ -158,7 +159,7 @@ void PvAI();
 void AIvAI();
 void saveGameHistory();
 void displayGameHistory();
-void saveLeaderBoards();
+void updateLeaderBoards();
 void displayLeaderBoards();
 void displayHelp();
 
@@ -851,7 +852,7 @@ void evaluateGameBoard()
     {
         game.endTime = time(NULL);      // stoppin the stopwatch when the game reaches a terminal state
         saveGameHistory();
-        if ((!game.quickMatch) && (strcmp(game.gameMode, "AIvAI"))){ saveLeaderBoards(); }      // leaderBoards will only be updated if the game is not quicMatch (is customMatch) & the mode is not AIvAI (is PvP or PvAI)
+        if ((!game.quickMatch) && (strcmp(game.gameMode, "AIvAI"))){ updateLeaderBoards(); }      // leaderBoards will only be updated if the game is not quicMatch (is customMatch) & the mode is not AIvAI (is PvP or PvAI)
 
         wait(330);     // a little pause before printing results
         switch (game.gameState)
@@ -1545,15 +1546,6 @@ void displayGameHistory()
                 printf("| %5d | %-27s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |\n", ++count, dateTime, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
             }
         }
-
-        /*
-        char line[200];
-        while (fgets(line, sizeof(line), fPtr) != NULL)
-        {
-            printf("%s", line);
-        }
-        */
-
         animateText("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
 
         fclose(fPtr);
@@ -1563,83 +1555,188 @@ void displayGameHistory()
 }
 
 // leaderBoards
-void saveLeaderBoards()
-{   
-    // for games history: players, serial number, winner, elapsed time
+#define winPoints 200
+#define drawPoints 50
+#define defeatPoints 10
+void createTempLeaderBoards_PvP()
+{
+    // creating a temp file with all leaderBoard records (new & old)
+    
+    FILE *mainFile = fopen("gameFiles/leaderBoards.txt", "a+");         // used / instead of (\\);  [a+] mode will allow reading, appending, & creation of file (important when the program runs for the 1st time)
+    FILE *tempFile = fopen("gameFiles/temp.txt", "w");                  // will append all unique records to temp file
 
-    FILE *fPtr = fopen("gameFiles/leaderBoards.txt", "a+");      // used / instead of (\\); [a+] allows reading, appending, & creation of file if not existant
-    if (fPtr == NULL)
-    { 
-        printf("[!] ERROR: Couldn't open file 'leaderBoards.txt'"); 
+    if      (mainFile == NULL) { printf("[!] ERROR: Couldn't open file 'leaderBoards.txt, a+'"); }
+    else if (tempFile == NULL) { printf("[!] ERROR: Couldn't open file 'temp.txt, w'");          }
+    else
+    {
+        char playerName[arbitrarySize];
+        int gamesPlayed, wins, draws, defeats, score;
+        bool player1ExistsInLeaderBoards = false, player2ExistsInLeaderBoards = false;
+
+        while (true)
+        {
+            int numOfScans = fscanf(mainFile, "Score: [%d] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", 
+                                                &score, playerName, &gamesPlayed, &wins, &draws, &defeats);
+            if (numOfScans != 6){ break; }      // max line reached
+            else
+            {
+                if (!strcmp(game.player1Name, playerName))           // p1 already exists in the leaderboards; saves his updated info in a tempFile
+                {
+                    gamesPlayed++;
+                    (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
+                    score = (wins*winPoints + draws*drawPoints + defeats*defeatPoints);       // random scoring formula/criteria;  5 draws > 1 win & 21 defeats > 1 win due to the greater volume of games played of the formers
+                    fprintf(tempFile, "Score: [%d] | Player Name: [%s] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", score, playerName, gamesPlayed, wins, draws, defeats);
+                    player1ExistsInLeaderBoards = true;
+                }
+                else if (!strcmp(game.player2Name, playerName))     // p2 already exists in the leaderboards
+                {
+                    gamesPlayed++;
+                    (game.gameState == 2)? wins++ : (game.gameState == 0)? draws++ : defeats++;
+                    score = (wins*winPoints + draws*drawPoints + defeats*defeatPoints);       // random scoring formula/criteria;  5 draws > 1 win & 21 defeats > 1 win due to the greater volume of games played of the formers
+                    fprintf(tempFile, "Score: [%d] | Player Name: [%s] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", score, playerName, gamesPlayed, wins, draws, defeats);       // playerName could have been replaced with player2Name
+                    player2ExistsInLeaderBoards = true;
+                }
+                else        // player != player1; copies the same playerData to temp file
+                {
+                    fprintf(tempFile, "Score: [%d] | Player Name: [%s] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", score, playerName, gamesPlayed, wins, draws, defeats);
+                }
+            }
+        }
+
+        if (!player1ExistsInLeaderBoards)        // creates record of p1 in temp file if it doesnt exist in leaderboards
+        { 
+            wins = 0, draws = 0, defeats = 0;
+            (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
+            score = (wins*winPoints + draws*drawPoints + defeats*defeatPoints); 
+            fprintf(tempFile, "Score: [%d] | Player Name: [%s] | Games Played: [1] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", score, game.player1Name, wins, draws, defeats); 
+        }
+        
+        if (!player2ExistsInLeaderBoards)        // if no record/leaderBoard-position occurs of p2, creates it and then appends in the temp file
+        { 
+            wins = 0, draws = 0, defeats = 0;
+            (game.gameState == 2)? wins++ : (game.gameState == 0)? draws++ : defeats++;
+            score = (wins*winPoints + draws*drawPoints + defeats*defeatPoints);
+            fprintf(tempFile, "Score: [%d] | Player Name: [%s] | Games Played: [1] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", score, game.player2Name, wins, draws, defeats); 
+        }
     }
+
+    //  closing both files 
+    if (mainFile != NULL) { fclose(mainFile); }         // intentionally didnt close these files inside the else block above
+    if (tempFile != NULL) { fclose(tempFile); }         // if one file opened and the other didnt, i will print the error msg but 1 file will remain opened. isliye brought these outside the if block
+}
+void createTempLeaderBoards_PvAI()
+{
+    FILE *mainFile = fopen("gameFiles/leaderBoards.txt", "a+");         // used / instead of (\\);  [a+] mode will allow reading, appending, & creation of file (important when the program runs for the 1st time)
+    FILE *tempFile = fopen("gameFiles/temp.txt", "w");                  // will append all unique records to temp file
+
+    if      (mainFile == NULL) { printf("[!] ERROR: Couldn't open file 'leaderBoards.txt, a+'"); }
+    else if (tempFile == NULL) { printf("[!] ERROR: Couldn't open file 'temp.txt, w'");         }
     else
     {
         bool playerExistsInLeaderBoards;
         char playerName[arbitrarySize];
         int gamesPlayed, wins, draws, defeats, score;
 
-        // saveLeaderboards for player1 (applicable in both pvp & pvai)
+        // for player1 (applicable in both PvP() & PvAI())
         playerExistsInLeaderBoards = false;
         while (true)
         {
-            int numOfScans = fscanf(fPtr, "Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
-                                            playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
+            int numOfScans = fscanf(mainFile, "Score: [%d] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", 
+                                                &score, playerName, &gamesPlayed, &wins, &draws, &defeats);
             if (numOfScans != 6){ break; }      // max line reached
             else
             {
-                if (!strcmp(game.player1Name, playerName))     // p1 already exists in the leaderboards
+                if (!strcmp(game.player1Name, playerName))     // p1 already exists in the leaderboards; saves his updated info in a tempFile
                 {
                     gamesPlayed++;
                     (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
-                    score = (wins*100 + draws*30 + defeats*10);       // random scoring formula/criteria;  4 draws > 1 win & 11 defeats > 1 win due to the volume of the amount of games played of the formers
-                    fprintf(fPtr, "Player Name: [%s] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", playerName, gamesPlayed, wins, draws, defeats, score);
+                    score = (wins*winPoints + draws*drawPoints + defeats*defeatPoints);       // random scoring formula/criteria;  5 draws > 1 win & 21 defeats > 1 win due to the greater volume of games played of the formers
+                    fprintf(tempFile, "Score: [%d] | Player Name: [%s] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", score, playerName, gamesPlayed, wins, draws, defeats);
                     playerExistsInLeaderBoards = true;
-                    break;
+                }
+                else        // player != player1; copies the same playerData to temp file
+                {
+                    fprintf(tempFile, "Score: [%d] | Player Name: [%s] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", score, playerName, gamesPlayed, wins, draws, defeats);
                 }
             }
         }
-        if (!playerExistsInLeaderBoards)        // creates record of p2 in leaderBoard.txt if it doesnt exist
+        if (!playerExistsInLeaderBoards)        // creates record of p1 in temp file if it doesnt exist in leaderboards
         { 
             wins = 0, draws = 0, defeats = 0;
             (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
-            score = (wins*100 + draws*30 + defeats*10);
-            fprintf(fPtr, "Player Name: [%s] | Games Played: [1] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", game.player1Name, wins, draws, defeats, score); 
+            score = (wins*winPoints + draws*drawPoints + defeats*defeatPoints); 
+            fprintf(tempFile, "Score: [%d] | Player Name: [%s] | Games Played: [1] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", score, game.player1Name, wins, draws, defeats); 
         }
-        
-        // if the gameMode is PvP, saves data for P2 as well
-        if (!strcmp(game.gameMode, "PvP"))
+    }
+
+    //  closing both files 
+    if (mainFile != NULL) { fclose(mainFile); }         // intentionally didnt close these files inside the else block above
+    if (tempFile != NULL) { fclose(tempFile); }         // if one file opened and the other didnt, i will print the error msg but 1 file will remain opened. isliye brought these outside the if block
+}
+void updateMainLeaderBoards()
+{
+    // reads records from temp.txt, sorts em & then writes em to the mainFile
+
+    FILE *mainFile = fopen("gameFiles/leaderBoards.txt", "w");          // reopening both files but in different modes than last time
+    FILE *tempFile = fopen("gameFiles/temp.txt", "r");                  
+
+    if      (mainFile == NULL) { printf("[!] ERROR: Couldn't open file 'leaderBoards.txt, w'"); }
+    else if (tempFile == NULL) { printf("[!] ERROR: Couldn't open file 'temp.txt, r'");         }
+    else
+    {
+        typedef struct          // alhamdulillah aala idea teh yeh struct istemaal karnay ka :>
         {
-            playerExistsInLeaderBoards = false;
-            while (true)
+            int score;          
+            char record[199];   // a veryyy large string 
+        } tempStruct;
+
+        int index = 0, numOfScans;
+        tempStruct tempFileData[arbitrarySize];     // 35 records ought to be more than enough
+
+        // storing data from tempFile to array tempFileData (an array of length 35 & datatype tempStruct (a struct))
+        while (true)
+        {
+            numOfScans = fscanf(tempFile, "Score: [%d]", &tempFileData[index].score);
+            if (numOfScans != 1){ break; }
+
+            fgets(tempFileData[index].record, sizeof(tempFileData[index].record), tempFile);        // no need to check for NULL since the above check suffices
+            index++;
+        }
+
+        // sorting records in array tempFileData based on descending scores
+        for (int i = 0; i < index; i++)
+        {
+            for (int j = 0; j < (index - i - 1); j++)       // bubble sort
             {
-                int numOfScans = fscanf(fPtr, "Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
-                                                playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
-                if (numOfScans != 6){ break; }      // max line reached
-                else
+                if (tempFileData[j].score < tempFileData[j + 1].score)      // descending order (highest to smallest)
                 {
-                    if (!strcmp(game.player2Name, playerName))     // p2 already exists in the leaderboards
-                    {
-                        gamesPlayed++;
-                        (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
-                        score = (wins*100 + draws*30 + defeats*10);       // random scoring formula/criteria;  4 draws > 1 win & 11 defeats > 1 win due to the volume of the amount of games played of the formers
-                        fprintf(fPtr, "Player Name: [%s] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", playerName, gamesPlayed, wins, draws, defeats, score);
-                        playerExistsInLeaderBoards = true;
-                        break;
-                    }
+                    tempStruct temp = tempFileData[j];
+                    tempFileData[j] = tempFileData[j + 1];
+                    tempFileData[j + 1] = temp;
                 }
             }
-            if (!playerExistsInLeaderBoards)        // if no record/leaderBoard-position occurs of p2, creates it
-            { 
-                wins = 0, draws = 0, defeats = 0;
-                (game.gameState == 1)? wins++ : (game.gameState == 0)? draws++ : defeats++;
-                score = (wins*100 + draws*30 + defeats*10);
-                fprintf(fPtr, "Player Name: [%s] | Games Played: [1] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", game.player2Name, wins, draws, defeats, score); 
-            }
         }
 
-
-        fclose(fPtr);
+        // updating main file
+        for (int line = 0; line < index; line++)
+        {
+            fputs(tempFileData[line].record, mainFile);
+        }
     }
+
+    //  closing both files 
+    if (mainFile != NULL) { fclose(mainFile); }         // intentionally didnt close these files inside the else block above
+    if (tempFile != NULL) { fclose(tempFile); }         // if one file opened and the other didnt, i will print the error msg but 1 file will remain opened. isliye brought these outside the if block
+    remove("gameFiles/temp.txt");                       // deletes the temp file after finishing the processing & updating of leaderboards
+}
+void updateLeaderBoards()
+{   
+    // creating a temp file with all leaderBoard records (new + old)
+    if      (!strcmp(game.gameMode, "PvP"))  { createTempLeaderBoards_PvP();  }     // for PvP
+    else if (!strcmp(game.gameMode, "PvAI")) { createTempLeaderBoards_PvAI(); }     // for PvAI
+
+    // updating leaderBoards.txt
+    updateMainLeaderBoards();
 }
 void displayLeaderBoards()
 {
@@ -1661,8 +1758,8 @@ void displayLeaderBoards()
         int rank = 0, gamesPlayed, wins, draws, defeats, score;
         while (true)
         {
-            int numOfScans = fscanf(fPtr, "Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d] | Score: [%d]\n", 
-                                            playerName, &gamesPlayed, &wins, &draws, &defeats, &score);
+            int numOfScans = fscanf(fPtr, "Score: [%d] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", 
+                                            &score, playerName, &gamesPlayed, &wins, &draws, &defeats);
             if (numOfScans != 6){ break; }
             else
             {
