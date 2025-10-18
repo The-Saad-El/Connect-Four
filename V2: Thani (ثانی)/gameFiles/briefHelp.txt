@@ -1,0 +1,39 @@
+=====================================================================================
+
+                        CONNECT FOUR - QUICK REFERENCE GUIDE
+
+=====================================================================================
+
+OBJECTIVE:
+  Connect four discs in a row (horizontal, vertical, or diagonal) before your opponent
+
+HOW TO PLAY:
+  1. Enter a column number (1-9) to drop your disc
+  2. Disc falls to the lowest available position
+  3. Players alternate until someone wins or the board fills (draw)
+
+MAIN MENU:
+  [1] PLAY - Quick Match (instant play) or Custom Match (leaderboard-eligible)
+  [2] VIEW - Leaderboards, Game History, and Help
+  [3] EXIT - Save and quit
+
+BOARD SIZES:
+  Mini (5x4) | Blitz (6x5) | Classic (7x6) | Grand (8x7) | Titan (9x8)
+
+GAME MODES:
+  PvP (2 players) | PvAI (vs computer) | AIvAI (watch AI battle)
+
+AI DIFFICULTY:
+  Awwal (Beginner) | Thani (Intermediate) | Thalith (Advanced)
+
+LEADERBOARDS:
+  Only Custom Match PvP/PvAI games count
+  Scoring: Win = 200pts | Draw = 50pts | Loss = 10pts
+
+STRATEGY TIPS:
+  Control center | Think ahead | Create double threats | Block 3-in-a-row
+
+=====================================================================================
+Connect Four v2: Thani | Developed by Saad, bi-idhni-Allahi Ta'ala
+Help Section made by Claude.ai (Made 16/10/2025, Updated 18/10/2025)
+=====================================================================================
