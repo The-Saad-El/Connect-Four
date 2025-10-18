@@ -11,14 +11,14 @@
         -> Header files
 
     [Started]    Sep 8th, 25;  ≈ 22:00
-    [Completed]  Sep 18th, 25; ≈ 22:00
+    [Completed]  Sep 18th, 25; ≈ 12:47
 
                                                 الحمد للہ
 */
 
 /*
     TODO
-    [1]  check leaderboards
+    [1]  add gameBoard layout in gameHistory
     [2]  break everything into files (main.c, game.c, ai.c, file_io.c, {files}.txt)
     [3]  miniMax (rabi & khamis)
     [4]  achievements, resume game
@@ -1859,7 +1859,9 @@ void displayHelp()
 }
 
 
+
 // ------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 int main()
 {
