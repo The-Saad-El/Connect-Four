@@ -3,6 +3,13 @@
 # Connect-Four
 PF Lab Project
 
+### **QuickLinks**
+| Versions |
+| --- |
+| [V1: Awwal (اول)](#v1-awwal-اول) |
+| [V2: Thani (ثانی)](#v2-thani-ثانی) |
+| [V3: Thalith (ثالث)](#v3-thalith-ثالث) |
+
 ### **V1: Awwal (اول)**
 * Features
   * CLI
