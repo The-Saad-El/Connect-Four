@@ -12,3 +12,7 @@ Date: [Sat Oct 18 07:21:49 2025] | Match: [Custom] | GameMode: [PvAI] | Player 1
 Date: [Sat Oct 18 07:30:28 2025] | Match: [Quick] | GameMode: [AIvAI] | Player 1: [Thalith_theFirst] | Player 2: [Thalith_theSecond] | GameBoard: [Classic] | TotalMoves: [42] | Duration: [4.0 min] | Result: [Draw]
 Date: [Sat Oct 18 07:55:12 2025] | Match: [Quick] | GameMode: [AIvAI] | Player 1: [Thalith_theFirst] | Player 2: [Thalith_theSecond] | GameBoard: [Classic] | TotalMoves: [13] | Duration: [1.4 min] | Result: [Thalith_theFirst Won]
 Date: [Sat Oct 18 08:01:04 2025] | Match: [Quick] | GameMode: [AIvAI] | Player 1: [Thalith_theFirst] | Player 2: [Thalith_theSecond] | GameBoard: [Classic] | TotalMoves: [32] | Duration: [3.1 min] | Result: [Thalith_theSecond Won]
+Date: [Sat Oct 18 09:54:56 2025] | Match: [Custom] | GameMode: [PvAI] | Player 1: [Saad] | Player 2: [Thalith] | GameBoard: [Blitz] | TotalMoves: [15] | Duration: [1.6 min] | Result: [Saad Won]
+Date: [Sat Oct 18 12:12:13 2025] | Match: [Custom] | GameMode: [PvAI] | Player 1: [Saad] | Player 2: [Thalith] | GameBoard: [Mini] | TotalMoves: [12] | Duration: [1.6 min] | Result: [Thalith Won]
+Date: [Sat Oct 18 12:16:56 2025] | Match: [Quick] | GameMode: [AIvAI] | Player 1: [Thalith_theFirst] | Player 2: [Thalith_theSecond] | GameBoard: [Classic] | TotalMoves: [39] | Duration: [3.8 min] | Result: [Thalith_theFirst Won]
+Date: [Sat Oct 18 12:35:49 2025] | Match: [Custom] | GameMode: [PvAI] | Player 1: [Saad] | Player 2: [Thalith] | GameBoard: [Mini] | TotalMoves: [20] | Duration: [3.1 min] | Result: [Draw]
