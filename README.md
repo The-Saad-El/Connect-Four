@@ -44,11 +44,11 @@ PF Lab Project
 * Version Details
   * TimeLine
     * `[Started]   Sep 8th, 25;  ≈ 22:00`
-    * `[Completed] Sep 18th, 25; ≈ __:__`
+    * `[Completed] Sep 18th, 25; ≈ 12:47`
   * LOC
       * `Initial:   569`
-      * `Final:    1877`
-      * `Change:  +1308`
+      * `Final:    1893`
+      * `Change:  +1324`
 
 
 ### **V3: Thalith (ثالث)**
@@ -63,10 +63,10 @@ PF Lab Project
   * miniMax/Look-Aheads (Rabi', Khamis)
 * Version Details
   * TimeLine
-    * `[Started]   Sep 18th, 25; ≈ __:__`
+    * `[Started]   Sep 18th, 25; ≈ 12:47`
     * `[Completed] Sep __th, 25; ≈ __:__ (Ideally complete before 1st Nov, 25 insha'Allah)`
   * LOC
-    * `Initial:  1877`
+    * `Initial:  1893`
     * `Final:    ____`
     * `Change:  +____`
   
