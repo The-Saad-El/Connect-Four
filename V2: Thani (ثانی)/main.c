@@ -1472,10 +1472,10 @@ void saveGameHistory()
 {   
     // for games history: players, serial number, winner, elapsed time
 
-    FILE *fPtr = fopen("gameHistory.txt", "a");       // / instead of \\ (the former works on all platforms while the latter is windows-dependent)
+    FILE *fPtr = fopen("gameFiles/gameHistory.txt", "a");       // / instead of \\ (the former works on all platforms while the latter is windows-dependent)
     if (fPtr == NULL)
     { 
-        printf("[!] ERROR: Couldn't open file 'gameHistory.txt'"); 
+        printf("[!] ERROR: Couldn't access file 'gameFiles/gameHistory.txt'"); 
     }
     else
     {
@@ -1524,11 +1524,11 @@ void displayGameHistory()
     clearScreen();
     printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
-    // FILE *fPtr = fopen("gameHistory.txt", "r");
-    FILE *fPtr = fopen("gameHistory.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameHistory.txt file not exisitng; rather the file will be created 
+    // FILE *fPtr = fopen("gameFiles/gameHistory.txt", "r");
+    FILE *fPtr = fopen("gameFiles/gameHistory.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameFiles/gameHistory.txt file not exisitng; rather the file will be created 
     if (fPtr == NULL)
     { 
-        printf("[!] ERROR: Couldn't open file 'gameHistory.txt'"); 
+        printf("[!] ERROR: Couldn't access file 'gameFiles/gameHistory.txt'"); 
     }
     else
     {
@@ -1565,11 +1565,11 @@ void createTempLeaderBoards_PvP()
 {
     // creating a temp file with all leaderBoard records (new & old)
     
-    FILE *mainFile = fopen("leaderBoards.txt", "a+");         // used / instead of (\\);  [a+] mode will allow reading, appending, & creation of file (important when the program runs for the 1st time)
-    FILE *tempFile = fopen("temp.txt", "w");                  // will append all unique records to temp file
+    FILE *mainFile = fopen("gameFiles/leaderBoards.txt", "a+");         // used / instead of (\\);  [a+] mode will allow reading, appending, & creation of file (important when the program runs for the 1st time)
+    FILE *tempFile = fopen("gameFiles/temp.txt", "w");                  // will append all unique records to temp file
 
-    if      (mainFile == NULL) { printf("[!] ERROR: Couldn't open file 'leaderBoards.txt, a+'"); }
-    else if (tempFile == NULL) { printf("[!] ERROR: Couldn't open file 'temp.txt, w'");          }
+    if      (mainFile == NULL) { printf("[!] ERROR: Couldn't access file 'gameFiles/leaderBoards.txt, a+'"); }
+    else if (tempFile == NULL) { printf("[!] ERROR: Couldn't access file 'gameFiles/temp.txt, w'");          }
     else
     {
         char playerName[arbitrarySize];
@@ -1629,11 +1629,11 @@ void createTempLeaderBoards_PvP()
 }
 void createTempLeaderBoards_PvAI()
 {
-    FILE *mainFile = fopen("leaderBoards.txt", "a+");         // used / instead of (\\);  [a+] mode will allow reading, appending, & creation of file (important when the program runs for the 1st time)
-    FILE *tempFile = fopen("temp.txt", "w");                  // will append all unique records to temp file
+    FILE *mainFile = fopen("gameFiles/leaderBoards.txt", "a+");         // used / instead of (\\);  [a+] mode will allow reading, appending, & creation of file (important when the program runs for the 1st time)
+    FILE *tempFile = fopen("gameFiles/temp.txt", "w");                  // will append all unique records to temp file
 
-    if      (mainFile == NULL) { printf("[!] ERROR: Couldn't open file 'leaderBoards.txt, a+'"); }
-    else if (tempFile == NULL) { printf("[!] ERROR: Couldn't open file 'temp.txt, w'");         }
+    if      (mainFile == NULL) { printf("[!] ERROR: Couldn't access file 'gameFiles/leaderBoards.txt, a+'"); }
+    else if (tempFile == NULL) { printf("[!] ERROR: Couldn't access file 'gameFiles/temp.txt, w'");         }
     else
     {
         bool playerExistsInLeaderBoards;
@@ -1678,13 +1678,13 @@ void createTempLeaderBoards_PvAI()
 }
 void updateMainLeaderBoards()
 {
-    // reads records from temp.txt, sorts em & then writes em to the mainFile
+    // reads records from gameFiles/temp.txt, sorts em & then writes em to the mainFile
 
-    FILE *mainFile = fopen("leaderBoards.txt", "w");          // reopening both files but in different modes than last time
-    FILE *tempFile = fopen("temp.txt", "r");                  
+    FILE *mainFile = fopen("gameFiles/leaderBoards.txt", "w");          // reopening both files but in different modes than last time
+    FILE *tempFile = fopen("gameFiles/temp.txt", "r");                  
 
-    if      (mainFile == NULL) { printf("[!] ERROR: Couldn't open file 'leaderBoards.txt, w'"); }
-    else if (tempFile == NULL) { printf("[!] ERROR: Couldn't open file 'temp.txt, r'");         }
+    if      (mainFile == NULL) { printf("[!] ERROR: Couldn't access file 'gameFiles/leaderBoards.txt, w'"); }
+    else if (tempFile == NULL) { printf("[!] ERROR: Couldn't access file 'gameFiles/temp.txt, r'");         }
     else
     {
         typedef struct          // alhamdulillah aala idea teh yeh struct istemaal karnay ka :>
@@ -1730,7 +1730,7 @@ void updateMainLeaderBoards()
     //  closing both files 
     if (mainFile != NULL) { fclose(mainFile); }         // intentionally didnt close these files inside the else block above
     if (tempFile != NULL) { fclose(tempFile); }         // if one file opened and the other didnt, i will print the error msg but 1 file will remain opened. isliye brought these outside the if block
-    remove("temp.txt");                                 // deletes the temp file after finishing the processing & updating of leaderboards
+    remove("gameFiles/temp.txt");                                 // deletes the temp file after finishing the processing & updating of leaderboards
 }
 void updateLeaderBoards()
 {   
@@ -1738,7 +1738,7 @@ void updateLeaderBoards()
     if      (!strcmp(game.gameMode, "PvP"))  { createTempLeaderBoards_PvP();  }     // for PvP
     else if (!strcmp(game.gameMode, "PvAI")) { createTempLeaderBoards_PvAI(); }     // for PvAI   (couldve used else and it wouldve worked the same inshaAllah)
 
-    // updating leaderBoards.txt
+    // updating gameFiles/leaderBoards.txt
     updateMainLeaderBoards();
 }
 void displayLeaderBoards()
@@ -1746,10 +1746,10 @@ void displayLeaderBoards()
     clearScreen();
     printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
-    FILE *fPtr = fopen("leaderBoards.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameHistory.txt file not exisitng; rather the file will be created 
+    FILE *fPtr = fopen("gameFiles/leaderBoards.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameFiles/gameHistory.txt file not exisitng; rather the file will be created 
     if (fPtr == NULL)
     { 
-        printf("[!] ERROR: Couldn't open file 'leaderBoards.txt'"); 
+        printf("[!] ERROR: Couldn't access file 'gameFiles/leaderBoards.txt'"); 
     }
     else
     {
@@ -1784,119 +1784,62 @@ void displayHelp()
     clearScreen();
     printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
-    animateText
-            (
-            "\n=====================================================================================\n\n"
-            "ABOUT THE GAME:\n"
-            "Connect Four is a classic two-player strategy game where competitors take turns\n"
-            "dropping colored discs into a vertical grid. The objective is simple yet challenging:\n"
-            "connect four of your discs in a row (horizontally, vertically, or diagonally) before\n"
-            "your opponent does. Victory requires both offensive strategy and defensive awareness!\n\n"
-            "HOW TO WIN:\n"
-            "Be the first player to connect four of your discs consecutively in any direction:\n"
-            "  - Horizontally: Four discs side by side in the same row (left to right)\n"
-            "  - Vertically: Four discs stacked on top of each other in the same column\n"
-            "  - Diagonally: Four discs connected at 45-degree angles (both directions)\n"
-            "If the board fills completely with no winner, the game ends in a draw.\n\n"
-            "HOW TO PLAY:\n"
-            "1. When it's your turn, enter a column number (1 through the max column count)\n"
-            "2. Your disc automatically falls to the lowest available position in that column\n"
-            "3. Players alternate turns until someone achieves four-in-a-row or the board fills\n"
-            "4. Plan ahead! Consider both your winning opportunities and blocking opponent threats\n\n"
-            "MAIN MENU OPTIONS:\n"
-            "  [1] PLAY - Start a new game with your preferred settings\n"
-            "      - Quick Match: Jump straight into gameplay with pre-configured settings\n"
-            "        (Classic 7x6 board, standard rules, minimal setup required)\n"
-            "      - Custom Match: Full control over game configuration including board size,\n"
-            "        player names, and AI difficulty. Custom matches are recorded in leaderboards!\n\n"
-            "  [2] VIEW - Access comprehensive game statistics and information\n"
-            "      - Leaderboards: Rankings of top players based on performance in Custom Matches\n"
-            "      - History: Detailed log of all completed games with match statistics\n"
-            "      - Help: Display this comprehensive help guide\n"
-            "      - Go Back: Return to the main menu\n\n"
-            "  [3] EXIT - Save your progress and quit the game safely\n\n"
-            "GAME BOARD SIZES:\n"
-            "(Available exclusively in Custom Match mode - Quick Match uses Classic by default)\n"
-            "  [1] Mini (5 x 4) - Compact board for quick 5-minute games, ideal for beginners\n"
-            "  [2] Blitz (6 x 5) - Fast-paced matches with slightly more tactical depth\n"
-            "  [3] Classic (7 x 6) - The traditional Connect Four experience, perfectly balanced\n"
-            "  [4] Grand (8 x 7) - Extended gameplay requiring advanced strategic planning\n"
-            "  [5] Titan (9 x 8) - Epic battles for experienced players, longest game duration\n\n"
-            "GAME MODES:\n"
-            "  [1] PvP (Player vs Player)\n"
-            "      Two human players compete head-to-head. Both players can set custom names.\n"
-            "      Perfect for friendly competition! (Leaderboard-eligible in Custom Match)\n\n"
-            "  [2] PvAI (Player vs AI)\n"
-            "      Challenge yourself against computer opponents of varying skill levels.\n"
-            "      Choose your difficulty and test your strategic thinking! (Leaderboard-eligible)\n\n"
-            "  [3] AIvAI (AI vs AI)\n"
-            "      Watch two AI opponents battle each other - great for studying strategies!\n"
-            "      Select difficulty for both AIs and observe different playstyles clash.\n"
-            "      (Not leaderboard-eligible - for entertainment and learning purposes only)\n\n"
-            "AI DIFFICULTY LEVELS:\n"
-            "  [1] Awwal (Beginner) - 'The First'\n"
-            "      Strategy: Takes winning moves when available, otherwise plays randomly.\n"
-            "      Best for: New players learning game mechanics and basic winning patterns.\n"
-            "      Win Rate: Low to moderate - predictable but occasionally gets lucky!\n\n"
-            "  [2] Thani (Intermediate) - 'The Second'\n"
-            "      Strategy: Prioritizes winning, blocks immediate opponent threats, then plays\n"
-            "      randomly. More defensive and harder to defeat than Awwal.\n"
-            "      Best for: Players comfortable with basics seeking a balanced challenge.\n"
-            "      Win Rate: Moderate - requires thoughtful planning to consistently defeat.\n\n"
-            "  [3] Thalith (Advanced) - 'The Third'\n"
-            "      Strategy: Goes for wins, blocks opponent wins, prevents 3-in-a-row setups,\n"
-            "      and only then considers random moves. Highly tactical and challenging!\n"
-            "      Best for: Experienced players who want a serious test of their skills.\n"
-            "      Win Rate: High - demands excellent strategy and forward thinking to beat.\n\n"
-            "LEADERBOARDS SYSTEM:\n"
-            "Leaderboards track player performance and rank competitors based on total points.\n\n"
-            "  Eligibility Requirements:\n"
-            "    - Only Custom Match games are recorded (Quick Match excluded for fairness)\n"
-            "    - PvP and PvAI modes qualify (AIvAI excluded as no human participation)\n"
-            "    - Players must use consistent names to maintain their ranking position\n\n"
-            "  Scoring System:\n"
-            "    - WIN: 200 points per victory (rewards successful strategic gameplay)\n"
-            "    - DRAW: 50 points per tie (encourages defensive play when behind)\n"
-            "    - DEFEAT: 10 points per loss (participation credit, encourages continued play)\n\n"
-            "  Ranking Calculation:\n"
-            "    Total Score = (Wins x 200) + (Draws x 50) + (Defeats x 10)\n"
-            "    Players are ranked by total score (highest to lowest). In case of ties,\n"
-            "    the player with more total games played is ranked higher, rewarding experience.\n\n"
-            "  Statistics Tracked:\n"
-            "    - Player Name: Your chosen identifier (case-sensitive, use consistently!)\n"
-            "    - Games Played: Total number of Custom Match games completed\n"
-            "    - Wins: Games where you connected four discs first\n"
-            "    - Draws: Games ending with a full board and no winner\n"
-            "    - Defeats: Games lost to your opponent\n"
-            "    - Total Score: Cumulative points based on the scoring formula above\n\n"
-            "  Note: Leaderboard data persists between game sessions and is automatically\n"
-            "  updated after each qualifying match. View your ranking anytime from the main menu!\n\n"
-            "GAME HISTORY:\n"
-            "Every game you play is automatically recorded with comprehensive match details:\n"
-            "  - Date & Time: Exact timestamp when the game started\n"
-            "  - Match Type: Quick Match or Custom Match designation\n"
-            "  - Game Mode: PvP, PvAI, or AIvAI classification\n"
-            "  - Players: Names of both participants (human or AI)\n"
-            "  - Board Size: Which board configuration was used\n"
-            "  - Total Moves: Number of discs played before game conclusion\n"
-            "  - Duration: Time elapsed from first move to game end (in minutes)\n"
-            "  - Result: Winner name or draw declaration\n\n"
-            "Access complete game history anytime from the View menu to analyze your performance,\n"
-            "review past strategies, and track improvement over time!\n\n"
-            "TIPS & STRATEGIES:\n"
-            "  - Center Control: The middle column creates more winning opportunities\n"
-            "  - Think Ahead: Always consider what your opponent might do on their next turn\n"
-            "  - Double Threats: Create multiple ways to win simultaneously to guarantee victory\n"
-            "  - Block First: If your opponent has three in a row, blocking takes priority!\n"
-            "  - Build Foundations: Start from the bottom and build connected patterns upward\n"
-            "  - Avoid Traps: Don't create situations where your move helps your opponent win\n\n"
-            "=====================================================================================\n"
-            "Connect Four - Version 2: Thani\n"
-            "Developed by Saad, bi-idhni-Allahi Ta'ala\n"
-            "Initial Help Section: Claude.ai (16/10/2025)\n"
-            "Updated Help Section: Claude.ai (18/10/2025)\n"
-            "=====================================================================================\n\n", animateTextDelay_13ms
-            );
+    animateText("[Help]\n  [1] Brief\n  [2] Detailed", animateTextDelay_33ms);
+    char userChoice[arbitrarySize];
+    while (true) 
+    {
+        printf("\nEnter your choice [1/2]: ");
+        fgets(userChoice, sizeof(userChoice), stdin);
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || userChoice[0] == '2'))
+        {
+            printf("> Accepted\n\n");
+            break;
+        }
+        else
+        {
+            if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+            printf("> [!] Enter either 1 or 2");
+            continue;
+        }
+    }
+
+    clearScreen();
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
+
+    switch(userChoice[0])
+    {
+        case '1':       // brief help
+            FILE *briefHelp = fopen("gameFiles/briefHelp.txt", "r");
+            if (briefHelp == NULL){ printf("[!] ERROR: Couldn't access file 'briefHelp.txt'"); }
+            else
+            {
+                char line[199];
+                while (true)
+                {
+                    if (fgets(line, sizeof(line), briefHelp) == NULL){ break; }     // eof reached
+                    animateText(line, animateTextDelay_13ms);       // prints/animates the line of help on screen
+                }
+
+                fclose(briefHelp);
+            }
+            break;
+
+        case '2':       // detailed help  
+            FILE *detailedHelp = fopen("gameFiles/detailedHelp.txt", "r");
+            if (detailedHelp == NULL){ printf("[!] ERROR: Couldn't access file 'detailedHelp.txt'"); }
+            else
+            {
+                char line[199];
+                while (true)
+                {
+                    if (fgets(line, sizeof(line), detailedHelp) == NULL){ break; }     // eof reached
+                    animateText(line, animateTextDelay_13ms);       // prints/animates the line of help on screen
+                }
+
+                fclose(detailedHelp);
+            }
+            break;
+    }
 
     pressEnterToContinue();
 }
