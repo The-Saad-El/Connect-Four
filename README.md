@@ -3,7 +3,7 @@
 # Connect-Four
 PF Lab Project
 
-### V1: Awwal (اول)
+### **V1: Awwal (اول)**
 * Features
   * CLI
   * Menu
@@ -24,8 +24,7 @@ PF Lab Project
     * `Final:    569`
     * `Change:  +569`
 
-
-### V2: Thani (ثانی)
+### **V2: Thani (ثانی)**
 * Features
   * AI
     * Awwal
@@ -45,7 +44,7 @@ PF Lab Project
       * `Change:  +1308`
 
 
-### V3: Thalith (ثالث)
+### **V3: Thalith (ثالث)**
 * Features
   * GUI
     * RayLib
