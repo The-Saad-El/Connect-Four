@@ -18,10 +18,10 @@
 
 /*
     TODO
-    [1]  leaderboards
+    [1]  check leaderboards
     [2]  break everything into files (main.c, game.c, ai.c, file_io.c, {files}.txt)
     [3]  miniMax (rabi & khamis)
-    [ ]  reverse back rows & col?
+    [4]  achievements, resume game
     
 */
 
@@ -850,9 +850,9 @@ void evaluateGameBoard()
 {
     if (game.gameState != -1)        // continue the round if gameState == -1; will only work for totalMoves >= 7
     {
-        game.endTime = time(NULL);      // stoppin the stopwatch when the game reaches a terminal state
+        game.endTime = time(NULL);      // stoppin the "stopwatch" when the game reaches a terminal state
         saveGameHistory();
-        if ((!game.quickMatch) && (strcmp(game.gameMode, "AIvAI"))){ updateLeaderBoards(); }      // leaderBoards will only be updated if the game is not quicMatch (is customMatch) & the mode is not AIvAI (is PvP or PvAI)
+        if ((!game.quickMatch) && (strcmp(game.gameMode, "AIvAI"))){ updateLeaderBoards(); }      // leaderBoards will only be updated if the mode is not AIvAI (is PvP or PvAI) & the match is custom (no option to select player name in quickMatch; playerName is fixed as Player )
 
         wait(330);     // a little pause before printing results
         switch (game.gameState)
@@ -861,7 +861,7 @@ void evaluateGameBoard()
                 animateText("\n\n=====================\n[ >< ]  DRAW!  [ >< ]\n=====================\n", animateTextDelay_33ms);
                 break;
 
-            case 1: 
+            case 1:     // couldve used sprintf
             {   
                 clearScreen();
                 printGameBoard();
@@ -869,7 +869,7 @@ void evaluateGameBoard()
                 char bars[numBars + 1];     // + 1 for '\0'
                 for (int i = 0; i < numBars; i++){ bars[i] = '='; }
                 bars[numBars] = '\0';
-                animateText("\n\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n[* * *] WINNER: ", animateTextDelay_63ms); animateText(game.player1Name, animateTextDelay_63ms); animateText("! [* * *]\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n", animateTextDelay_63ms);
+                animateText("\n\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n[* * *] WINNER: \033[1;33m", animateTextDelay_63ms); animateText(game.player1Name, animateTextDelay_63ms); animateText("\033[0m! [* * *]\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n", animateTextDelay_63ms);
                 break;
             }
 
@@ -881,7 +881,7 @@ void evaluateGameBoard()
                 char bars[numBars + 1];     // + 1 for '\0'
                 for (int i = 0; i < numBars; i++){ bars[i] = '='; }
                 bars[numBars] = '\0';
-                animateText("\n\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n[* * *] WINNER: ", animateTextDelay_63ms); animateText(game.player2Name, animateTextDelay_63ms); animateText("! [* * *]\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n", animateTextDelay_63ms);
+                animateText("\n\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n[* * *] WINNER: \033[1;34m", animateTextDelay_63ms); animateText(game.player2Name, animateTextDelay_63ms); animateText("\033[0m! [* * *]\n", animateTextDelay_63ms); animateText(bars, animateTextDelay_63ms); animateText("\n", animateTextDelay_63ms);
                 break;
             }
         }
@@ -1153,7 +1153,7 @@ int blockOpponent3InARow(char opponentToken)
         }
 
         // checking vertically (columns)
-        if (row < game.rowCount - 2)
+        if ((row < game.rowCount - 2) && (row != 0))       // there are atleast 2 rows below the row where the token dropped to and the row isnt the first (topmost) row (will be pointless to block by placing on the tompost row since the opponent cant ever make a 4-in-a-row with that)
         {
             if ((gameBoardCopy[row + 1][col] == opponentToken) && (gameBoardCopy[row + 2][col] == opponentToken)){ return col; }
         }
@@ -1373,7 +1373,7 @@ void getAIMove()
 }
 
 
-//  gameModes ---------------------------------------------------------------------------------------------------------------------------------------
+// gameModes ---------------------------------------------------------------------------------------------------------------------------------------
 
 void PvP()
 {
@@ -1465,7 +1465,7 @@ void AIvAI()
 }
 
 
-// filing -------------------------------------------------------------------------------------------------------------------------------------------
+// view() (filing) -------------------------------------------------------------------------------------------------------------------------------------------
 
 // gameHistory
 void saveGameHistory()
@@ -1479,6 +1479,9 @@ void saveGameHistory()
     }
     else
     {
+        char match[7];
+        strcpy(match, (game.quickMatch)? "Quick" : "Custom");
+
         char gameBoard[8];
         switch (game.colCount)
         {
@@ -1510,8 +1513,8 @@ void saveGameHistory()
         strcpy(dateTime, ctime(&game.startTime));
         dateTime[strlen(dateTime) - 1] = '\0';
 
-        fprintf(fPtr, "Date: [%s] | GameMode: [%s] | Player 1: [%s] | Player 2: [%s] | GameBoard: [%s] | TotalMoves: [%d] | Duration: [%.1f min] | Result: [%s]\n", 
-                        dateTime, game.gameMode, game.player1Name, game.player2Name, gameBoard, game.totalMoves, difftime(game.endTime, game.startTime)/60.0, result);
+        fprintf(fPtr, "Date: [%s] | Match: [%s] | GameMode: [%s] | Player 1: [%s] | Player 2: [%s] | GameBoard: [%s] | TotalMoves: [%d] | Duration: [%.1f min] | Result: [%s]\n", 
+                        dateTime, match, game.gameMode, game.player1Name, game.player2Name, gameBoard, game.totalMoves, difftime(game.endTime, game.startTime)/60.0, result);
         
         fclose(fPtr);
     }
@@ -1529,24 +1532,24 @@ void displayGameHistory()
     }
     else
     {
-        char dateTime[arbitrarySize], player1Name[arbitrarySize], player2Name[arbitrarySize], gameMode[6], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
+        char dateTime[arbitrarySize], match[7], gameMode[6], player1Name[arbitrarySize], player2Name[arbitrarySize], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
         int numOfScans, totalMoves, count = 0;
         float duration;
 
-        animateText("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
-        printf("| %5s | %-27s | %10s | %-25s | %-25s | %10s | %11s | %10s | %-29s |\n", "Game", "dateTime", "gameMode", "player1Name", "player2Name", "gameBoard", "totalMoves", "Duration", "Result");
-        animateText("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        printf("| %5s | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11s | %10s | %-29s |\n", "Game", "dateTime", "Match", "gameMode", "player1Name", "player2Name", "gameBoard", "totalMoves", "Duration", "Result");
+        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
         while (true)
         {
-            numOfScans = fscanf(fPtr, "Date: [%[^]]] | GameMode: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
-                                        dateTime, gameMode, player1Name, player2Name, gameBoard, &totalMoves, &duration, result);
-            if (numOfScans != 8) { break; }    // no items read (ie max num of lines (EOF) reached)
+            numOfScans = fscanf(fPtr, "Date: [%[^]]] | Match: [%[^]]] | GameMode: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
+                                        dateTime, match, gameMode, player1Name, player2Name, gameBoard, &totalMoves, &duration, result);
+            if (numOfScans != 9) { break; }    // no items read (ie max num of lines (EOF) reached)
             else
             {
-                printf("| %5d | %-27s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |\n", ++count, dateTime, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
+                printf("| %5d | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |\n", ++count, dateTime, match, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
             }
         }
-        animateText("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
 
         fclose(fPtr);
     }
@@ -1733,7 +1736,7 @@ void updateLeaderBoards()
 {   
     // creating a temp file with all leaderBoard records (new + old)
     if      (!strcmp(game.gameMode, "PvP"))  { createTempLeaderBoards_PvP();  }     // for PvP
-    else if (!strcmp(game.gameMode, "PvAI")) { createTempLeaderBoards_PvAI(); }     // for PvAI
+    else if (!strcmp(game.gameMode, "PvAI")) { createTempLeaderBoards_PvAI(); }     // for PvAI   (couldve used else and it wouldve worked the same inshaAllah)
 
     // updating leaderBoards.txt
     updateMainLeaderBoards();
@@ -1783,69 +1786,124 @@ void displayHelp()
 
     animateText
             (
-            "\n========================================\n\n"
+            "\n=====================================================================================\n\n"
             "ABOUT THE GAME:\n"
-            "Connect Four is a two-player strategy game where players\n"
-            "take turns dropping colored discs into a vertical grid.\n"
-            "The objective is to connect four discs in a row before\n"
-            "your opponent does.\n\n"
+            "Connect Four is a classic two-player strategy game where competitors take turns\n"
+            "dropping colored discs into a vertical grid. The objective is simple yet challenging:\n"
+            "connect four of your discs in a row (horizontally, vertically, or diagonally) before\n"
+            "your opponent does. Victory requires both offensive strategy and defensive awareness!\n\n"
             "HOW TO WIN:\n"
-            "Be the first to connect four of your discs in a row:\n"
-            "  - Horizontally (left to right)\n"
-            "  - Vertically (top to bottom)\n"
-            "  - Diagonally (any direction)\n\n"
+            "Be the first player to connect four of your discs consecutively in any direction:\n"
+            "  - Horizontally: Four discs side by side in the same row (left to right)\n"
+            "  - Vertically: Four discs stacked on top of each other in the same column\n"
+            "  - Diagonally: Four discs connected at 45-degree angles (both directions)\n"
+            "If the board fills completely with no winner, the game ends in a draw.\n\n"
             "HOW TO PLAY:\n"
-            "1. Choose a column number to drop your disc\n"
-            "2. The disc falls to the lowest available position\n"
-            "3. Players alternate turns until someone wins or the board fills\n\n"
+            "1. When it's your turn, enter a column number (1 through the max column count)\n"
+            "2. Your disc automatically falls to the lowest available position in that column\n"
+            "3. Players alternate turns until someone achieves four-in-a-row or the board fills\n"
+            "4. Plan ahead! Consider both your winning opportunities and blocking opponent threats\n\n"
             "MAIN MENU OPTIONS:\n"
-            "  [1] PLAY - Start a new game\n"
-            "      - Quickmatch: Choose only the game mode and start playing\n"
-            "        with default settings (Classic board, standard rules)\n"
-            "      - Custom Match: Customize all game settings including\n"
-            "        board size, players, and AI difficulty\n"
-            "  [2] VIEW - Access game information\n"
-            "      - Game History: Review past matches\n"
-            "      - Leaderboards: See top players and rankings\n"
-            "      - Achievements: Check unlocked achievements\n"
-            "      - Help: Display this help section\n"
-            "      - Go Back: Return to main menu\n"
-            "  [3] EXIT - Quit the game\n\n"
+            "  [1] PLAY - Start a new game with your preferred settings\n"
+            "      - Quick Match: Jump straight into gameplay with pre-configured settings\n"
+            "        (Classic 7x6 board, standard rules, minimal setup required)\n"
+            "      - Custom Match: Full control over game configuration including board size,\n"
+            "        player names, and AI difficulty. Custom matches are recorded in leaderboards!\n\n"
+            "  [2] VIEW - Access comprehensive game statistics and information\n"
+            "      - Leaderboards: Rankings of top players based on performance in Custom Matches\n"
+            "      - History: Detailed log of all completed games with match statistics\n"
+            "      - Help: Display this comprehensive help guide\n"
+            "      - Go Back: Return to the main menu\n\n"
+            "  [3] EXIT - Save your progress and quit the game safely\n\n"
             "GAME BOARD SIZES:\n"
-            "(Available in Custom Match mode)\n"
-            "  [1] Mini (5 x 4) - Quick games, 5 columns, 4 rows\n"
-            "  [2] Blitz (6 x 5) - Fast-paced, 6 columns, 5 rows\n"
-            "  [3] Classic (7 x 6) - Traditional size, 7 columns, 6 rows\n"
-            "  [4] Grand (8 x 7) - Extended play, 8 columns, 7 rows\n"
-            "  [5] Titan (9 x 8) - Epic battles, 9 columns, 8 rows\n\n"
+            "(Available exclusively in Custom Match mode - Quick Match uses Classic by default)\n"
+            "  [1] Mini (5 x 4) - Compact board for quick 5-minute games, ideal for beginners\n"
+            "  [2] Blitz (6 x 5) - Fast-paced matches with slightly more tactical depth\n"
+            "  [3] Classic (7 x 6) - The traditional Connect Four experience, perfectly balanced\n"
+            "  [4] Grand (8 x 7) - Extended gameplay requiring advanced strategic planning\n"
+            "  [5] Titan (9 x 8) - Epic battles for experienced players, longest game duration\n\n"
             "GAME MODES:\n"
             "  [1] PvP (Player vs Player)\n"
-            "      Two human players compete against each other\n\n"
+            "      Two human players compete head-to-head. Both players can set custom names.\n"
+            "      Perfect for friendly competition! (Leaderboard-eligible in Custom Match)\n\n"
             "  [2] PvAI (Player vs AI)\n"
-            "      Challenge an AI opponent of your choice\n\n"
+            "      Challenge yourself against computer opponents of varying skill levels.\n"
+            "      Choose your difficulty and test your strategic thinking! (Leaderboard-eligible)\n\n"
             "  [3] AIvAI (AI vs AI)\n"
-            "      Watch two AI opponents battle each other\n\n"
+            "      Watch two AI opponents battle each other - great for studying strategies!\n"
+            "      Select difficulty for both AIs and observe different playstyles clash.\n"
+            "      (Not leaderboard-eligible - for entertainment and learning purposes only)\n\n"
             "AI DIFFICULTY LEVELS:\n"
-            "  - Awwal (Beginner)\n"
-            "    Basic AI that focuses on winning moves but plays\n"
-            "    randomly otherwise. Good for learning the game.\n\n"
-            "  - Thani (Intermediate)\n"
-            "    Smarter AI that attempts to win, blocks your winning\n"
-            "    moves, and plays strategically. A balanced challenge.\n\n"
-            "  - Thalith (Advanced)\n"
-            "    Expert AI that plays to win, prevents your wins, stops\n"
-            "    you from building 3-in-a-row threats, and uses advanced\n"
-            "    strategies. The ultimate challenge!\n\n"
-            "========================================\n"
-            "(Generated using Claude.ai on 16/10/2025 @ 9:53pm - Saad)\n", animateTextDelay_13ms
+            "  [1] Awwal (Beginner) - 'The First'\n"
+            "      Strategy: Takes winning moves when available, otherwise plays randomly.\n"
+            "      Best for: New players learning game mechanics and basic winning patterns.\n"
+            "      Win Rate: Low to moderate - predictable but occasionally gets lucky!\n\n"
+            "  [2] Thani (Intermediate) - 'The Second'\n"
+            "      Strategy: Prioritizes winning, blocks immediate opponent threats, then plays\n"
+            "      randomly. More defensive and harder to defeat than Awwal.\n"
+            "      Best for: Players comfortable with basics seeking a balanced challenge.\n"
+            "      Win Rate: Moderate - requires thoughtful planning to consistently defeat.\n\n"
+            "  [3] Thalith (Advanced) - 'The Third'\n"
+            "      Strategy: Goes for wins, blocks opponent wins, prevents 3-in-a-row setups,\n"
+            "      and only then considers random moves. Highly tactical and challenging!\n"
+            "      Best for: Experienced players who want a serious test of their skills.\n"
+            "      Win Rate: High - demands excellent strategy and forward thinking to beat.\n\n"
+            "LEADERBOARDS SYSTEM:\n"
+            "Leaderboards track player performance and rank competitors based on total points.\n\n"
+            "  Eligibility Requirements:\n"
+            "    - Only Custom Match games are recorded (Quick Match excluded for fairness)\n"
+            "    - PvP and PvAI modes qualify (AIvAI excluded as no human participation)\n"
+            "    - Players must use consistent names to maintain their ranking position\n\n"
+            "  Scoring System:\n"
+            "    - WIN: 200 points per victory (rewards successful strategic gameplay)\n"
+            "    - DRAW: 50 points per tie (encourages defensive play when behind)\n"
+            "    - DEFEAT: 10 points per loss (participation credit, encourages continued play)\n\n"
+            "  Ranking Calculation:\n"
+            "    Total Score = (Wins x 200) + (Draws x 50) + (Defeats x 10)\n"
+            "    Players are ranked by total score (highest to lowest). In case of ties,\n"
+            "    the player with more total games played is ranked higher, rewarding experience.\n\n"
+            "  Statistics Tracked:\n"
+            "    - Player Name: Your chosen identifier (case-sensitive, use consistently!)\n"
+            "    - Games Played: Total number of Custom Match games completed\n"
+            "    - Wins: Games where you connected four discs first\n"
+            "    - Draws: Games ending with a full board and no winner\n"
+            "    - Defeats: Games lost to your opponent\n"
+            "    - Total Score: Cumulative points based on the scoring formula above\n\n"
+            "  Note: Leaderboard data persists between game sessions and is automatically\n"
+            "  updated after each qualifying match. View your ranking anytime from the main menu!\n\n"
+            "GAME HISTORY:\n"
+            "Every game you play is automatically recorded with comprehensive match details:\n"
+            "  - Date & Time: Exact timestamp when the game started\n"
+            "  - Match Type: Quick Match or Custom Match designation\n"
+            "  - Game Mode: PvP, PvAI, or AIvAI classification\n"
+            "  - Players: Names of both participants (human or AI)\n"
+            "  - Board Size: Which board configuration was used\n"
+            "  - Total Moves: Number of discs played before game conclusion\n"
+            "  - Duration: Time elapsed from first move to game end (in minutes)\n"
+            "  - Result: Winner name or draw declaration\n\n"
+            "Access complete game history anytime from the View menu to analyze your performance,\n"
+            "review past strategies, and track improvement over time!\n\n"
+            "TIPS & STRATEGIES:\n"
+            "  - Center Control: The middle column creates more winning opportunities\n"
+            "  - Think Ahead: Always consider what your opponent might do on their next turn\n"
+            "  - Double Threats: Create multiple ways to win simultaneously to guarantee victory\n"
+            "  - Block First: If your opponent has three in a row, blocking takes priority!\n"
+            "  - Build Foundations: Start from the bottom and build connected patterns upward\n"
+            "  - Avoid Traps: Don't create situations where your move helps your opponent win\n\n"
+            "=====================================================================================\n"
+            "Connect Four - Version 2: Thani\n"
+            "Developed by Saad, bi-idhni-Allahi Ta'ala\n"
+            "Initial Help Section: Claude.ai (16/10/2025)\n"
+            "Updated Help Section: Claude.ai (18/10/2025)\n"
+            "=====================================================================================\n\n", animateTextDelay_13ms
             );
 
     pressEnterToContinue();
 }
 
 
-// --------------------------------------------------------------------------------------------------------------------------------------------------
 
+// main() -----------------------------------------------------------------------------------------------------------------------------------------------
 
 int main()
 {
