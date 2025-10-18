@@ -218,7 +218,7 @@ void play()
     printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
 
     // choosing the gameMode
-    animateText("[Choose Match]\n  [1] Quick Match\n  [2] Custom Match\n  [3] Go Back", animateTextDelay_33ms);
+    animateText("[Choose Match]\n  [1] Custom Match\n  [2] Quick Match\n  [3] Go Back", animateTextDelay_33ms);
     char userChoice[arbitrarySize];
     while (true)
     {
@@ -240,8 +240,8 @@ void play()
     // calling gameMode function based on userChoice
     switch(userChoice[0])
     {
-        case '1': game.quickMatch = true;   break;      // quickMatch()
-        case '2': game.quickMatch = false;  break;      // customMatch()
+        case '1': game.quickMatch = false;  break;      // customMatch()
+        case '2': game.quickMatch = true;   break;      // quickMatch()
         case '3':
             // mainMenu();      will result in infinite recursive loop
             //break;
@@ -405,7 +405,7 @@ void setPvPPlayers()
 void setPvAIPlayers()
 {
     // player info
-    animateText("\n> \033[1;33mPlayer 1\033[0m\n", animateTextDelay_33ms);
+    animateText("\n> \033[1;33mPlayer\033[0m\n", animateTextDelay_33ms);
     printf("      Enter your name: ");
     fgets(game.player1Name, sizeof(game.player1Name), stdin);
     if   ((strlen(game.player1Name) == 1) || (!strcmp(game.player1Name, "Player 2\n"))){     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
@@ -1576,6 +1576,7 @@ void createTempLeaderBoards_PvP()
         int gamesPlayed, wins, draws, defeats, score;
         bool player1ExistsInLeaderBoards = false, player2ExistsInLeaderBoards = false;
 
+        fseek(mainFile, 0, SEEK_SET);       // in a+ mode, file pointer is at very end of file (for appending stuff). so fscanf(...) will always return 0 as it wont have anything to read at eof. therefore fseek(...) causes file pointer to move at the very start of the text file.      fseek(mainFile, 0, SEEK_SET); is same as rewind(mainFile);
         while (true)
         {
             int numOfScans = fscanf(mainFile, "Score: [%d] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", 
@@ -1642,6 +1643,7 @@ void createTempLeaderBoards_PvAI()
 
         // for player1 (applicable in both PvP() & PvAI())
         playerExistsInLeaderBoards = false;
+        fseek(mainFile, 0, SEEK_SET);       // in a+ mode, file pointer is at very end of file (for appending stuff). so fscanf(...) will always return 0 as it wont have anything to read at eof. therefore fseek(...) causes file pointer to move at the very start of the text file.      fseek(mainFile, 0, SEEK_SET); is same as rewind(mainFile);
         while (true)
         {
             int numOfScans = fscanf(mainFile, "Score: [%d] | Player Name: [%[^]]] | Games Played: [%d] | Wins: [%d] | Draws: [%d] | Defeats: [%d]\n", 
@@ -1699,9 +1701,9 @@ void updateMainLeaderBoards()
         // storing data from tempFile to array tempFileData (an array of length 35 & datatype tempStruct (a struct))
         while (true)
         {
-            numOfScans = fscanf(tempFile, "Score: [%d]", &tempFileData[index].score);
+            numOfScans = fscanf(tempFile, "Score: [%d]", &tempFileData[index].score);       // file pointer is moved after [%d] so fgets only gets the partial line/record (ie after Score: [%d])
             if (numOfScans != 1){ break; }
-
+            
             fgets(tempFileData[index].record, sizeof(tempFileData[index].record), tempFile);        // no need to check for NULL since the above check suffices
             index++;
         }
@@ -1723,7 +1725,19 @@ void updateMainLeaderBoards()
         // updating main file
         for (int line = 0; line < index; line++)
         {
+            /*
+            couldve used sprintf...
+            char record[199]; 
+            sprintf(record, "Score: [%d]%s", tempFileData[line].score, tempFileData[line].record);
+            fputs(record, mainFile);
+
+            orrr...
+            sprintf(tempFileData[line].record, "Score: [%d]%s", tempFileData[line].score, tempFileData[line].record);
             fputs(tempFileData[line].record, mainFile);
+            */
+
+            fprintf(mainFile, "Score: [%d]", tempFileData[line].score);      
+            fputs(tempFileData[line].record, mainFile); // tempFileData[line].record has the partial record after Score: [%d]
         }
     }
 
