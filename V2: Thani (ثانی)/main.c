@@ -10,8 +10,8 @@
         -> Filing
         -> Header files
 
-    [Started]   Sep 8th, 25; ≈ 22:00
-    [Completed] 
+    [Started]    Sep 8th, 25;  ≈ 22:00
+    [Completed]  Sep 18th, 25; ≈ 22:00
 
                                                 الحمد للہ
 */
@@ -222,7 +222,7 @@ void play()
     char userChoice[arbitrarySize];
     while (true)
     {
-        printf("\nEnter your choice [1/3]: ");
+        printf("\nEnter your choice [1-3]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
         if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
@@ -604,8 +604,8 @@ void printGameBoard()
 
             printf("  |  ");
             if (isWinningIndex){
-                if   (game.gameBoard[i][j] == player1Mark){ printf("\033[1;4;33;40m%c\033[0m", game.gameBoard[i][j]); }     // bold yellow color with grey highlighting for player1 (winner)
-                else                                      { printf("\033[1;4;34;40m%c\033[0m", game.gameBoard[i][j]); }     // bold blue color with grey highlighting for player2 (winner)
+                if   (game.gameBoard[i][j] == player1Mark){ printf("\033[1;3;4;33;40m%c\033[0m", game.gameBoard[i][j]); }     // bold, italic yellow color with grey highlighting for player1 (winner)
+                else                                      { printf("\033[1;3;4;34;40m%c\033[0m", game.gameBoard[i][j]); }     // bold, italic blue color with grey highlighting for player2 (winner)
             }
             else
             {
@@ -1768,7 +1768,7 @@ void displayLeaderBoards()
     else
     {
         animateText("-------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
-        printf("| %7s | %-25s | %-15s | %-9s | %-9s | %-9s | %-13s |\n", "Rank", "Player Name", "Games Played", "Wins", "Draw", "Defeats", "Score");
+        printf("| %7s | %-25s | %15s | %9s | %9s | %9s | %13s |\n", "Rank", "Player Name", "Games Played", "Wins", "Draw", "Defeats", "Score");
         animateText("-------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
         
         char playerName[arbitrarySize];
@@ -1780,7 +1780,7 @@ void displayLeaderBoards()
             if (numOfScans != 6){ break; }
             else
             {
-                printf("| %7d | %-25s | %-15d | %-9d | %-9d | %-9d | %13d |\n", ++rank, playerName, gamesPlayed, wins, draws, defeats, score);
+                printf("| %7d | %-25s | %15d | %9d | %9d | %9d | %13d |\n", ++rank, playerName, gamesPlayed, wins, draws, defeats, score);
             }
         }
         
@@ -1859,8 +1859,7 @@ void displayHelp()
 }
 
 
-
-// main() -----------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 int main()
 {
