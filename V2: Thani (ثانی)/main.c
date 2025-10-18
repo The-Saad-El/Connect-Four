@@ -1771,6 +1771,14 @@ void displayLeaderBoards()
         printf("| %7s | %-25s | %15s | %9s | %9s | %9s | %13s |\n", "Rank", "Player Name", "Games Played", "Wins", "Draw", "Defeats", "Score");
         animateText("-------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
         
+        
+        typedef struct
+        {
+            char playerName[arbitrarySize];
+            char score[10];         // initially declared this as an int, but later used string due to sprintf
+        } tempStruct;
+        tempStruct top3Players[3] = {{"", ""}, {"", ""}, {"", ""}};          // for top3Players podium;  initializing all 3 positions
+
         char playerName[arbitrarySize];
         int rank = 0, gamesPlayed, wins, draws, defeats, score;
         while (true)
@@ -1780,11 +1788,47 @@ void displayLeaderBoards()
             if (numOfScans != 6){ break; }
             else
             {
-                printf("| %7d | %-25s | %15d | %9d | %9d | %9d | %13d |\n", ++rank, playerName, gamesPlayed, wins, draws, defeats, score);
+                printf("| %7d | %-25s | %15d | %9d | %9d | %9d | %13d |\n", rank + 1, playerName, gamesPlayed, wins, draws, defeats, score);
             }
+            if (rank < 3)
+            {
+                // old comment (when was using sprintf in printing podium part below): adding () around playerScores;   couldve used sprintf during saving data in the struct above (score wouldve been a string)
+                strcpy(top3Players[rank].playerName, playerName);           // using rank as an index (0-2)
+                sprintf(top3Players[rank].score, "(%d)", score);            // op idea :D alhamdulillah
+            }
+            rank++;
         }
         
         animateText("-------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+
+        // making podiums for top3Players
+        // this took long...
+        printf("\n\n\n");
+
+        printf("%27s%9s\n", " ", top3Players[0].playerName);
+        printf("%27s%10s\n", " ", top3Players[0].score);
+        printf("%27s---------------\n", " ");          // 15 dashes
+        printf("%27s|%6s\033[1;33m1\033[0m%6s|\n", " ", " ", " ");
+        printf("%27s|%13s|\n", " ", " ");
+        printf("%27s|%13s|\n", " ", " ");
+
+        printf("%25s  |%13s|\n", top3Players[1].playerName, " ");
+        printf("%25s  |%13s|\n", top3Players[1].score, " ");
+        printf("%13s--------------|%13s|\n", " ", " ");
+        printf("%13s|%6s\033[1;33m2\033[0m%6s|%13s|\n", " ", " ", " ", " ");
+        printf("%13s|%13s|%13s|\n", " ", " ", " ");
+
+        printf("%13s|%13s|%13s|  %s\n", " ", " ", " ", top3Players[2].playerName);
+        printf("%13s|%13s|%13s|  %s\n", " ", " ", " ", top3Players[2].score);
+        printf("%13s|%13s|%13s|--------------\n", " ", " ", " ");
+        printf("%13s|%13s|%13s|%6s\033[1;33m3\033[0m%6s|\n", " ", " ", " ", " ", " ");
+        printf("%13s|%13s|%13s|%13s|\n", " ", " ", " ", " ");
+        printf("%13s|%13s|%13s|%13s|\n", " ", " ", " ", " ");
+        printf("%13s|%13s|%13s|%13s|\n", " ", " ", " ", " ");
+        printf("%13s|%13s|%13s|%13s|\n", " ", " ", " ", " ");
+        //printf("%13s-------------------------------------------", " ");
+        printf("\n\n");
+
 
         fclose(fPtr);
     }
