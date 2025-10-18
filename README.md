@@ -3,12 +3,14 @@
 # Connect-Four
 PF Lab Project
 
+
 ### **QuickLinks**
 | Versions |
 | --- |
 | [V1: Awwal (اول)](#v1-awwal-اول) |
 | [V2: Thani (ثانی)](#v2-thani-ثانی) |
-| [V3: Thalith (ثالث)](#v3-thalith-ثالث) |
+| [V3: Thalith (ثالث)](#v3-thalith-ثالث) |  
+
 
 ### **V1: Awwal (اول)**
 * Features
@@ -30,6 +32,10 @@ PF Lab Project
     * `Initial:    0`
     * `Final:    569`
     * `Change:  +569`
+  * Commits
+    * `Version:    ___`
+    * `Total Repo: ___`
+
 
 ### **V2: Thani (ثانی)**
 * Features
@@ -49,6 +55,9 @@ PF Lab Project
       * `Initial:   569`
       * `Final:    1893`
       * `Change:  +1324`
+  * Commits
+    * `Version:    ___`
+    * `Total Repo: 110`
 
 
 ### **V3: Thalith (ثالث)**
@@ -69,5 +78,8 @@ PF Lab Project
     * `Initial:  1893`
     * `Final:    ____`
     * `Change:  +____`
+  * Commits
+    * `Version:    ___`
+    * `Total Repo: ___`
   
 ### الحمد للہ
