@@ -1275,8 +1275,8 @@ void getPlayerMove()
 {
     // sets the column number of a player's move to game.playerMove
 
-    if  (game.activePlayer == 1){ printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name); }      // printing the playerName in color
-    else                        { printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); }
+    if  (game.activePlayer == 1){ printf("\n\n\n[\033[1;33m%s\033[0m]", game.player1Name); }      // printing the playerName in color
+    else                        { printf("\n\n\n[\033[1;34m%s\033[0m]", game.player2Name); }
 
     char userInput[arbitrarySize];
     int userMove;
@@ -1315,7 +1315,7 @@ void getAIMove()
 {
     if  (game.activePlayer == 1)        // ai is player1
     { 
-        printf("\n\n[\033[1;33m%s\033[0m]", game.player1Name);      // printing the playerName in color
+        printf("\n\n\n[\033[1;33m%s\033[0m]", game.player1Name);      // printing the playerName in color
         // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
         if (!strncmp(game.player1Name, "Awwal", 5))         // lvl1_awwal
         {
@@ -1333,7 +1333,7 @@ void getAIMove()
     }
     else    // game.activePlayer == 2;  ai is player2                     
     { 
-        printf("\n\n[\033[1;34m%s\033[0m]", game.player2Name); 
+        printf("\n\n\n[\033[1;34m%s\033[0m]", game.player2Name); 
         // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
         if (!strncmp(game.player2Name, "Awwal", 5))          // lvl1_awwal
         {
@@ -1697,20 +1697,22 @@ int displayGameDetails()
                 printf("\n\n| %5d | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |", ++count, dateTime, match, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);              // intentionally am skipping a line (table looks better like this it)
             }
         }
-        if (count == 0){ printf("%99s\n", "(No Available Data)"); }
-        animateText("\n\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        if (count == 0){ printf("%140s\n", "(No Available Data)"); }
+        else           { printf("\n\n"); }        // formatting kay keeray
+        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
 
         fclose(gameHistory);
 
-
+        printf("\n\n\n");
         if (count == 0)     // gameHistory are empty so no gameBoard to view as well
         {
+            animateText("Is no one playing my game?!\n", animateTextDelay_63ms);                  // :>
+            wait(2000);         // a little pause
             pressEnterToContinue();
             return 0;
         }
         else        // atleast one entry in the gameHistory.txt (& so in gameBoardHistory.txt)
         {
-            printf("\n\n\n");
             wait(2000);         // a little pause before printing menu
             animateText("[Game History]\n   > Enter Game Number to view its gameBoard\n   > Enter 0 to return to the Main Menu", animateTextDelay_33ms);
         
@@ -1722,7 +1724,7 @@ int displayGameDetails()
                 if (userInput[strlen(userInput) - 1] != '\n')           // user entered a string greater than arbitrarySize
                 { 
                     emptyBuffer(); 
-                    printf("> [!] Enter a sensible value!");
+                    printf("> [!] Are you trying to crash my program?!");
                     continue;
                 } 
                 else
@@ -2008,6 +2010,11 @@ void displayLeaderBoards()
         // making podiums for top3Players
         // this took long...
         printf("\n\n\n");
+        if (rank == 0)
+        { 
+            wait(2000);                 // a little pause
+            animateText("Is no one playing my game?!\n", animateTextDelay_63ms);            // :)
+        }     
 
         printf("%27s%9s\n", " ", top3Players[0].playerName);
         printf("%27s%10s\n", " ", top3Players[0].score);
@@ -2037,6 +2044,7 @@ void displayLeaderBoards()
         fclose(fPtr);
     }
 
+    wait(2000);         // wait some sec
     pressEnterToContinue();
 }
 
