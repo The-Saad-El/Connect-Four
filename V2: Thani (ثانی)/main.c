@@ -23,7 +23,7 @@
 */
 
 
-// headers ------------------------------------------------------------------------------------------------------------------------------------------
+// headers ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #include <time.h>
 #include <stdio.h>
@@ -36,7 +36,7 @@
 #endif
 
 
-// globals ------------------------------------------------------------------------------------------------------------------------------------------
+// globals ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // constants
 #define maxRows 8                       // the max num of rows possible
@@ -91,7 +91,7 @@ programConfig program;      // for whole program-level variables/globals
 gameConfig game;            // for individual game-level variables/globals
 
 
-// helpers ------------------------------------------------------------------------------------------------------------------------------------------
+// helpers ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void clearScreen()
 {
@@ -148,7 +148,7 @@ void pressEnterToContinue()
 }
 
 
-// game ---------------------------------------------------------------------------------------------------------------------------------------------
+// game ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // prototypes
 void PvP();
@@ -888,7 +888,7 @@ void evaluateGameBoard()
 }
 
 
-// ai stuff ------------------------------------------------------------------------------------------------------------------------------------------
+// ai stuff -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // global variables;
 char gameBoardCopy[maxRows][maxCols];   //  a copy of the game.gameBoard
@@ -1269,7 +1269,7 @@ int lvl4_rabi_simulates5Moves();       // 1st ai, 2nd opponent, 3rd ai
 int lvl5_khamis_simulates7Moves();     // 1st ai, 2nd opponent, 3rd ai, 4th opponent, 5th ai
 
 
-// Getting PLayers Moves ---------------------------------------------------------------------------------------------------------------------------- 
+// Getting PLayers Moves -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
 
 void getPlayerMove()
 {
@@ -1370,7 +1370,7 @@ void getAIMove()
 }
 
 
-// gameModes ---------------------------------------------------------------------------------------------------------------------------------------
+// gameModes --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void PvP()
 {
@@ -1462,7 +1462,7 @@ void AIvAI()
 }
 
 
-// view() (filing) -------------------------------------------------------------------------------------------------------------------------------------------
+// view() (filing) --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // gameHistory
 void saveGameDetails()
@@ -1529,7 +1529,7 @@ void saveGameBoardLayout()
         {
             for (int j = 0; j < 2; j++)
             {
-                sprintf(winningIndices[index], "%d", game.winningIndices[i][j]);      // int to char
+                winningIndices[index] = '0' + game.winningIndices[i][j];      // int to char; chars are actually just numbers under the hood (but their value starts from 48 ('0' = 48))
                 index++;
             }
         }
@@ -1602,7 +1602,7 @@ void displayGameBoardLayout(int gameNum)
                 {
                     for (int j = 0; j < 2; j++)
                     {
-                        winningIndices[i][j] = fWinningIndices[index] - '0';
+                        winningIndices[i][j] = fWinningIndices[index] - '0';            // reversal of the process in saveGameBoardLayout()
                         index++;
                     }
                 }
@@ -1675,8 +1675,10 @@ int displayGameDetails()
     if (gameHistory == NULL)
     { 
         printf("[!] ERROR: Couldn't access file 'gameFiles/gameHistory.txt'"); 
+        pressEnterToContinue();
+        return 0;
     }
-    else
+    else        // gameHistory.txt is accessible
     {
         char dateTime[arbitrarySize], match[7], gameMode[6], player1Name[arbitrarySize], player2Name[arbitrarySize], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
         int numOfScans, totalMoves, count = 0;
@@ -1684,7 +1686,7 @@ int displayGameDetails()
 
         animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
         printf("| %5s | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11s | %10s | %-29s |\n", "Game", "dateTime", "Match", "gameMode", "player1Name", "player2Name", "gameBoard", "totalMoves", "Duration", "Result");
-        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------", animateTextDelay_13ms);
         while (true)
         {
             numOfScans = fscanf(gameHistory, "Date: [%[^]]] | Match: [%[^]]] | GameMode: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
@@ -1692,37 +1694,61 @@ int displayGameDetails()
             if (numOfScans != 9) { break; }    // no items read (ie max num of lines (EOF) reached)
             else
             {
-                printf("| %5d | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |\n", ++count, dateTime, match, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);
+                printf("\n\n| %5d | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |", ++count, dateTime, match, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);              // intentionally am skipping a line (table looks better like this it)
             }
         }
-        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        if (count == 0){ printf("%99s\n", "(No Available Data)"); }
+        animateText("\n\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
 
         fclose(gameHistory);
 
 
-        printf("\n\n");
-
-        char userInput[arbitrarySize];
-        while (true)
+        if (count == 0)     // gameHistory are empty so no gameBoard to view as well
         {
-            printf("Enter Game Number to view gameBoard; Enter 0 to go back: ");
-            fgets(userInput, sizeof(userInput), stdin);
-            if (userInput[strlen(userInput) - 1] != '\n'){ emptyBuffer(); }            // user entered a string greater than arbitrarySize
-            else
+            pressEnterToContinue();
+            return 0;
+        }
+        else        // atleast one entry in the gameHistory.txt (& so in gameBoardHistory.txt)
+        {
+            printf("\n\n\n");
+            wait(2000);         // a little pause before printing menu
+            animateText("[Game History]\n   > Enter Game Number to view its gameBoard\n   > Enter 0 to return to the Main Menu", animateTextDelay_33ms);
+        
+            char userInput[arbitrarySize];
+            while (true)
             {
-                userInput[strlen(userInput) - 1] = '\0';                               // removing the newline char
-                if ((strlen(userInput) == 1) && (userInput[0] == '0')){ return 0; }    // return to mainMenu()
+                printf("\nEnter your choice [0-%d]: ", count);
+                fgets(userInput, sizeof(userInput), stdin);
+                if (userInput[strlen(userInput) - 1] != '\n')           // user entered a string greater than arbitrarySize
+                { 
+                    emptyBuffer(); 
+                    printf("> [!] Enter a sensible value!");
+                    continue;
+                } 
                 else
                 {
-                    int numUserInput;
-                    if ((sscanf(userInput, "%d", &numUserInput) == 1) && (numUserInput > 0) && (numUserInput <= count)){ return numUserInput; }            // all 3 scanf functions return a int which indicates to the amount of formatted data read (ie % stuff)
+                    userInput[strlen(userInput) - 1] = '\0';                               // removing the newline char
+                    if ((strlen(userInput) == 1) && (userInput[0] == '0')){ return 0; }    // user entered 0;  returning to mainMenu()
+                    else
+                    {
+                        int numUserInput;
+                        if (sscanf(userInput, "%d", &numUserInput) != 1)                   // userInput has no numbers;   all 3 scanf functions return a int which indicates to the amount of formatted data read (ie % stuff);     this sscanf has a big limitation: if the user enters 123abc, sscanf will return 1 & numUserInput will contain 123 (ie userInput wont be rejected)
+                        {
+                            printf("> [!] Enter a number!");
+                            continue;
+                        }
+                        else if ((numUserInput < 0) || (numUserInput > count))            // userInput was not in range [1, count]
+                        {
+                            printf("> [!] Enter a number in range [1, %d]", count);
+                            continue;
+                        }
+                        else
+                        { return numUserInput; }
+                    }
                 }
             }
         }
     }
-
-    pressEnterToContinue();       // the code will only reach here if an error occured while accessing file, else a value wouldve returned
-    return 0;
 }
 void displayGameHistory()
 {
@@ -1976,7 +2002,7 @@ void displayLeaderBoards()
             }
             rank++;
         }
-        
+        if (rank == 0){ printf("%63s\n", "(No Available Data)"); }
         animateText("-------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
 
         // making podiums for top3Players
@@ -2081,8 +2107,8 @@ void displayHelp()
 }
 
 
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 int main()
