@@ -1,0 +1,8 @@
+Player1: [Thalith_theFirst] | Player2: [Thalith_theSecond] | rowCount: [6] | colCount: [7] | gameBoard: [       X   O  X O X  O XOO  O XXO  XXOOXOX] | winningIndices: [55443322]
+Player1: [Thalith_theFirst] | Player2: [Thalith_theSecond] | rowCount: [6] | colCount: [7] | gameBoard: [       O      X      XX O   OOXX   OXOXO X] | winningIndices: [53423120]
+Player1: [Thalith_theFirst] | Player2: [Thalith_theSecond] | rowCount: [6] | colCount: [7] | gameBoard: [    X   X  O  OOOOX  XXXOX  OXXXOO OOOXOXX] | winningIndices: [20212223]
+Player1: [Awwal] | Player2: [Thani] | rowCount: [8] | colCount: [9] | gameBoard: [                                              X       XOOOO    XXOXXXO O] | winningIndices: [61626364]
+Player1: [Thalith_theFirst] | Player2: [Thalith_theSecond] | rowCount: [7] | colCount: [8] | gameBoard: [                        O   O   X XOX   X OXX   OOXXO  O] | winningIndices: [61524334]
+Player1: [Thalith_theFirst] | Player2: [Thalith_theSecond] | rowCount: [4] | colCount: [5] | gameBoard: [XOXXOOOXOOXXOXXOXXOO] | winningIndices: [////////]
+Player1: [Thalith_theFirst] | Player2: [Thalith_theSecond] | rowCount: [6] | colCount: [7] | gameBoard: [      XOX    OXO   XXOOOO OOXXOX XXOXXO OX] | winningIndices: [30313233]
+Player1: [Thalith_theFirst] | Player2: [Thalith_theSecond] | rowCount: [6] | colCount: [7] | gameBoard: [               XO     OXX    OOXO OXXOOXXX] | winningIndices: [54433221]
