@@ -50,14 +50,14 @@ PF Lab Project
 * Version Details
   * TimeLine
     * `[Started]   Sep 8th, 25;  ≈ 22:00`
-    * `[Completed] Sep 18th, 25; ≈ 12:47`
+    * `[Completed] Sep 19th, 25; ≈ 21:46`
   * LOC
       * `Initial:   569`
-      * `Final:    1893`
-      * `Change:  +1324`
+      * `Final:    2151`
+      * `Change:  +1582`
   * Commits
     * `Version:    ___`
-    * `Total Repo: 110`
+    * `Total Repo: 120`
 
 
 ### **V3: Thalith (ثالث)**
