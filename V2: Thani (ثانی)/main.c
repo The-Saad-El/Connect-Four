@@ -141,6 +141,7 @@ void pressEnterToContinue()
 {
     wait(1000);                                                         // wait 1s
     printf("\n\n\n");
+    
     animateText("Press Enter to continue: ", animateTextDelay_33ms);
     char uselessStr[arbitrarySize];                                     // size 25 so the user can enter anything, even a faltoo long string, without the program breaking
     fgets(uselessStr, sizeof(uselessStr), stdin);                       // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
@@ -154,7 +155,6 @@ void pressEnterToContinue()
 void PvP();
 void PvAI();
 void AIvAI();
-void saveGameHistory();
 void displayGameHistory();
 void updateLeaderBoards();
 void displayLeaderBoards();
@@ -848,7 +848,7 @@ void evaluateGameBoard()
     if (game.gameState != -1)        // continue the round if gameState == -1; will only work for totalMoves >= 7
     {
         game.endTime = time(NULL);      // stoppin the "stopwatch" when the game reaches a terminal state
-        saveGameHistory();
+        // saveGameHistory();
         if ((!game.quickMatch) && (strcmp(game.gameMode, "AIvAI"))){ updateLeaderBoards(); }      // leaderBoards will only be updated if the mode is not AIvAI (is PvP or PvAI) & the match is custom (no option to select player name in quickMatch; playerName is fixed as Player )
 
         wait(330);     // a little pause before printing results
@@ -1651,7 +1651,7 @@ void updateMainLeaderBoards()
     //  closing both files 
     if (mainFile != NULL) { fclose(mainFile); }         // intentionally didnt close these files inside the else block above
     if (tempFile != NULL) { fclose(tempFile); }         // if one file opened and the other didnt, i will print the error msg but 1 file will remain opened. isliye brought these outside the if block
-    remove("gameFiles/temp.txt");                                 // deletes the temp file after finishing the processing & updating of leaderboards
+    remove("gameFiles/temp.txt");                       // deletes the temp file after finishing the processing & updating of leaderboards
 }
 void updateLeaderBoards()
 {   
@@ -1752,8 +1752,23 @@ void displayLeaderBoards()
 // gameHistory
 void saveGameDetails()
 {   
-    // for games history: players, serial number, winner, elapsed time
+    /*
+        stores the following information about each game
+            > gameNum
+            > dateTime
+            > match (quick or custom)
+            > gameMode (pvp, pvai, or aivai)
+            > player1
+            > player2
+            > gameBoard (size)
+            > totalMoves
+            > game duration (in mins)
+            > result (win/draw)
 
+        > is called at just the end of a game
+        > (wont store the game details if the game didnt reach a conclusion (ie didnt end))
+    */
+    
     FILE *gameHistory = fopen("gameFiles/gameHistory.txt", "a");       // / instead of \\ (the former works on all platforms while the latter is windows-dependent)
     if (gameHistory == NULL)
     { 
@@ -1801,53 +1816,209 @@ void saveGameDetails()
         fclose(gameHistory);
     }
 }
-void saveGameBoardLayout()
+void saveGameBoardHistory()
 {
-    // saves the state of the gameBoard at the end of the game in a text file gameBoardHistory.txt
+    /*
+        stores the following
+            >   player names
+            >   gameBoard row, cols
+            >   gameMoves in order
+            >   gameBoard at end (terminal state)
+            >   winning indices
+            
+        is called at the end of every playerMove
+    */
+
     FILE *gameBoardHistory = fopen("gameFiles/gameBoardHistory.txt", "a");
     if (gameBoardHistory == NULL){ printf("[!] ERROR: Couldn't access file 'gameBoardHistory.txt'"); }
     else
     {
-        int index = 0;
-        char winningIndices[9];
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = 0; j < 2; j++)
-            {
-                winningIndices[index] = '0' + game.winningIndices[i][j];      // int to char; chars are actually just numbers under the hood (but their value starts from 48 ('0' = 48))
-                index++;
-            }
+        if (game.totalMoves == 1)           // writes the following after the first move has been made
+        {    
+            fprintf(gameBoardHistory, "Player1: [%s] | Player2: [%s] | rowCount: [%d] | colCount: [%d] | gameMoves: [",
+                                        game.player1Name, game.player2Name, game.rowCount, game.colCount);
         }
-        winningIndices[8] = '\0';
 
-        index = 0;
-        char gameBoard[game.rowCount*game.colCount + 1];            // +1 for '\0'
-        for (int i = 0; i < game.rowCount; i++)
-        {
-            for (int j = 0; j < game.colCount; j++)
+        fprintf("%d", game.playerMove);     // writes the player's move (index of chosen column) in the file after gameMoves: [
+        
+        if (game.gameState != -1)           // a terminal state has been reached (draw/win/loss)
+        {    
+            int index = 0;
+            char winningIndices[9];
+            for (int i = 0; i < 4; i++)
             {
-                gameBoard[index] = game.gameBoard[i][j];
-                index++;
+                for (int j = 0; j < 2; j++)
+                {
+                    winningIndices[index] = '0' + game.winningIndices[i][j];      // int to char; chars are actually just numbers under the hood (but their value starts from 48 ('0' = 48))
+                    index++;
+                }
             }
+            winningIndices[8] = '\0';
+
+            index = 0;
+            char gameBoard[game.rowCount*game.colCount + 1];            // +1 for '\0'
+            for (int i = 0; i < game.rowCount; i++)
+            {
+                for (int j = 0; j < game.colCount; j++)
+                {
+                    gameBoard[index] = game.gameBoard[i][j];
+                    index++;
+                }
+            }
+            gameBoard[game.rowCount*game.colCount] = '\0';          // couldve used index as index
+
+            fprintf(gameBoardHistory, "] | gameBoard: [%s] | winningIndices: [%s]\n", 
+                                        gameBoard, winningIndices);
         }
-        gameBoard[game.rowCount*game.colCount] = '\0';          // couldve used index as index
-
-        fprintf(gameBoardHistory, "Player1: [%s] | Player2: [%s] | rowCount: [%d] | colCount: [%d] | gameBoard: [%s] | winningIndices: [%s]\n", 
-                                    game.player1Name, game.player2Name, game.rowCount, game.colCount, gameBoard, winningIndices);
-
 
         fclose(gameBoardHistory);
     }
 }
-void saveGameHistory()
-{   
-    // for games history: players, serial number, winner, elapsed time
-    saveGameDetails();
+void _cleanGameBoardHistory()
+{
+    /*
+        [Function]
+
+        if the game ends without reaching a conclusion 
+        (like if the user closed the program while a game was being played),
+        a partial record of its move wil be in the gameBoardHistory file 
+        but there will be no details in the gameHistory file.
+        Thus, this function parses through the records in the gameBoardHistory.txt file 
+        and cleans up (deletes) any partial record partial records
+
+        (baad mai u can implement resumeGame by storing these 
+        partial records in a seperate resumeGame file :D inshaAllah taala)
+    */
+    
+    /*
+        [Working]
+            > will compare the numOfRecords of gameHistory.txt with that of gameBoardHistory.txt
+            > if the latter are more, will delete the last one
+    */
+    
+    FILE *gameHistory = fopen("gameFiles/gameHistory.txt", "a+");        // will create file if it no exist
+    if (gameHistory == NULL)
+    { printf("[!] ERROR: Couldn't access file 'gameFiles/gameHistory.txt'"); }
+    else
+    {
+        fseek(gameHistory, 0, SEEK_SET);            // rewind/move-back file pointer to start of file
+
+
+        fclose(gameHistory);
+    }
+}
+void _resumeGame();
+void _saveGameHistory()
+{
+    // might have to seperate the following 2 funcs
+
 
     // for gameBoard layout/state/condition at end
     saveGameBoardLayout();
+
+    // for games details: time, gameMode, matchType, players, serial number, winner, elapsed time
+    if (game.gameState != -1) { saveGameDetails(); }        // will only run at the end of a game
 }
-void displayGameBoardLayout(int gameNum)
+
+
+int displayGameDetails()
+{
+    // make this return a value; either gameNum or 0 to exit and then call respective functions
+
+    clearScreen();
+    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
+
+    // FILE *fPtr = fopen("gameFiles/gameHistory.txt", "r");
+    FILE *gameHistory = fopen("gameFiles/gameHistory.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameFiles/gameHistory.txt file not exisitng; rather the file will be created 
+    if (gameHistory == NULL)
+    { 
+        printf("[!] ERROR: Couldn't access file 'gameFiles/gameHistory.txt'"); 
+        pressEnterToContinue();
+        return 0;
+    }
+    else        // gameHistory.txt is accessible
+    {
+        char dateTime[arbitrarySize], match[7], gameMode[6], player1Name[arbitrarySize], player2Name[arbitrarySize], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
+        int numOfScans, totalMoves, count = 0;
+        float duration;
+
+        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+        printf("| %5s | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11s | %10s | %-29s |\n", "Game", "dateTime", "Match", "gameMode", "player1Name", "player2Name", "gameBoard", "totalMoves", "Duration", "Result");
+        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------", animateTextDelay_13ms);
+        while (true)
+        {
+            numOfScans = fscanf(gameHistory, "Date: [%[^]]] | Match: [%[^]]] | GameMode: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
+                                        dateTime, match, gameMode, player1Name, player2Name, gameBoard, &totalMoves, &duration, result);
+            if (numOfScans != 9) { break; }    // no items read (ie max num of lines (EOF) reached)
+            else
+            {
+                printf("\n\n| %5d | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |", ++count, dateTime, match, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);              // intentionally am skipping a line (table looks better like this it)
+            }
+        }
+        if (count == 0){ printf("%140s\n", "(No Available Data)"); }
+        else           { printf("\n\n"); }        // formatting kay keeray
+        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
+
+        fclose(gameHistory);
+
+        printf("\n\n\n");
+        if (count == 0)     // gameHistory are empty so no gameBoard to view as well
+        {
+            animateText("Is no one playing my game?!\n", animateTextDelay_63ms);                  // :>
+            wait(1000);         // a little pause
+            pressEnterToContinue();
+            return 0;
+        }
+        else        // atleast one entry in the gameHistory.txt (& so in gameBoardHistory.txt)
+        {
+            wait(2000);         // a little pause before printing menu
+            animateText("[Game History]\n   > Enter Game Number to view its gameBoard\n   > Enter 0 to return to the Main Menu", animateTextDelay_33ms);
+        
+            char userInput[arbitrarySize];
+            while (true)
+            {
+                printf("\nEnter your choice [0-%d]: ", count);
+                fgets(userInput, sizeof(userInput), stdin);
+                if (userInput[strlen(userInput) - 1] != '\n')           // user entered a string greater than arbitrarySize
+                { 
+                    emptyBuffer(); 
+                    printf("> [!] Are you trying to crash my program?!");
+                    continue;
+                } 
+                else
+                {
+                    userInput[strlen(userInput) - 1] = '\0';                               // removing the newline char
+                    
+                    bool isNum = true;
+                    for (int i = 0; i < strlen(userInput); i++)         // parses through the length of the userInput string & checks if the user entered a non-digit char
+                    {
+                        if (userInput[i] < '0' || userInput[i] > '9')              // the userInput contains a non-numeric char
+                        {
+                            printf("> [!] Enter a number!");
+                            isNum = false;
+                        }
+                    }
+                    
+                    if (isNum)              // the userInput contains only numbers
+                    {
+                        int numUserInput;
+                        sscanf(userInput, "%d", &numUserInput);             // the string userInput in extracted to numUserInput
+
+                        if (numUserInput == 0){ return 0; }                               // user entered 0;  returning to mainMenu()
+                        else if ((numUserInput < 0) || (numUserInput > count))            // userInput was not in range [1, count]
+                        {
+                            printf("> [!] Enter a number in range [1, %d]", count);
+                            continue;
+                        }
+                        else
+                        { return numUserInput; }
+                    }
+                }
+            }
+        }
+    }
+}
+void displayGameBoardHistory(int gameNum, int mode)
 {
     clearScreen();
     printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
@@ -1857,14 +2028,14 @@ void displayGameBoardLayout(int gameNum)
     else
     {
         int count = 0, rowCount, colCount;
-        char player1[arbitrarySize], player2[arbitrarySize], fGameBoard[maxRows*maxCols + 1], fWinningIndices[9];       // f for file
+        char player1[arbitrarySize], player2[arbitrarySize], fGameMoves[maxRows*maxCols + 1], fGameBoard[maxRows*maxCols + 1], fWinningIndices[9];       // f for file
 
-        while (true)
+        while (true)            // parsing through records in the gameBoardHistory.txt file until we find the record for the required game (gameNum)
         {
             count++;
-            fscanf(gameBoardHistory, "Player1: [%[^]]] | Player2: [%[^]]] | rowCount: [%d] | colCount: [%d] | gameBoard: [%[^]]] | winningIndices: [%[^]]]\n",         // no need to check return value
-                                        player1, player2, &rowCount, &colCount, fGameBoard, fWinningIndices);
-            if (count == gameNum)
+            fscanf(gameBoardHistory, "Player1: [%[^]]] | Player2: [%[^]]] | rowCount: [%d] | colCount: [%d] | gameMoves: [[^]]] | gameBoard: [%[^]]] | winningIndices: [%[^]]]\n",         // no need to check return value
+                                        player1, player2, &rowCount, &colCount, fGameMoves, fGameBoard, fWinningIndices);
+            if (count == gameNum)       // if the record for the required gameNum was reached
             {
                 char playerDetails[123];            // 35 + 35 (max player string size) + 22 + 22 (other chars around %s)  = 114    --->   taking 123 cuz me like that num
                 sprintf(playerDetails,"%s: \033[1;33mX\033[0m\n%s: \033[1;34mO\033[0m\n", player1, player2);
@@ -1949,95 +2120,6 @@ void displayGameBoardLayout(int gameNum)
     }
 
     pressEnterToContinue();
-}
-int displayGameDetails()
-{
-    // make this return a value; either gameNum or 0 to exit and then call respective functions
-
-    clearScreen();
-    printf("==================\n=> \033[1;33mConnect Four\033[0m <=\n==================\n\n\n");
-
-    // FILE *fPtr = fopen("gameFiles/gameHistory.txt", "r");
-    FILE *gameHistory = fopen("gameFiles/gameHistory.txt", "a+");        // used a+ (read and append; creates file if not existing) instead of r so that when the user opens the program for the 1st time and opens history, he wont see an error msg due to the gameFiles/gameHistory.txt file not exisitng; rather the file will be created 
-    if (gameHistory == NULL)
-    { 
-        printf("[!] ERROR: Couldn't access file 'gameFiles/gameHistory.txt'"); 
-        pressEnterToContinue();
-        return 0;
-    }
-    else        // gameHistory.txt is accessible
-    {
-        char dateTime[arbitrarySize], match[7], gameMode[6], player1Name[arbitrarySize], player2Name[arbitrarySize], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
-        int numOfScans, totalMoves, count = 0;
-        float duration;
-
-        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
-        printf("| %5s | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11s | %10s | %-29s |\n", "Game", "dateTime", "Match", "gameMode", "player1Name", "player2Name", "gameBoard", "totalMoves", "Duration", "Result");
-        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------", animateTextDelay_13ms);
-        while (true)
-        {
-            numOfScans = fscanf(gameHistory, "Date: [%[^]]] | Match: [%[^]]] | GameMode: [%[^]]] | Player 1: [%[^]]] | Player 2: [%[^]]] | GameBoard: [%[^]]] | TotalMoves: [%d] | Duration: [%f min] | Result: [%[^]]]\n",        // used a scanset: %[^]] (read everything until the 1st instance of ])
-                                        dateTime, match, gameMode, player1Name, player2Name, gameBoard, &totalMoves, &duration, result);
-            if (numOfScans != 9) { break; }    // no items read (ie max num of lines (EOF) reached)
-            else
-            {
-                printf("\n\n| %5d | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |", ++count, dateTime, match, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);              // intentionally am skipping a line (table looks better like this it)
-            }
-        }
-        if (count == 0){ printf("%140s\n", "(No Available Data)"); }
-        else           { printf("\n\n"); }        // formatting kay keeray
-        animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
-
-        fclose(gameHistory);
-
-        printf("\n\n\n");
-        if (count == 0)     // gameHistory are empty so no gameBoard to view as well
-        {
-            animateText("Is no one playing my game?!\n", animateTextDelay_63ms);                  // :>
-            wait(2000);         // a little pause
-            pressEnterToContinue();
-            return 0;
-        }
-        else        // atleast one entry in the gameHistory.txt (& so in gameBoardHistory.txt)
-        {
-            wait(2000);         // a little pause before printing menu
-            animateText("[Game History]\n   > Enter Game Number to view its gameBoard\n   > Enter 0 to return to the Main Menu", animateTextDelay_33ms);
-        
-            char userInput[arbitrarySize];
-            while (true)
-            {
-                printf("\nEnter your choice [0-%d]: ", count);
-                fgets(userInput, sizeof(userInput), stdin);
-                if (userInput[strlen(userInput) - 1] != '\n')           // user entered a string greater than arbitrarySize
-                { 
-                    emptyBuffer(); 
-                    printf("> [!] Are you trying to crash my program?!");
-                    continue;
-                } 
-                else
-                {
-                    userInput[strlen(userInput) - 1] = '\0';                               // removing the newline char
-                    if ((strlen(userInput) == 1) && (userInput[0] == '0')){ return 0; }    // user entered 0;  returning to mainMenu()
-                    else
-                    {
-                        int numUserInput;
-                        if (sscanf(userInput, "%d", &numUserInput) != 1)                   // userInput has no numbers;   all 3 scanf functions return a int which indicates to the amount of formatted data read (ie % stuff);     this sscanf has a big limitation: if the user enters 123abc, sscanf will return 1 & numUserInput will contain 123 (ie userInput wont be rejected)
-                        {
-                            printf("> [!] Enter a number!");
-                            continue;
-                        }
-                        else if ((numUserInput < 0) || (numUserInput > count))            // userInput was not in range [1, count]
-                        {
-                            printf("> [!] Enter a number in range [1, %d]", count);
-                            continue;
-                        }
-                        else
-                        { return numUserInput; }
-                    }
-                }
-            }
-        }
-    }
 }
 void displayGameHistory()
 {
