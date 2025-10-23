@@ -512,7 +512,7 @@ void evaluateGameBoard()
     {
         game.endTime = time(NULL);      // stoppin the "stopwatch" when the game reaches a terminal state
         // saveGameHistory();
-        if ((!game.quickMatch) && (strcmp(game.gameMode, "AIvAI"))){ updateLeaderBoards(); }      // leaderBoards will only be updated if the mode is not AIvAI (is PvP or PvAI) & the match is custom (no option to select player name in quickMatch; playerName is fixed as Player )
+        if (strcmp(game.gameMode, "AIvAI")){ updateLeaderBoards(); }      // leaderBoards will only be updated if the mode is not AIvAI (is PvP or PvAI)
 
         wait(330);     // a little pause before printing results
         switch (game.gameState)

@@ -18,8 +18,12 @@
 
 /*
     TODO
-    [!]  all done alhamdulillahi taala :)
+    [1]  resumeGame
+    [2]  replayGame
+    [3]  gameHistory
+    [4]  enable leaderBoards with quickMatch
     
+    [!]  all done alhamdulillahi taala :)
 */
 
 
