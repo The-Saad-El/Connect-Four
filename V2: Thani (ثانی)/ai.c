@@ -315,6 +315,7 @@ int playRandomMove()
     return randomCol;
 }
 
+
 // AIs
 int lvl1_awwal_1win_2playRandom(char myToken)
 {

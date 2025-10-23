@@ -15,6 +15,9 @@
     #include <unistd.h>     // for linux & mac
 #endif
 
+// declarations
+#define minMovesToWin 7
+
 // initializing game
 void setGame()
 {
@@ -32,57 +35,81 @@ void setGame()
         for (int j = 0; j < maxCols; j++){ game.gameBoard[i][j] = emptyChar; }
     }
 }
-void setPvPPlayers()
-{
-    // player1 info
-    animateText("\n> \033[1;33mPlayer 1\033[0m\n", animateTextDelay_33ms);
-    printf("      Enter your name: ");
-    fgets(game.player1Name, sizeof(game.player1Name), stdin);
-    if   ((strlen(game.player1Name) == 1) || (!strcmp(game.player1Name, "Player 2\n"))){     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
-        strcpy(game.player1Name, "Player 1"); 
-    }
-    else if (game.player1Name[strlen(game.player1Name) - 1] != '\n'){        // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-        emptyBuffer();
-        strcpy(game.player1Name, "Player 1"); 
-    } 
-    else{                   
-        game.player1Name[strlen(game.player1Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
-    }
 
-    // player2 info
-    animateText("> \033[1;34mPlayer 2\033[0m\n", animateTextDelay_33ms);
-    printf("      Enter your name: ");
-    fgets(game.player2Name, sizeof(game.player2Name), stdin);
-    if   ((strlen(game.player2Name) == 1) || (!strcmp(game.player2Name, "Player 1\n"))){     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
-        strcpy(game.player2Name, "Player 2"); 
+// setting players
+void choosePlayer(int promptType)
+{
+    // promptType --->   0: Choose Player (in PvAI)  |  1: Choose Player 1 (in PvP)  |  2: Choose Player 2 (in PvP)
+
+
+    // player1Info
+    char strToAnimate[15];
+    sprintf(strToAnimate, "\n> \033[1;33mPlayer%s\033[0m", (promptType == 0)? "" : " 1");
+    animateText(strToAnimate, animateTextDelay_33ms);
+    if (promptType == 0 || promptType == 1)
+    {
+        while (true)
+        {
+            printf("\n      Enter your name: ");
+            fgets(game.player1Name, sizeof(game.player1Name), stdin);
+            if      (strlen(game.player1Name) == 1)     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
+            {    
+                printf("      > [!] Please enter a valid name");
+                continue; 
+            }
+            else if (game.player1Name[strlen(game.player1Name) - 1] != '\n')        // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+            {    
+                emptyBuffer();
+                printf("      > [!] Are you trying to break my program?!");
+                continue; 
+            }
+            else
+            {                   
+                game.player1Name[strlen(game.player1Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
+                break;
+            }
+        }
     }
-    else if (game.player2Name[strlen(game.player2Name) - 1 ] != '\n'){        // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-        emptyBuffer();
-        strcpy(game.player2Name, "Player 2"); 
-    } 
-    else{                   
-        game.player2Name[strlen(game.player2Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
+    else            // promptType == 2 (player2 in PvP mode)
+    {
+        animateText("\n> \033[1;33mPlayer 2\033[0m", animateTextDelay_33ms);            // no use of sprintf
+
+        while (true)
+        {
+            printf("\n      Enter your name: ");
+            fgets(game.player2Name, sizeof(game.player2Name), stdin);
+            if      (strlen(game.player2Name) == 1)     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
+            {    
+                printf("      > [!] Please enter a valid name");
+                continue; 
+            }
+            else if (game.player2Name[strlen(game.player2Name) - 1] != '\n')        // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+            {    
+                emptyBuffer();
+                printf("      > [!] Are you trying to break my program?!");
+                continue; 
+            }
+            else if (!strcmp(game.player1Name, game.player2Name))        // both players' names are the same
+            {
+                printf("      > [!] The name must be different from Player 1's name");
+                continue; 
+            }
+            else        // all good :)
+            {                   
+                game.player2Name[strlen(game.player2Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
+                break;
+            }
+        }
     }
 }
-void setPvAIPlayers()
+void chooseAI(int promptType)
 {
-    // player info
-    animateText("\n> \033[1;33mPlayer\033[0m\n", animateTextDelay_33ms);
-    printf("      Enter your name: ");
-    fgets(game.player1Name, sizeof(game.player1Name), stdin);
-    if   ((strlen(game.player1Name) == 1) || (!strcmp(game.player1Name, "Player 2\n"))){     // if the user didnt enter anything or entered {player 2}, sets p1name to {Player 1}
-        strcpy(game.player1Name, "Player 1"); 
-    }
-    else if (game.player1Name[strlen(game.player1Name) - 1] != '\n'){        // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-        emptyBuffer();
-        strcpy(game.player1Name, "Player 1"); 
-    } 
-    else{                   
-        game.player1Name[strlen(game.player1Name) - 1] = '\0';        // setting the trailing newline char to the null terminator char
-    }
-
-    // ai info
-    animateText("> \033[1;34mChoose AI\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)", animateTextDelay_33ms);
+    // promptType --->   0: Choose AI  |  1: Choose AI 1  |  2: Choose AI 2 
+    
+    char strToAnimate[99];
+    sprintf(strToAnimate, "\n> \033[1;33mChoose AI%s\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)", (promptType == 0)? "" : (promptType == 1)? " 1" : " 2");
+    animateText(strToAnimate, animateTextDelay_33ms);
+    
     char userChoice[arbitrarySize];
     while (true)
     {
@@ -93,76 +120,60 @@ void setPvAIPlayers()
             break;
         }
         else
-        {            
+        {
             if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
             printf("> [!] Enter either 1, 2, or 3");
             continue;
         }
     }
 
-    switch (userChoice[0])
+    if (promptType == 1)            // means AI1 in AIvAI mode (which is player 1)
     {
-        case '1': strcpy(game.player2Name, "Awwal");   break;
-        case '2': strcpy(game.player2Name, "Thani");   break;
-        case '3': strcpy(game.player2Name, "Thalith"); break;
+        switch (userChoice[0])
+        {
+            case '1': strcpy(game.player1Name, "Awwal");   break;
+            case '2': strcpy(game.player1Name, "Thani");   break;
+            case '3': strcpy(game.player1Name, "Thalith"); break;
+        }
     }
+    else                            // (promptType == 0 || promptType == 2);   AI is player 2 (either in PvAI or AIvAI)
+    {
+        switch (userChoice[0])
+        {
+            case '1': strcpy(game.player2Name, "Awwal");   break;
+            case '2': strcpy(game.player2Name, "Thani");   break;
+            case '3': strcpy(game.player2Name, "Thalith"); break;
+        }
+    }
+}
+void setPvPPlayers()
+{
+    // player1 info
+    choosePlayer(1);
+
+    // player2 info
+    choosePlayer(2);
+}
+void setPvAIPlayers()
+{
+    // player info
+    choosePlayer(0);
+
+    // ai info
+    chooseAI(0);
 }
 void setAIvAIPlayers()
 {
     char userChoice[arbitrarySize];
 
     // ai1 info
-    animateText("\n> \033[1;33mChoose AI 1\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)", animateTextDelay_33ms);
-    while (true)
-    {
-        printf("\nEnter your choice [1-3]: ");
-        fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
-        {
-            break;
-        }
-        else
-        {
-            if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-            printf("> [!] Enter either 1, 2, or 3");
-            continue;
-        }
-    }
-
-    switch (userChoice[0])
-    {
-        case '1': strcpy(game.player1Name, "Awwal");   break;
-        case '2': strcpy(game.player1Name, "Thani");   break;
-        case '3': strcpy(game.player1Name, "Thalith"); break;
-    }
+    chooseAI(1);
 
     // ai2 info
-    animateText("> \033[1;34mChoose AI 2\033[0m\n      [1] Awwal (Easy)\n      [2] Thani (Medium)\n      [3] Thalith (Hard)", animateTextDelay_33ms);
-    while (true)
-    {
-        printf("\nEnter your choice [1-3]: ");
-        fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
-        {
-            printf("> Accepted\n\n");
-            break;
-        }
-        else
-        {
-            if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-            printf("> [!] Enter either 1, 2, or 3");
-            continue;
-        }
-    }
+    chooseAI(2);
 
-    switch (userChoice[0])
-    {
-        case '1': strcpy(game.player2Name, "Awwal");   break;
-        case '2': strcpy(game.player2Name, "Thani");   break;
-        case '3': strcpy(game.player2Name, "Thalith"); break;
-    }
-
-    if (!strcmp(game.player1Name, game.player2Name))        // if both the ais are the same, suffixes each of their names appropriately to distinguish them
+    // if both the ais are the same, suffixes each of their names appropriately to distinguish them
+    if (!strcmp(game.player1Name, game.player2Name)) 
     {
         strcat(game.player1Name, "_theFirst");
         strcat(game.player2Name, "_theSecond");
@@ -180,6 +191,8 @@ void setPlayers()
     else                                     { setAIvAIPlayers(); }     // AIvAI
 
 }
+
+// setting gameBoard
 void setGameBoard()
 {
     // gameBoard setup
@@ -286,6 +299,8 @@ void printGameBoard()
 
     printf("\n");
 }
+
+// gamePlay stuff
 void showGameBoard()
 {
     // didnt wanna write all this in main so trashed it here :D
@@ -298,8 +313,6 @@ void showGameBoard()
     printGameBoard();
     game.startTime = time(NULL);    // starting the stopwatch
 }
-
-// gamePlay stuff
 void switchActivePlayer()
 {
     switch (game.activePlayer)
@@ -308,6 +321,147 @@ void switchActivePlayer()
         case 1: game.activePlayer = 2; break;
         case 2: game.activePlayer = 1; break;
     }
+} 
+void getPlayerMove()
+{
+    // sets the column number of a player's move to game.playerMove
+
+    if  (game.activePlayer == 1){ printf("\n\n\n[\033[1;33m%s\033[0m]", game.player1Name); }      // printing the playerName in color
+    else                        { printf("\n\n\n[\033[1;34m%s\033[0m]", game.player2Name); }
+
+    char userInput[arbitrarySize];
+    int userMove;
+    while (true)
+    {
+        printf("\nEnter your move (Column 1-%d): ", game.colCount);
+        fgets(userInput, sizeof(userInput), stdin);
+        if ((strlen(userInput) == 2) && ((userInput[0] == '1') || (userInput[0] == '2') || (userInput[0] == '3') || (userInput[0] == '4') || (userInput[0] == '5') || (userInput[0] == '6') || (userInput[0] == '7') || (userInput[0] == '8') || (userInput[0] == '9')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        {
+            userMove = userInput[0] - '0';
+            if (userMove > game.colCount)
+            {
+                printf("> [!] That column doesn't exist!");
+                continue;
+            }
+            else if (game.gameBoard[0][userMove - 1] != emptyChar)       // checks if the very top row/position of the chosen column is full or not
+            {
+                printf("> [!] That column is already filled!");
+                continue;
+            }
+            else
+            {
+                game.playerMove = userMove - 1;
+                break; 
+            }
+        }
+        else
+        { 
+            if (userInput[strlen(userInput) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
+            printf("> [!] That column doesn't exist!");
+            continue;
+        }
+    }
+}
+void getAIMove()
+{
+    if  (game.activePlayer == 1)        // ai is player1
+    { 
+        printf("\n\n\n[\033[1;33m%s\033[0m]", game.player1Name);      // printing the playerName in color
+        // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
+        if (!strncmp(game.player1Name, "Awwal", 5))         // lvl1_awwal
+        {
+            game.playerMove = lvl1_awwal_1win_2playRandom(player1Mark);
+        }
+        else if (!strncmp(game.player1Name, "Thani", 5))    // lvl2_thani
+        {
+            game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(player1Mark, player2Mark);
+        }
+        // else wouldve worked fine but used elseif for expandibility
+        else if (!strncmp(game.player1Name, "Thali", 5))    // lvl3_thalith
+        {
+            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(player1Mark, player2Mark);
+        }
+    }
+    else    // game.activePlayer == 2;  ai is player2                     
+    { 
+        printf("\n\n\n[\033[1;34m%s\033[0m]", game.player2Name); 
+        // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
+        if (!strncmp(game.player2Name, "Awwal", 5))          // lvl1_awwal
+        {
+            game.playerMove = lvl1_awwal_1win_2playRandom(player2Mark);
+        }
+        else if (!strncmp(game.player2Name, "Thani", 5))    // lvl2_thani
+        {
+            game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(player2Mark, player1Mark);
+        }
+        // else wouldve worked fine but used elseif for expandibility
+        else if (!strncmp(game.player2Name, "Thali", 5))    // lvl3_thalith
+        {
+            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(player2Mark, player1Mark);
+        }
+    }
+
+    // 47 dialogues, 45 arbitrary bytes/char max length per dialogue
+    char AIDialogues[46][45] = 
+                                {
+                                // Original dialogues (by me :>)
+                                "I think imma play at umm...", 
+                                "Hmm my turn huh... ", 
+                                "Lets go with umm... ",
+                                "I wont let u win that easily :> ", 
+                                "Oh noice move!\nLemme play... ", 
+                                "The player is here! :)",
+                                "Am i losing already?! ",  
+                                "I found a good one... :) ", 
+                                "Why do u play so good?? ",
+                                "Lemme think a little... ", 
+                                "You are smart, i will give you that... ", 
+                                "Am i losing already?? ",
+                                "where do i play? where do i play? ", 
+                                "i have a good feeling about this :)",
+                                "Argh, my turn again... ", 
+                                "i think i figured it out... :] ", 
+                                "boi you got some skills! ",
+                                "i see wut you are trying to do there :>", 
+                                "i guess i haveta play this properly now... ",
+                                "deep breaths, O AI! U got this! :)",
+                                "wut are u even cooking?? ",
+                                "me sense a storm is brewing... ",
+                                "nooooooo, i was thinkin of playing that! ",
+                                "Are u a grandmaster or smthing?! ",
+                                "you know i can teach u how to play this :) ",
+                                "Even a blind rat plays better than u",
+                                "hahaha, wut an amateur! ",
+                                "please go easy on me... :( ",
+                                "please spare my honour! :(",
+                                "i should have been resting now... ",
+                                "y do i have to do this on the weekend... "
+                                
+                                // New dialogues (generated by claude.ai on 23/10/25)
+                                "ooh this is getting interesting... ",
+                                "wait wait, let me recalculate... ",
+                                "you almost got me there! ",
+                                "hmm not bad, not bad at all... ",
+                                "okay okay, i got a plan :D ",
+                                "this one looks promising! ",
+                                "ur making this harder than i thought ",
+                                "aha! i see an opening... ",
+                                "brain.exe is loading... ",
+                                "gimme a sec to think this through ",
+                                "i sense a trap here... :/ ",
+                                "alright, lets try this one! ",
+                                "fortune favors the bold right? ",
+                                "my superhuman senses are tingling... ",
+                                "calculated move incoming... maybe "
+                                };
+    
+    printf("\n");
+    int randomIndex = (rand() % 46);    // index 0 till 45
+    animateText(AIDialogues[randomIndex], animateTextDelay_63ms);
+    wait(2000);
+
+    printf("\n--> Col %d!", game.playerMove + 1);        // game.playerMove contains index (ie columnPosition - 1)
+    wait(500);  // wait .5s
 }
 void updateGameBoard()
 {
@@ -482,7 +636,7 @@ int checkDraw()
 }
 void checkGameBoard()
 {    
-    if (game.totalMoves >= 7)     // the min num of moves required for any player to have won is 7 (ie 4 by the player 1)
+    if (game.totalMoves >= minMovesToWin)     // the min num of moves required for any player to have won is 7 (ie 4 by the player 1)
     {
         int checkHorizontal = checkHorizontally(), checkVertical = checkVertically(), checkPosDiagonal = checkPosDiagonals(), checkNegDiagonal = checkNegDiagonals(); 
         
@@ -548,105 +702,6 @@ void evaluateGameBoard()
 
         game.playGame = false;      // breaks from the inner while loop in main()
     }
-}
-
-// Getting PLayers Moves 
-void getPlayerMove()
-{
-    // sets the column number of a player's move to game.playerMove
-
-    if  (game.activePlayer == 1){ printf("\n\n\n[\033[1;33m%s\033[0m]", game.player1Name); }      // printing the playerName in color
-    else                        { printf("\n\n\n[\033[1;34m%s\033[0m]", game.player2Name); }
-
-    char userInput[arbitrarySize];
-    int userMove;
-    while (true)
-    {
-        printf("\nEnter your move (Column 1-%d): ", game.colCount);
-        fgets(userInput, sizeof(userInput), stdin);
-        if ((strlen(userInput) == 2) && ((userInput[0] == '1') || (userInput[0] == '2') || (userInput[0] == '3') || (userInput[0] == '4') || (userInput[0] == '5') || (userInput[0] == '6') || (userInput[0] == '7') || (userInput[0] == '8') || (userInput[0] == '9')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
-        {
-            userMove = userInput[0] - '0';
-            if (userMove > game.colCount)
-            {
-                printf("> [!] That column doesn't exist!");
-                continue;
-            }
-            else if (game.gameBoard[0][userMove - 1] != emptyChar)       // checks if the very top row/position of the chosen column is full or not
-            {
-                printf("> [!] That column is already filled!");
-                continue;
-            }
-            else
-            {
-                game.playerMove = userMove - 1;
-                break; 
-            }
-        }
-        else
-        { 
-            if (userInput[strlen(userInput) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-            printf("> [!] That column doesn't exist!");
-            continue;
-        }
-    }
-}
-void getAIMove()
-{
-    if  (game.activePlayer == 1)        // ai is player1
-    { 
-        printf("\n\n\n[\033[1;33m%s\033[0m]", game.player1Name);      // printing the playerName in color
-        // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
-        if (!strncmp(game.player1Name, "Awwal", 5))         // lvl1_awwal
-        {
-            game.playerMove = lvl1_awwal_1win_2playRandom(player1Mark);
-        }
-        else if (!strncmp(game.player1Name, "Thani", 5))    // lvl2_thani
-        {
-            game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(player1Mark, player2Mark);
-        }
-        // else wouldve worked fine but used elseif for expandibility
-        else if (!strncmp(game.player1Name, "Thali", 5))    // lvl3_thalith
-        {
-            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(player1Mark, player2Mark);
-        }
-    }
-    else    // game.activePlayer == 2;  ai is player2                     
-    { 
-        printf("\n\n\n[\033[1;34m%s\033[0m]", game.player2Name); 
-        // just compares the first 5 digits since, if the ais are the same, their names could end with _first & _second. so just comparing the first 5 digits as they are sure to be the same
-        if (!strncmp(game.player2Name, "Awwal", 5))          // lvl1_awwal
-        {
-            game.playerMove = lvl1_awwal_1win_2playRandom(player2Mark);
-        }
-        else if (!strncmp(game.player2Name, "Thani", 5))    // lvl2_thani
-        {
-            game.playerMove = lvl2_thani_1win_2dontLose_3playRandom(player2Mark, player1Mark);
-        }
-        // else wouldve worked fine but used elseif for expandibility
-        else if (!strncmp(game.player2Name, "Thali", 5))    // lvl3_thalith
-        {
-            game.playerMove = lvl3_thalith_1win_2dontLose_3prevent3InARow_4playRandom(player2Mark, player1Mark);
-        }
-    }
-
-    char AIDialogues[20][45] = {        // 19 dialogues, 45 arbitrary bytes/char max length per dialogue
-                                "I think imma play at umm...", "Hmm my turn huh... ", "Lets go with umm... ", 
-                                "I wont let u win that easily :> ", "Oh noice move!\nLemme play... ", "The player is here! :)", 
-                                "Am i losing already?! ",  "I found a good one... :) ", "Why do u play so good?? ", 
-                                "Lemme think a little... ", "You are smart, i will give you that... ", "Am i losing already?? ",
-                                "My mom told me to play at... ", "where do i play? where do i play? ", "i have a good feeling about this :)",
-                                "Argh, my turn again... ", "i think i figured it out... :] ", "boi you got some skills! ", 
-                                "i see wut you are trying to do there :>", "i guess i haveta play this properly now... "
-                                };
-    
-    printf("\n");
-    int randomIndex = (rand() % 19);    // index 0 till 18  (19 is '\0')
-    animateText(AIDialogues[randomIndex], animateTextDelay_63ms);
-    wait(2000);
-
-    printf("\n--> Col %d!", game.playerMove + 1);        // game.playerMove contains index (ie columnPosition - 1)
-    wait(500);  // wait .5s
 }
 
 
