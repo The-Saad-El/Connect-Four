@@ -419,123 +419,6 @@ void saveGameBoardHistory()             // runs after every playerMove
         fclose(gameBoardHistory);
     }
 }
-void checkForUnfinishedGame()
-{
-    /*
-        > will run at the start of every gameRound/match
-        > counts numOfRecords in the gameHistory.txt file
-        > if no unfinished games, count_gameHistory == count_gameBoardHistory
-        > adds all records from the gameBoardHistory.txt file to temp.txt
-            (until count_gameHistory != count_gameBoardHistory)
-        > adds extra record (unfinished game) to resumeGame.txt
-        > deletes gameBoardHistory.txt
-        > renames temp.txt to gameBoardHistory.txt
-        > if count_gameHistory == count_gameBoardHistory
-            temp.txt & the deleted gameBoardHistory.txt would be the same
-        > so, therefore, gameBoardHistory will contain all finished/completed games
-            & resumeGame.txt will have all of the unfinished games
-    */
-
-    int count_gameHistory = 0;
-    char line[350];                                 // arbitrarily-sized buffer
-
-    // gameHistory.txt
-    FILE *gameHistory = fopen("gameFiles/gameHistory.txt", "a+");        // will create file if it no exist
-    if (gameHistory == NULL)
-    { 
-        printf("[!] ERROR: Couldn't access file 'gameFiles/gameHistory.txt'"); 
-        pressEnterToContinue();
-        return;
-    }
-    else
-    {
-        // counting the numOfRecords in the gameHistory.txt file
-        fseek(gameHistory, 0, SEEK_SET);            // rewind/move-back file pointer to start of file
-
-        while (true)
-        {
-            if (fgets(line, sizeof(line), gameHistory) == NULL){ break; }           // reached EOF
-            else                                               { count_gameHistory++; }
-        }
-
-        fclose(gameHistory);
-    }
-
-    
-    // moving every record in the gameBoardHistory.txt file into a temp file & then renaming it
-    // moving any extra record (pending/unfinished game) into the resumeGame.txt file
-
-    // gameBoardHistory.txt
-    FILE *gameBoardHistory = fopen("gameFiles/gameBoardHistory.txt", "a+");        // will create file if it no exist
-    if (gameBoardHistory == NULL)
-    { 
-        printf("[!] ERROR: Couldn't access file 'gameFiles/gameBoardHistory.txt'"); 
-        pressEnterToContinue();
-        return;
-    }
-    // temp.txt file
-    FILE *temp = fopen("gameFiles/temp.txt", "w");        
-    if (temp == NULL)
-    { 
-        printf("[!] ERROR: Couldn't access file 'gameFiles/temp.txt'");
-        fclose(gameBoardHistory);           // closing gameBoardHistory.txt which wouldve already opened successfully if the code reached here
-        pressEnterToContinue();
-        return;
-    }
-    // resumeGame.txt
-    FILE *resumeGame = fopen("gameFiles/resumeGame.txt", "a+");        // will create file if it no exist
-    if (resumeGame == NULL)
-    { 
-        printf("[!] ERROR: Couldn't access file 'gameFiles/resumeGame.txt'"); 
-        fclose(gameBoardHistory);           // closing gameBoardHistory.txt which wouldve already opened successfully if the code reached here
-        fclose(temp);               
-        pressEnterToContinue();
-        return;
-    }
-
-
-    // will only reach here if the above 3 files opened successfully
-
-    fseek(gameBoardHistory, 0, SEEK_SET);            // rewind/move-back file pointer to start of the gameBoardHistory.txt file
-
-    int count_gameBoardHistory = 0;
-    while (true)
-    {
-        if (fgets(line, sizeof(line), gameBoardHistory) == NULL){ break; }                   // reached EOF
-        else                                                    
-        { 
-            count_gameBoardHistory++; 
-            if (count_gameBoardHistory > count_gameHistory)
-            {
-                fputs(line, resumeGame);            // puts the extra, unfinished gameRecord into the resumeGame.txt file
-                break;              // breaks from the while loop
-            }
-            else { fputs(line, temp); }         // puts the read record/line from the gameBoardHistory.txt to the temp.txt
-        }
-    }
-
-    // temp.txt will now have all the records of the finished games;  resumeGame.txt will have 1 more or none of the unfinished game records
-
-    fclose(gameBoardHistory);                                           // closing gameBoardHistory.txt
-    remove("gameFiles/gameBoardHistory.txt");                           // deleting file as no use now
-    fclose(temp);                                                       // closing temp.txt
-    rename("gameFiles/temp.txt", "gameFiles/gameBoardHistory.txt");     // renaming the temp.txt to gameBoardHistory.txt (mwahahahaha)
-    fclose(resumeGame);                                                 // closing resumeGame.txt
-    
-    pressEnterToContinue();
-}
-void resumeGame();
-void _saveGameHistory()
-{
-    // might have to seperate the following 2 funcs
-
-
-    // for gameBoard layout/state/condition at end
-    saveGameBoardHistory();
-
-    // for games details: time, gameMode, matchType, players, serial number, winner, elapsed time
-    if (game.gameState != -1) { saveGameDetails(); }        // will only run at the end of a game
-}
 
 int displayGameDetails()
 {
@@ -746,12 +629,121 @@ void displayGameHistory()
     }
 }
 
-// help
-void displayHelp()
+// resumeGame
+void checkForUnfinishedGame()
+{
+    /*
+        > will run at the start of every gameRound/match
+        > counts numOfRecords in the gameHistory.txt file
+        > if no unfinished games, count_gameHistory == count_gameBoardHistory
+        > adds all records from the gameBoardHistory.txt file to temp.txt
+            (until count_gameHistory != count_gameBoardHistory)
+        > adds extra record (unfinished game) to resumeGame.txt
+        > deletes gameBoardHistory.txt
+        > renames temp.txt to gameBoardHistory.txt
+        > if count_gameHistory == count_gameBoardHistory
+            temp.txt & the deleted gameBoardHistory.txt would be the same
+        > so, therefore, gameBoardHistory will contain all finished/completed games
+            & resumeGame.txt will have all of the unfinished games
+    */
+
+    int count_gameHistory = 0;
+    char line[350];                                 // arbitrarily-sized buffer
+
+    // gameHistory.txt
+    FILE *gameHistory = fopen("gameFiles/gameHistory.txt", "a+");        // will create file if it no exist
+    if (gameHistory == NULL)
+    { 
+        printf("[!] ERROR: Couldn't access file 'gameFiles/gameHistory.txt'"); 
+        pressEnterToContinue();
+        return;
+    }
+    else
+    {
+        // counting the numOfRecords in the gameHistory.txt file
+        fseek(gameHistory, 0, SEEK_SET);            // rewind/move-back file pointer to start of file
+
+        while (true)
+        {
+            if (fgets(line, sizeof(line), gameHistory) == NULL){ break; }           // reached EOF
+            else                                               { count_gameHistory++; }
+        }
+
+        fclose(gameHistory);
+    }
+
+    
+    // moving every record in the gameBoardHistory.txt file into a temp file & then renaming it
+    // moving any extra record (pending/unfinished game) into the resumeGame.txt file
+
+    // gameBoardHistory.txt
+    FILE *gameBoardHistory = fopen("gameFiles/gameBoardHistory.txt", "a+");        // will create file if it no exist
+    if (gameBoardHistory == NULL)
+    { 
+        printf("[!] ERROR: Couldn't access file 'gameFiles/gameBoardHistory.txt'"); 
+        pressEnterToContinue();
+        return;
+    }
+    // temp.txt file
+    FILE *temp = fopen("gameFiles/temp.txt", "w");        
+    if (temp == NULL)
+    { 
+        printf("[!] ERROR: Couldn't access file 'gameFiles/temp.txt'");
+        fclose(gameBoardHistory);           // closing gameBoardHistory.txt which wouldve already opened successfully if the code reached here
+        pressEnterToContinue();
+        return;
+    }
+    // resumeGame.txt
+    FILE *resumeGame = fopen("gameFiles/resumeGame.txt", "a+");        // will create file if it no exist
+    if (resumeGame == NULL)
+    { 
+        printf("[!] ERROR: Couldn't access file 'gameFiles/resumeGame.txt'"); 
+        fclose(gameBoardHistory);           // closing gameBoardHistory.txt which wouldve already opened successfully if the code reached here
+        fclose(temp);               
+        pressEnterToContinue();
+        return;
+    }
+
+
+    // will only reach here if the above 3 files opened successfully
+
+    fseek(gameBoardHistory, 0, SEEK_SET);            // rewind/move-back file pointer to start of the gameBoardHistory.txt file
+
+    int count_gameBoardHistory = 0;
+    while (true)
+    {
+        if (fgets(line, sizeof(line), gameBoardHistory) == NULL){ break; }                   // reached EOF
+        else                                                    
+        { 
+            count_gameBoardHistory++; 
+            if (count_gameBoardHistory > count_gameHistory)
+            {
+                fputs(line, resumeGame);            // puts the extra, unfinished gameRecord into the resumeGame.txt file
+                break;              // breaks from the while loop
+            }
+            else { fputs(line, temp); }         // puts the read record/line from the gameBoardHistory.txt to the temp.txt
+        }
+    }
+
+    // temp.txt will now have all the records of the finished games;  resumeGame.txt will have 1 more or none of the unfinished game records
+
+    fclose(gameBoardHistory);                                           // closing gameBoardHistory.txt
+    remove("gameFiles/gameBoardHistory.txt");                           // deleting file as no use now
+    fclose(temp);                                                       // closing temp.txt
+    rename("gameFiles/temp.txt", "gameFiles/gameBoardHistory.txt");     // renaming the temp.txt to gameBoardHistory.txt (mwahahahaha)
+    fclose(resumeGame);                                                 // closing resumeGame.txt
+    
+    pressEnterToContinue();
+}
+void resumeGame(int gameNum);
+void displayUnfishedGame();
+
+// about
+void displayAbout()
 {
     printConnectFourTitle();
 
-    animateText("[Help]\n  [1] Brief\n  [2] Detailed", animateTextDelay_33ms);
+    animateText("[About]\n  [1] Brief\n  [2] Detailed", animateTextDelay_33ms);
     char userChoice[arbitrarySize];
     while (true) 
     {
@@ -774,35 +766,35 @@ void displayHelp()
 
     switch(userChoice[0])
     {
-        case '1':       // brief help
-            FILE *briefHelp = fopen("gameFiles/briefHelp.txt", "r");
-            if (briefHelp == NULL){ printf("[!] ERROR: Couldn't access file 'briefHelp.txt'"); }
+        case '1':       // brief about
+            FILE *briefAbout = fopen("gameFiles/briefAbout.txt", "r");
+            if (briefAbout == NULL){ printf("[!] ERROR: Couldn't access file 'briefAbout.txt'"); }
             else
             {
                 char line[199];
                 while (true)
                 {
-                    if (fgets(line, sizeof(line), briefHelp) == NULL){ break; }     // eof reached
+                    if (fgets(line, sizeof(line), briefAbout) == NULL){ break; }     // eof reached
                     animateText(line, animateTextDelay_13ms);       // prints/animates the line of help on screen
                 }
 
-                fclose(briefHelp);
+                fclose(briefAbout);
             }
             break;
 
-        case '2':       // detailed help  
-            FILE *detailedHelp = fopen("gameFiles/detailedHelp.txt", "r");
-            if (detailedHelp == NULL){ printf("[!] ERROR: Couldn't access file 'detailedHelp.txt'"); }
+        case '2':       // detailed about  
+            FILE *detailedAbout = fopen("gameFiles/detailedAbout.txt", "r");
+            if (detailedAbout == NULL){ printf("[!] ERROR: Couldn't access file 'detailedAbout.txt'"); }
             else
             {
                 char line[199];
                 while (true)
                 {
-                    if (fgets(line, sizeof(line), detailedHelp) == NULL){ break; }     // eof reached
+                    if (fgets(line, sizeof(line), detailedAbout) == NULL){ break; }     // eof reached
                     animateText(line, animateTextDelay_13ms);       // prints/animates the line of help on screen
                 }
 
-                fclose(detailedHelp);
+                fclose(detailedAbout);
             }
             break;
     }

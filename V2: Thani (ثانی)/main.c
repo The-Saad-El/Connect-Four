@@ -22,6 +22,7 @@
     [2]  replayGame
     [3]  gameHistory
     [4]  enable leaderBoards with quickMatch
+    [5]  improve the 3 ais
     
     [!]  all done alhamdulillahi taala :)
 */
@@ -179,13 +180,13 @@ void view()
     printConnectFourTitle();
 
     // choosing the gameMode
-    animateText("[View]\n  [1] LeaderBoards\n  [2] History\n  [3] Help\n  [4] Go Back", animateTextDelay_33ms);
+    animateText("[View]\n  [1] Resume\n  [2] History\n  [3] LeaderBoards\n  [4] About\n  [5] Go Back", animateTextDelay_33ms);
     char userChoice[arbitrarySize];
     while (true)
     {
-        printf("\nEnter your choice [1-4]: ");
+        printf("\nEnter your choice [1-5]: ");
         fgets(userChoice, sizeof(userChoice), stdin);
-        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3') || (userChoice[0] == '4')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
+        if ((strlen(userChoice) == 2) && ((userChoice[0] == '1') || (userChoice[0] == '2') || (userChoice[0] == '3') || (userChoice[0] == '4') || (userChoice[0] == '5')))        // if userChoice has only 2 characters (1: userInput 2nd: '\n') & the first char is a valid choice
         {
             printf("> Accepted\n\n");       // (is effectively useless)
             break; 
@@ -201,10 +202,11 @@ void view()
     // calling functions based on userChoice
     switch(userChoice[0])
     {
-        case '1':  displayLeaderBoards();  break;     // leaderBoards
-        case '2':  displayGameHistory();   break;     // history                                     // alhamdulillah taala (jo khuwari hui hai ismay...)
-        case '3':  displayHelp();          break;     // help
-        case '4':  return;                            // go back [will return to the mainMenu()]
+        case '1':  displayUnfinishedGames();  break;     // resume
+        case '2':  displayGameHistory();      break;     // history                 // alhamdulillah taala (jo khuwari hui hai ismay...)
+        case '3':  displayLeaderBoards();     break;     // leaderBoards
+        case '4':  displayAbout();            break;     // about
+        case '5':  return;                               // go back [will return to the mainMenu()]
     }
 }
 void exitGame()

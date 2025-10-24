@@ -12,9 +12,9 @@ void saveGameHistory();
 void displayGameHistory();
 // resumeGame
 void checkForUnfinishedGame();
-void _resumeGame();
-// gameHelp
-void displayHelp();
+void displayUnfinishedGames();
+// About
+void displayAbout();
 
 
 // -----------------------------------------------------
