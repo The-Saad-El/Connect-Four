@@ -23,7 +23,8 @@
     [3]  gameHistory
     [4]  enable leaderBoards with quickMatch
     [5]  improve the 3 ais
-    [6]  update about sec (remove leaderBoards custom only stuff)
+    [6]  update about section (remove leaderBoards custom only stuff)
+    [7]  dont use globals, change all to datareturning functions with parameters
     
     [!]  alhamdulillahi taala :)
 */

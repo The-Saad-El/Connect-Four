@@ -1,7 +1,6 @@
 // view() (filing) --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
 // headers
 #include <stdio.h>
 #include <string.h>
@@ -376,7 +375,7 @@ void saveGameBoardDetails()             // runs after every playerMove
     */
 
     FILE *gameBoardHistory = fopen("gameFiles/gameBoardHistory.txt", "a");
-    if (gameBoardHistory == NULL){ printf("[!] ERROR: Couldn't access file 'gameBoardHistory.txt'"); }
+    if (gameBoardHistory == NULL){ printf("[!] ERROR: Couldn't access file 'gameFiles/gameBoardHistory.txt'"); }
     else
     {
         if (game.totalMoves == 1)           // writes the following after the first move has been made
@@ -558,8 +557,55 @@ void displayGameBoardDetails(int numOfGames, int* gameNum, int* mode)
         }
     }
 }
+void simplePrintGameBoard(int rowCount, int colCount, int winningIndices[4][2], int gameBoard[][maxCols])
+{
+    // calculating the num of dashes required for rows
+    int numOfDashes = (6 * colCount) + 1;           // had to manually count these
+    char rowDashes[numOfDashes + 1];                // 1 extra for '\0'
+    for (int i = 0; i <  numOfDashes; i++) { rowDashes[i] = '-'; }
+    rowDashes[numOfDashes] = '\0';
+
+    // printing the gameBoard
+    printf("\n  %s\n", rowDashes);    // topmost row of dashes
+    for (int i = 0; i < rowCount; i++)
+    {
+        for (int j = 0; j < colCount; j++)
+        {
+            bool isWinningIndex = false;
+            if (winningIndices[0][0] != -1)     // goes inside if the game wasnt draw (if it was, winningIndices would still have all -1)  
+            {
+                for (int k = 0; k < 4; k++)
+                {
+                    if ((winningIndices[k][0] == i) && (winningIndices[k][1] == j)){   // [k][0] has the i value of the winning position's numOfAvailableColumns & [k][1] the j value
+                        isWinningIndex = true;
+                        break;
+                    }
+                }
+            }
+
+            printf("  |  ");            // first bar of the row
+            if (isWinningIndex)         // prints it in bold, italic, highlighted color (yellow or blue)
+            {
+                if   (gameBoard[i][j] == player1Mark) { printf("\033[1;3;4;33;40m%c\033[0m", gameBoard[i][j]); }     // bold, italic yellow color with grey highlighting for player1 (winner)
+                else                                  { printf("\033[1;3;4;34;40m%c\033[0m", gameBoard[i][j]); }     // bold, italic blue color with grey highlighting for player2 (winner)
+            }
+            else
+            {
+                if      (gameBoard[i][j] == player1Mark) { printf("\033[1;33m%c\033[0m", gameBoard[i][j]); }     // bold yellow color for player1;          couldve just printed player1Mark 
+                else if (gameBoard[i][j] == player2Mark) { printf("\033[1;34m%c\033[0m", gameBoard[i][j]); }     // bold blue color for player2             couldve just printed player2Mark
+                else                                     { printf("%c",                  gameBoard[i][j]); }     // no color formatting if empty char       couldve just printed emptyChar
+            }
+        }
+        printf("  |\n  %s\n", rowDashes);   // a row of dashes after every completed row
+    }
+    
+    // for printing column numbers
+    printf("  ");    // empty space of width 2 at the start of the row (is fixed)
+    for (int i = 0; i < colCount; i++) { printf("  [%d] ", i + 1); }            // printing the columnNumber at the very bottom
+    printf("\n");
+}
 void showTerminalGameBoard(int gameNum)
-{   // TODO
+{
     printConnectFourTitle();
 
     FILE *gameBoardHistory = fopen("gameFiles/gameBoardHistory.txt", "r");          // no need to open in a+ mode since the function itself will only be called if there is atleast 1 record in gameHistory.txt so gameBoardHistory.txt would also be existent
@@ -572,7 +618,7 @@ void showTerminalGameBoard(int gameNum)
         while (true)            // parsing through records in the gameBoardHistory.txt file until we find the record for the required game (gameNum)
         {
             count++;
-            fscanf(gameBoardHistory, "Player1: [%[^]]] | Player2: [%[^]]] | rowCount: [%d] | colCount: [%d] | gameMoves: [[^]]] | gameBoard: [%[^]]] | winningIndices: [%[^]]]\n",         // no need to check return value
+            fscanf(gameBoardHistory, "Player1: [%[^]]] | Player2: [%[^]]] | rowCount: [%d] | colCount: [%d] | gameMoves: [%[^]]] | gameBoard: [%[^]]] | winningIndices: [%[^]]]\n",         // no need to check return value
                                         player1, player2, &rowCount, &colCount, fGameMoves, fGameBoard, fWinningIndices);
             if (count == gameNum)       // if the record for the required gameNum was reached
             {
@@ -587,7 +633,7 @@ void showTerminalGameBoard(int gameNum)
                 {
                     for (int col = 0; col < colCount; col++)
                     {
-                        gameBoard[row][col] = fGameBoard[index];
+                        gameBoard[row][col] = fGameBoard[index];            // char to char so no needa convert
                         index++;
                     }
                 }
@@ -599,71 +645,66 @@ void showTerminalGameBoard(int gameNum)
                 {
                     for (int j = 0; j < 2; j++)
                     {
-                        winningIndices[i][j] = fWinningIndices[index] - '0';            // reversal of the process in saveGameBoardLayout()
+                        winningIndices[i][j] = fWinningIndices[index] - '0';            // char to int [reversal of the process in saveGameBoardLayout()]
                         index++;
                     }
                 }
 
                 // printing the gameBoard...
-                int numOfDashes = (6 * colCount) + 1;    // calculating the num of dashes required for rows
-                char rowDashes[numOfDashes + 1];
-                for (int i = 0; i <  numOfDashes; i++){ rowDashes[i] = '-'; }
-                rowDashes[numOfDashes] = '\0';
+                simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard);
 
-                printf("\n  %s\n", rowDashes);    // topmost row of dashes
-                for (int i = 0; i < rowCount; i++)
-                {
-                    for (int j = 0; j < colCount; j++)
-                    {
-                        bool isWinningIndex = false;
-                        if (winningIndices[0][0] != -1)     // goes inside if the game wasnt draw (if it was, winningIndices would still have all -1)  
-                        {
-                            for (int k = 0; k < 4; k++)
-                            {
-                                if ((winningIndices[k][0] == i) && (winningIndices[k][1] == j)){   // [k][0] has the i value of the winning position's numOfAvailableColumns & [k][1] the j value
-                                    isWinningIndex = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        printf("  |  ");
-                        if (isWinningIndex){
-                            if   (gameBoard[i][j] == player1Mark){ printf("\033[1;3;4;33;40m%c\033[0m", gameBoard[i][j]); }     // bold, italic yellow color with grey highlighting for player1 (winner)
-                        else                                     { printf("\033[1;3;4;34;40m%c\033[0m", gameBoard[i][j]); }     // bold, italic blue color with grey highlighting for player2 (winner)
-                        }
-                        else
-                        {
-                            if      (gameBoard[i][j] == player1Mark){ printf("\033[1;33m%c\033[0m", gameBoard[i][j]); }     // bold yellow color for player1
-                            else if (gameBoard[i][j] == player2Mark){ printf("\033[1;34m%c\033[0m", gameBoard[i][j]); }     // bold blue color for player2
-                            else                                    { printf("%c",                  gameBoard[i][j]); }     // no color formatting if empty char
-                        }
-                    }
-                    printf("  |\n  %s\n", rowDashes);   // a row of dashes after every completed row
-                }
-                
-                // for printing column numbers
-                printf("  ");    // empty space of width 2 (is fixed)
-                for (int i = 0; i < colCount; i++)
-                {
-                    printf("  [%d] ", i+1);
-                }
-
-                printf("\n");
-
-                break;
+                break;      // breaking from the outer while loop
             }
         }
 
         fclose(gameBoardHistory);
     }
-
-    pressEnterToContinue();
 }
-void replayGame(int gameNum)
+void _replayGame(int gameNum)
 {
-    // TODO
     printConnectFourTitle();
+
+    FILE *gameBoardHistory = fopen("gameFiles/gameBoardHistory.txt", "r");
+    if (gameBoardHistory == NULL){ printf("[!] ERROR: Couldn't access file 'gameFiles/gameBoardHistory.txt'"); }
+    else
+    {
+        int count = 0, rowCount, colCount;
+        char player1[arbitrarySize], player2[arbitrarySize], fGameMoves[maxRows*maxCols + 1], fGameBoard[maxRows*maxCols + 1], fWinningIndices[9];       // f for file
+
+        while (true)
+        {
+            count++;
+            fscanf(gameBoardHistory, "Player1: [%[^]]] | Player2: [%[^]]] | rowCount: [%d] | colCount: [%d] | gameMoves: [%[^]]] | gameBoard: [%[^]]] | winningIndices: [%[^]]]\n",         // couldve used a combination of fgets and sprintf
+                                        player1, player2, &rowCount, &colCount, fGameMoves, fGameBoard, fWinningIndices);           // no use for fGameBoard in this func
+            if (count == gameNum)               // found the gameRecord in the file to replay
+            {
+                char playerDetails[123];            // 35 + 35 (max player string size) + 22 + 22 (other chars around %s)  = 114    --->   taking 123 cuz me like that num
+                sprintf(playerDetails,"%s: \033[1;33mX\033[0m\n%s: \033[1;34mO\033[0m\n", player1, player2);
+
+                // gameBoard
+                char gameBoard[rowCount][colCount];         // declaring the gameBoard
+                for (int i = 0; i < rowCount; i++)          // initializing the gameBoard with emptyChar
+                {
+                    for (int j = 0; j < colCount; j++){ gameBoard[i][j] = emptyChar; }
+                }
+
+                for (int i = 0; i < strlen(fGameMoves); i++)            // parses through each char element in fGameMoves str array and simulates their playing
+                {
+
+
+                    clearScreen();
+                    animateText(playerDetails, animateTextDelay_13ms);
+
+                    simpleUpdateGameBoard(rowCount, colCount, gameBoard);
+                    simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard);
+
+                    wait(animateTextDelay_63ms);        // prolly should rename this declaration
+                }
+
+                break;
+            }
+        }
+    }
 }
 void displayGameHistory()
 {
