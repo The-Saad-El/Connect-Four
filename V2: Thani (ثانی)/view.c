@@ -480,7 +480,7 @@ void displayGameBoardDetails(int numOfGames, int* gameNum, int* mode)
     }
 
     // atleast one entry in the gameHistory.txt (& so in gameBoardHistory.txt)
-    wait(2000);         // a little pause before printing menu
+    wait(1000);         // a little pause before printing menu
     char userInput[arbitrarySize];
     
     animateText("[Game History]\n   > Enter Game Number to view its gameBoard\n   > Enter 0 to return to the Main Menu", animateTextDelay_33ms);
@@ -503,7 +503,7 @@ void displayGameBoardDetails(int numOfGames, int* gameNum, int* mode)
             {
                 if (userInput[i] < '0' || userInput[i] > '9')              // the userInput contains a non-numeric char
                 {
-                    printf("> [!] Enter a number in range [1, %d]", numOfGames);
+                    printf("> [!] Enter a number in range [0, %d]", numOfGames);
                     isNum = false;
                     break;
                 }
@@ -678,8 +678,8 @@ void replayGame(int gameNum)
                                         player1, player2, &rowCount, &colCount, fGameMoves, fGameBoard, fWinningIndices);           // no use for fGameBoard in this func
             if (count == gameNum)               // found the gameRecord in the file to replay
             {
-                char playerDetails[123];            // 35 + 35 (max player string size) + 22 + 22 (other chars around %s)  = 114    --->   taking 123 cuz me like that num
-                sprintf(playerDetails,"%s: \033[1;33mX\033[0m\n%s: \033[1;34mO\033[0m\n", player1, player2);
+                char playerDetails[135];            // 35 + 35 (max player string size) + 22 + 22 (other chars around %s)  = 114    --->   taking 135 cuz me like that num
+                sprintf(playerDetails,"\n  %s: \033[1;33mX\033[0m\t\t\t%s: \033[1;34mO\033[0m\n", player1, player2);
 
                 // gameBoard
                 char gameBoard[rowCount][colCount];         // declaring the gameBoard
@@ -707,21 +707,23 @@ void replayGame(int gameNum)
 
                     for (int row = 0; row < rowCount; row++)                           // updating gameBoard with the player's move
                     {
+                        clearScreen();
+                        simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard);   
+                        
                         if (gameBoard[row][colToUpdate] == emptyChar)
                         { 
                             gameBoard[row][colToUpdate] = playerMark; 
-                            if (row > 0) { gameBoard[row - 1][colToUpdate] = emptyChar; }           // resetting previous row's element to emptyChar
+                            if (row > 0) { gameBoard[row - 1][colToUpdate] = emptyChar; }          // resetting previous row's element to emptyChar
+                            wait((animateGameBoardDelay_ms/2) - (row * 20));                       // accelerating :)
                         }
+                        else { break; }
                     }
 
                     clearScreen();
-                    animateText(playerDetails, animateTextDelay_13ms);
-
                     simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard);
-
-                    wait(animateTextDelay_63ms);        // prolly should rename this declaration
                 }
-
+                
+                animateText(playerDetails, animateTextDelay_13ms);
                 break;      // breaks from the outer while loop
             }
         }
@@ -862,7 +864,7 @@ void displayUnfinishedGames()
     printConnectFourTitle();
 
     printf("\nCurrently in displayUnfinishedGames()");
-    
+
     pressEnterToContinue();
 }
 

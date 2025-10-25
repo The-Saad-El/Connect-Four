@@ -196,7 +196,7 @@ void view()
         else
         { 
             if (userChoice[strlen(userChoice) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-            printf("> [!] Enter either 1, 2, 3, or 4");
+            printf("> [!] Enter either 1, 2, 3, 4, or 5");
             continue;
         }
     }

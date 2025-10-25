@@ -3,7 +3,6 @@
 
 // -----------------------------------------------------
 
-
 // leaderBoards
 void updateLeaderBoards();
 void displayLeaderBoards();
@@ -19,7 +18,6 @@ void displayUnfinishedGames();
 
 // About
 void displayAbout();
-
 
 // -----------------------------------------------------
 
