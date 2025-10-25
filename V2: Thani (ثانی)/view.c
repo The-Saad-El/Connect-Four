@@ -557,7 +557,7 @@ void displayGameBoardDetails(int numOfGames, int* gameNum, int* mode)
         }
     }
 }
-void simplePrintGameBoard(int rowCount, int colCount, int winningIndices[4][2], int gameBoard[][maxCols])
+void simplePrintGameBoard(int rowCount, int colCount, int winningIndices[4][2], char gameBoard[][maxCols])
 {
     // calculating the num of dashes required for rows
     int numOfDashes = (6 * colCount) + 1;           // had to manually count these
@@ -627,7 +627,7 @@ void showTerminalGameBoard(int gameNum)
                 animateText(playerDetails, animateTextDelay_13ms);
 
                 // recreating 2d gameboard array
-                char gameBoard[rowCount][colCount];
+                char gameBoard[rowCount][colCount];              // had to have maxCols columns instead of colCount since simplePrintGameBoard is defined with the gameBoard having maxCols number of columns (line 560 currently)
                 int index = 0;
                 for (int row = 0; row < rowCount; row++)
                 {
@@ -660,7 +660,7 @@ void showTerminalGameBoard(int gameNum)
         fclose(gameBoardHistory);
     }
 }
-void _replayGame(int gameNum)
+void replayGame(int gameNum)
 {
     printConnectFourTitle();
 
@@ -683,32 +683,55 @@ void _replayGame(int gameNum)
 
                 // gameBoard
                 char gameBoard[rowCount][colCount];         // declaring the gameBoard
-                for (int i = 0; i < rowCount; i++)          // initializing the gameBoard with emptyChar
+                for (int row = 0; row < rowCount; row++)          // initializing the gameBoard with emptyChar
                 {
-                    for (int j = 0; j < colCount; j++){ gameBoard[i][j] = emptyChar; }
+                    for (int col = 0; col < colCount; col++){ gameBoard[row][col] = emptyChar; }
                 }
 
-                for (int i = 0; i < strlen(fGameMoves); i++)            // parses through each char element in fGameMoves str array and simulates their playing
+                // winningIndices
+                int index = 0;                                                              
+                int winningIndices[4][2] = {{-1,-1}, {-1,-1}, {-1,-1}, {-1,-1}};        // initializing with -1s
+                for (int row = 0; row < 4; row++)       // recreating 2D int winningIndices
                 {
+                    for (int col = 0; col < 2; col++)
+                    {
+                        winningIndices[row][col] = fWinningIndices[index] - '0';            // char to int [reversal of the process in saveGameBoardLayout()]
+                        index++;
+                    }
+                }
 
+                for (int i = 0; i < strlen(fGameMoves); i++)                           // parses through each char element in fGameMoves str array and simulates their playing
+                {
+                    int colToUpdate = fGameMoves[i] - '0';                             // ie playerMove;        char to int
+                    char playerMark = ((i % 2) == 1)? player1Mark : player2Mark;       // ie tokenToDrop;       player1: 1,3,5...   player2: 2,4,6...
+
+                    for (int row = 0; row < rowCount; row++)                           // updating gameBoard with the player's move
+                    {
+                        if (gameBoard[row][colToUpdate] == emptyChar)
+                        { 
+                            gameBoard[row][colToUpdate] = playerMark; 
+                            if (row > 0) { gameBoard[row - 1][colToUpdate] = emptyChar; }           // resetting previous row's element to emptyChar
+                        }
+                    }
 
                     clearScreen();
                     animateText(playerDetails, animateTextDelay_13ms);
 
-                    simpleUpdateGameBoard(rowCount, colCount, gameBoard);
                     simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard);
 
                     wait(animateTextDelay_63ms);        // prolly should rename this declaration
                 }
 
-                break;
+                break;      // breaks from the outer while loop
             }
         }
+
+        fclose(gameBoardHistory);
     }
 }
 void displayGameHistory()
 {
-    // calls onto the above 4 functions
+    // calls onto the above 4 main functions
 
     int numOfGames, gameNum, detailMode;
     while (true)                                                          // did this to prevent a infinite recursive loop
@@ -833,7 +856,15 @@ void checkForUnfinishedGame()
     pressEnterToContinue();
 }
 void resumeGame(int gameNum);
-void displayUnfinishedGames();
+void displayUnfinishedGames()
+{
+    clearScreen();
+    printConnectFourTitle();
+
+    printf("\nCurrently in displayUnfinishedGames()");
+    
+    pressEnterToContinue();
+}
 
 // about
 void displayAbout()

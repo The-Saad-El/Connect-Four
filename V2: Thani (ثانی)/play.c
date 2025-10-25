@@ -19,6 +19,7 @@
 #define minMovesToWin 7
 #define noTerminalState -1
 
+
 // initializing game
 void setGame()
 {
@@ -673,8 +674,6 @@ void evaluateGameBoard()
     if (game.gameState != noTerminalState)        // continue the round if gameState == -1; will only work for totalMoves >= 7
     {
         game.endTime = time(NULL);      // stoppin the "stopwatch" when the game reaches a terminal state
-        // saveGameHistory();
-        if (strcmp(game.gameMode, "AIvAI")){ updateLeaderBoards(); }      // leaderBoards will only be updated if the mode is not AIvAI (is PvP or PvAI)
 
         wait(330);     // a little pause before printing results
         switch (game.gameState)
@@ -708,10 +707,9 @@ void evaluateGameBoard()
             }
         }
 
-        game.playGame = false;      // breaks from the inner while loop in main()
+        game.playGame = false;          // breaks from the inner while loop in main()
     }
 }
-
 
 
 // gameModes
@@ -721,8 +719,10 @@ void PvP()
     setGame();          // initialize globals
     if (game.quickMatch)
     {
-        strcpy(game.player1Name, "Player 1");
-        strcpy(game.player2Name, "Player 2");
+        // strcpy(game.player1Name, "Player 1");            coulve done this & made this a proper quickMatch but it wont be leaderBoards applicable
+        choosePlayer(1);
+        // strcpy(game.player2Name, "Player 2");            isliye went with this approach. revert later if ya want
+        choosePlayer(2);
         game.rowCount = 6;        // CLassic (7 x 6)
         game.colCount = 7;
     }
@@ -740,39 +740,45 @@ void PvP()
         updateGameBoard();
         updateGameState();
         evaluateGameBoard();
+        saveGameBoardDetails();
     }
 
+    saveGameDetails();
+    updateLeaderBoards();                    // leaderBoards will only be updated if the mode is not AIvAI (is PvP or PvAI)
     pressEnterToContinue();
 }
-void PvAI()
+void PvAI()                                                                             // player vs AI mode
 {
-    setGame();
-    if (game.quickMatch)
+    setGame();                                                                          // initializing game. globals
+    if (game.quickMatch)                                                                // quickMatch() mode
     {
-        strcpy(game.player1Name, "Player");
-        strcpy(game.player2Name, "Thalith");
-        game.rowCount = 6;        // CLassic (7 x 6)
+        choosePlayer(0);                                                                // initially did this:  strcpy(game.player1Name, "Player 1");
+        strcpy(game.player2Name, "Thalith");                                            // defaulting ai with thalith
+        game.rowCount = 6;                                                              // CLassic (7 x 6) gameBoard
         game.colCount = 7;
     }
-    else
+    else                                                                                // customMatch() mode
     {    
-        setPlayers();       // choose players
-        setGameBoard();     // choose gameBoard size
+        setPlayers();                                                                   // choose players
+        setGameBoard();                                                                 // choose gameBoard size
     }
-    if (!program.randomSeeded){ srand(time(NULL)); program.randomSeeded = true; }
-    startGame();
+    if (!program.randomSeeded){ srand(time(NULL)); program.randomSeeded = true; }       // seeding rand() with time(NULL) once per program
+    startGame();                                                                        // printing the gameBoard & a little pause before starting game
 
-    while (game.playGame)
+    while (game.playGame)                                                               // infinite gameLoop until a terminal state is reached
     {
-        switchActivePlayer();
-        if  (game.activePlayer == 1) { getPlayerMove(); }
-        else                         { getAIMove();     }
-        updateGameBoard();
-        updateGameState();
-        evaluateGameBoard();
+        switchActivePlayer();                                                           // switches game.activePlayer 
+        if  (game.activePlayer == 1) { getPlayerMove(); }                               // gets move based on game.activePlayer 
+        else                         { getAIMove();     }                               // getting AI's move when game.activePlayer is even (2 + 2n)
+        updateGameBoard();                                                              // updates the gameBoard row by row & calls printGameBoard in between them
+        updateGameState();                                                              // updates game.gameState based upon the 5 checking functions
+        evaluateGameBoard();                                                            // evaluating game based upon game.gameState
+        saveGameBoardDetails();                                                         // updates the gameBoardHistory.txt file with the current playerMove
     }
 
-    pressEnterToContinue();
+    saveGameDetails();
+    updateLeaderBoards();                                                               // leaderBoards will only be updated if the mode is not AIvAI (is PvP or PvAI)
+    pressEnterToContinue();                                                             // waits for user input before clearing the screen & reprinting mainMenu
 }
 void AIvAI()
 {
@@ -799,7 +805,9 @@ void AIvAI()
         updateGameBoard();
         updateGameState();
         evaluateGameBoard();
+        saveGameBoardDetails();
     }
 
+    saveGameDetails();
     pressEnterToContinue();
 }
