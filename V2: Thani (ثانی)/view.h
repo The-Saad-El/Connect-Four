@@ -8,7 +8,8 @@
 void updateLeaderBoards();
 void displayLeaderBoards();
 // gameHistory
-void saveGameHistory();
+void saveGameDetails();
+void saveGameBoardDetails();
 void displayGameHistory();
 // resumeGame
 void checkForUnfinishedGame();

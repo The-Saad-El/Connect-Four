@@ -48,6 +48,15 @@ void wait(int milliseconds)
         usleep(milliseconds * 1000);    // takes microseconds as argument
     #endif
 }
+void animateText(char strToAnimate[], int timeDelay_ms)
+{
+    int len = strlen(strToAnimate);
+    for (int i = 0; i < len; i++)
+    {
+        printf("%c", strToAnimate[i]);
+        wait(timeDelay_ms);
+    }
+}
 void pressEnterToContinue()
 {
     wait(1000);                                                         // wait 1s
@@ -57,15 +66,6 @@ void pressEnterToContinue()
     char uselessStr[arbitrarySize];                                     // size 25 so the user can enter anything, even a faltoo long string, without the program breaking
     fgets(uselessStr, sizeof(uselessStr), stdin);                       // used %s instead of %c and getchar() so that the program wont break with any possible input given by the user
     if (uselessStr[strlen(uselessStr) - 1] != '\n'){ emptyBuffer(); }   // empties the buffer if the user entered an input whose length is greater than 25 bytes (max string size)
-}
-void animateText(char strToAnimate[], int timeDelay_ms)
-{
-    int len = strlen(strToAnimate);
-    for (int i = 0; i < len; i++)
-    {
-        printf("%c", strToAnimate[i]);
-        wait(timeDelay_ms);
-    }
 }
 void printConnectFourTitle()
 {

@@ -17,12 +17,12 @@
 
 // declarations
 #define minMovesToWin 7
+#define noTerminalState -1
 
 // initializing game
 void setGame()
 {
     // game setup 
-    game.playGame = true;
     game.totalMoves = 0;
     game.activePlayer = 0;
     game.playerMove = 0;
@@ -304,7 +304,7 @@ void printGameBoard()
 }
 
 // gamePlay stuff
-void showGameBoard()
+void startGame()
 {
     // didnt wanna write all this in main so trashed it here :D
     
@@ -314,6 +314,8 @@ void showGameBoard()
     wait(2000);    // wait 2s
     clearScreen();
     printGameBoard();
+
+    game.playGame = true;
     game.startTime = time(NULL);    // starting the stopwatch
 }
 void switchActivePlayer()
@@ -488,7 +490,7 @@ void updateGameBoard()
     printGameBoard();
 }
 
-// checking the gameBoard for win, draw, or nothing
+// checking the gameBoard for win, draw, or nothing & then updating game.gameState accordingly
 int checkHorizontally()
 {
     /*
@@ -519,7 +521,7 @@ int checkHorizontally()
         }
     }
 
-    return -1;  // no four in a row horizontally
+    return noTerminalState;  // no four in a row horizontally
 }
 int checkVertically()
 {
@@ -552,7 +554,7 @@ int checkVertically()
         }
     }
 
-    return -1;  // no four in a row vertically
+    return noTerminalState;  // no four in a row vertically
 }
 int checkPosDiagonals()
 {
@@ -585,7 +587,7 @@ int checkPosDiagonals()
         }
     }
 
-    return -1;      // no complete +ve diagonal
+    return noTerminalState;      // no complete +ve diagonal
 }
 int checkNegDiagonals()
 {
@@ -618,7 +620,7 @@ int checkNegDiagonals()
         }
     }
 
-    return -1;      // no complete -ve m diagonal
+    return noTerminalState;      // no complete -ve m diagonal
 }
 int checkDraw()
 {
@@ -632,12 +634,12 @@ int checkDraw()
     {
         for (int col = 0; col < game.colCount; col++)
         {
-            if (game.gameBoard[row][col] == emptyChar){ return -1; }
+            if (game.gameBoard[row][col] == emptyChar){ return noTerminalState; }
         }
     }
     return 1;
 }
-void checkGameBoard()
+void updateGameState()
 {    
     if (game.totalMoves >= minMovesToWin)     // the min num of moves required for any player to have won is 7 (ie 4 by the player 1)
     {
@@ -647,25 +649,28 @@ void checkGameBoard()
         if ((checkHorizontal == 1) || (checkVertical == 1) || (checkPosDiagonal == 1) || (checkNegDiagonal == 1))
         {
             game.gameState = 1;     // player1 wins
+            return;
         }
         // checking if player2 won
         else if ((checkHorizontal == 2) || (checkVertical == 2) || (checkPosDiagonal == 2) || (checkNegDiagonal == 2))
         {
             game.gameState = 2;     // player2 wins
+            return;
         }
         // checking if the game was a draw
         else if (checkDraw() == 1)
         {
             game.gameState = 0;     // game draws
+            return;
         }   
         // else gamestate remains -1
     }
 }
 
-// outcome checking
+// evaluating/analyzing the value of game.gameState for a terminal state
 void evaluateGameBoard()
 {
-    if (game.gameState != -1)        // continue the round if gameState == -1; will only work for totalMoves >= 7
+    if (game.gameState != noTerminalState)        // continue the round if gameState == -1; will only work for totalMoves >= 7
     {
         game.endTime = time(NULL);      // stoppin the "stopwatch" when the game reaches a terminal state
         // saveGameHistory();
@@ -708,6 +713,7 @@ void evaluateGameBoard()
 }
 
 
+
 // gameModes
 void PvP()
 {
@@ -725,14 +731,14 @@ void PvP()
         setPlayers();       // choose players
         setGameBoard();     // choose gameBoard size
     }
-    showGameBoard();
+    startGame();
 
     while (game.playGame)
     {
         switchActivePlayer();
         getPlayerMove();
         updateGameBoard();
-        checkGameBoard();
+        updateGameState();
         evaluateGameBoard();
     }
 
@@ -754,7 +760,7 @@ void PvAI()
         setGameBoard();     // choose gameBoard size
     }
     if (!program.randomSeeded){ srand(time(NULL)); program.randomSeeded = true; }
-    showGameBoard();
+    startGame();
 
     while (game.playGame)
     {
@@ -762,7 +768,7 @@ void PvAI()
         if  (game.activePlayer == 1) { getPlayerMove(); }
         else                         { getAIMove();     }
         updateGameBoard();
-        checkGameBoard();
+        updateGameState();
         evaluateGameBoard();
     }
 
@@ -784,14 +790,14 @@ void AIvAI()
         setGameBoard();     // choose gameBoard size
     }
     if (!program.randomSeeded){ srand(time(NULL)); program.randomSeeded = true; }
-    showGameBoard();
+    startGame();
 
     while (game.playGame)
     {
         switchActivePlayer();
         getAIMove();
         updateGameBoard();
-        checkGameBoard();
+        updateGameState();
         evaluateGameBoard();
     }
 

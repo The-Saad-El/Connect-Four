@@ -1,16 +1,17 @@
 // view() (filing) --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-// declarations
-#define winPoints 200
-#define drawPoints 50
-#define defeatPoints 10
 
 // headers
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include "globals.h"
+
+// declarations
+#define winPoints 200
+#define drawPoints 50
+#define defeatPoints 10
 
 
 // leaderBoards
@@ -295,7 +296,7 @@ void displayLeaderBoards()
 }
 
 // gameHistory
-void saveGameHistory()                  // runs only at the end of a game/round
+void saveGameDetails()                  // runs only at the end of a game/round
 {   
     /*
         stores the following information about each game
@@ -361,7 +362,7 @@ void saveGameHistory()                  // runs only at the end of a game/round
         fclose(gameHistory);
     }
 }
-void saveGameBoardHistory()             // runs after every playerMove
+void saveGameBoardDetails()             // runs after every playerMove
 {
     /*
         stores the following
@@ -422,7 +423,7 @@ void saveGameBoardHistory()             // runs after every playerMove
 
 int displayGameDetails()
 {
-    // make this return a value; either gameNum or 0 to exit and then call respective functions
+    // returns count (the numOfGames available to replay/see) (count either -1 if couldnt open file or >= 0)
 
     printConnectFourTitle();
 
@@ -432,12 +433,12 @@ int displayGameDetails()
     { 
         printf("[!] ERROR: Couldn't access file 'gameFiles/gameHistory.txt'"); 
         pressEnterToContinue();
-        return 0;
+        return -1;
     }
     else        // gameHistory.txt is accessible
     {
         char dateTime[arbitrarySize], match[7], gameMode[6], player1Name[arbitrarySize], player2Name[arbitrarySize], gameBoard[8], result[arbitrarySize + 5];    // result max size = arbitrarySize (25 bytes) + 4 bytes (" Won") + 1 null terminater 
-        int numOfScans, totalMoves, count = 0;
+        int numOfScans, totalMoves, numOfGames = 0;
         float duration;
 
         animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
@@ -450,74 +451,115 @@ int displayGameDetails()
             if (numOfScans != 9) { break; }    // no items read (ie max num of lines (EOF) reached)
             else
             {
-                printf("\n\n| %5d | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |", ++count, dateTime, match, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);              // intentionally am skipping a line (table looks better like this it)
+                numOfGames++;
+                printf("\n\n| %5d | %-27s | %10s | %10s | %-25s | %-25s | %10s | %11d | %5.1f mins | %-29s |", numOfGames, dateTime, match, gameMode, player1Name, player2Name, gameBoard, totalMoves, duration, result);              // intentionally am skipping a line (table looks better like this it)
             }
         }
-        if (count == 0){ printf("%140s\n", "(No Available Data)"); }
-        else           { printf("\n\n"); }        // formatting kay keeray
+        if  (numOfGames == 0) { printf("%140s\n", "(No Available Data)"); }
+        else                  { printf("\n\n"); }           // formatting kay keeray
         animateText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n", animateTextDelay_13ms);
 
         fclose(gameHistory);
 
-        printf("\n\n\n");
-        if (count == 0)     // gameHistory are empty so no gameBoard to view as well
-        {
-            animateText("Is no one playing my game?!\n", animateTextDelay_63ms);                  // :>
-            wait(1000);         // a little pause
-            pressEnterToContinue();
-            return 0;
-        }
-        else        // atleast one entry in the gameHistory.txt (& so in gameBoardHistory.txt)
-        {
-            wait(2000);         // a little pause before printing menu
-            animateText("[Game History]\n   > Enter Game Number to view its gameBoard\n   > Enter 0 to return to the Main Menu", animateTextDelay_33ms);
-        
-            char userInput[arbitrarySize];
-            while (true)
-            {
-                printf("\nEnter your choice [0-%d]: ", count);
-                fgets(userInput, sizeof(userInput), stdin);
-                if (userInput[strlen(userInput) - 1] != '\n')           // user entered a string greater than arbitrarySize
-                { 
-                    emptyBuffer(); 
-                    printf("> [!] Are you trying to crash my program?!");
-                    continue;
-                } 
-                else
-                {
-                    userInput[strlen(userInput) - 1] = '\0';                               // removing the newline char
-                    
-                    bool isNum = true;
-                    for (int i = 0; i < strlen(userInput); i++)         // parses through the length of the userInput string & checks if the user entered a non-digit char
-                    {
-                        if (userInput[i] < '0' || userInput[i] > '9')              // the userInput contains a non-numeric char
-                        {
-                            printf("> [!] Enter a number!");
-                            isNum = false;
-                        }
-                    }
-                    
-                    if (isNum)              // the userInput contains only numbers
-                    {
-                        int numUserInput;
-                        sscanf(userInput, "%d", &numUserInput);             // the string userInput in extracted to numUserInput
 
-                        if (numUserInput == 0){ return 0; }                               // user entered 0;  returning to mainMenu()
-                        else if ((numUserInput < 0) || (numUserInput > count))            // userInput was not in range [1, count]
-                        {
-                            printf("> [!] Enter a number in range [1, %d]", count);
-                            continue;
-                        }
-                        else
-                        { return numUserInput; }
-                    }
+        return numOfGames;       
+    }
+}
+void displayGameBoardDetails(int numOfGames, int* gameNum, int* mode)
+{
+    // asks user for the gameNum & the mode (replay or seeTerminalGameBoard) & updates the value at their addresses (passed as parameters)
+
+    printf("\n\n\n");
+
+    if (numOfGames == 0)     // gameHistory are empty so no gameBoard to view as well
+    {
+        animateText("Is no one playing my game?!\n", animateTextDelay_63ms);                  // :>
+        wait(500);         // a little pause
+        pressEnterToContinue();
+        (*gameNum) = 0;
+        return;
+    }
+
+    // atleast one entry in the gameHistory.txt (& so in gameBoardHistory.txt)
+    wait(2000);         // a little pause before printing menu
+    char userInput[arbitrarySize];
+    
+    animateText("[Game History]\n   > Enter Game Number to view its gameBoard\n   > Enter 0 to return to the Main Menu", animateTextDelay_33ms);
+    while (true)    // for gameNum
+    {
+        printf("\nEnter your choice [0-%d]: ", numOfGames);
+        fgets(userInput, sizeof(userInput), stdin);
+        if (userInput[strlen(userInput) - 1] != '\n')           // user entered a string greater than arbitrarySize
+        { 
+            emptyBuffer(); 
+            printf("> [!] Are you trying to crash my program?!");
+            continue;
+        } 
+        else
+        {
+            userInput[strlen(userInput) - 1] = '\0';                               // removing the newline char
+            
+            bool isNum = true;
+            for (int i = 0; i < strlen(userInput); i++)         // parses through the length of the userInput string & checks if the user entered a non-digit char
+            {
+                if (userInput[i] < '0' || userInput[i] > '9')              // the userInput contains a non-numeric char
+                {
+                    printf("> [!] Enter a number in range [1, %d]", numOfGames);
+                    isNum = false;
+                    break;
+                }
+            }
+            
+            if (isNum)              // the userInput contains only numbers
+            {
+                int numUserInput;
+                sscanf(userInput, "%d", &numUserInput);             // the string userInput in extracted to numUserInput
+
+                if (numUserInput == 0)
+                { 
+                    (*gameNum) = 0; 
+                    return;         // break out of whole func     // user entered 0;  returning to mainMenu()
+                }                               
+                else if ((numUserInput < 0) || (numUserInput > numOfGames))            // userInput was not in range [1, count]
+                {
+                    printf("> [!] Enter a number in range [1, %d]", numOfGames);
+                    continue;
+                }
+                else
+                { 
+                    (*gameNum) = numUserInput; 
+                    break;      // break out of while loop
                 }
             }
         }
     }
+
+    printf("\n\n");
+    animateText("[Choose Mode]\n   [1] Full-Game Replay\n   [2] See GameBoard at End", animateTextDelay_33ms);
+    while (true)    // for mode
+    {
+        printf("\nEnter your choice [1-2]: ", numOfGames);
+        fgets(userInput, sizeof(userInput), stdin);
+        if ((strlen(userInput) == 2) && (userInput[0] == '1' || userInput[0] == '2'))
+        {
+            (*mode) = userInput[0] - '0';       // char to int
+            break;
+        }
+        else if (userInput[strlen(userInput) - 1] != '\n')           // user entered a string greater than arbitrarySize
+        { 
+            emptyBuffer(); 
+            printf("> [!] Are you trying to crash my program?!");
+            continue;
+        } 
+        else
+        {
+            printf("> [!] Please enter either 1 or 2");                   // removing the newline char
+            continue;
+        }
+    }
 }
-void displayGameBoardHistory(int gameNum, int mode)
-{
+void showTerminalGameBoard(int gameNum)
+{   // TODO
     printConnectFourTitle();
 
     FILE *gameBoardHistory = fopen("gameFiles/gameBoardHistory.txt", "r");          // no need to open in a+ mode since the function itself will only be called if there is atleast 1 record in gameHistory.txt so gameBoardHistory.txt would also be existent
@@ -618,14 +660,28 @@ void displayGameBoardHistory(int gameNum, int mode)
 
     pressEnterToContinue();
 }
+void replayGame(int gameNum)
+{
+    // TODO
+    printConnectFourTitle();
+}
 void displayGameHistory()
 {
-    int returnVal;
-    while (true)                                                    // did this to prevent a infinite recursive loop
+    // calls onto the above 4 functions
+
+    int numOfGames, gameNum, detailMode;
+    while (true)                                                          // did this to prevent a infinite recursive loop
     {
-        returnVal = displayGameDetails();   
-        if   (returnVal == 0){ return; }                            // breaks from the whole function and goes back to mainMenu()
-        else                 { displayGameBoardHistory(returnVal , 1); }
+        numOfGames = displayGameDetails();   
+        if (numOfGames == -1) { return; }                                 // couldnt read gameHistory.txt file
+        
+        displayGameBoardDetails(numOfGames, &gameNum, &detailMode);       // breaks from the whole function and goes back to mainMenu()
+        if (gameNum == 0) { return; }
+
+        if   (detailMode == 1) { replayGame(gameNum); }                   // change order if u want
+        else {    showTerminalGameBoard(gameNum);     }
+
+        pressEnterToContinue();
     }
 }
 
@@ -736,7 +792,7 @@ void checkForUnfinishedGame()
     pressEnterToContinue();
 }
 void resumeGame(int gameNum);
-void displayUnfishedGame();
+void displayUnfinishedGames();
 
 // about
 void displayAbout()

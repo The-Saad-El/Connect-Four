@@ -23,10 +23,10 @@
     [3]  gameHistory
     [4]  enable leaderBoards with quickMatch
     [5]  improve the 3 ais
+    [6]  update about sec (remove leaderBoards custom only stuff)
     
-    [!]  all done alhamdulillahi taala :)
+    [!]  alhamdulillahi taala :)
 */
-
 
 
 // headers
@@ -39,6 +39,7 @@
 // declarations
 programConfig program;      // for whole program-level variables/globals
 gameConfig game;            // for individual game-level variables/globals
+
 
 // main() stuff
 int mainMenu()
@@ -225,7 +226,6 @@ void exitGame()
     wait(3000);
     animateText("\r                                       ", animateTextDelay_33ms);
 }
-
 
 
 int main()
