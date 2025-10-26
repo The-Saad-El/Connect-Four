@@ -483,7 +483,7 @@ void displayGameBoardDetails(int numOfGames, int* gameNum, int* mode)
     wait(1000);         // a little pause before printing menu
     char userInput[arbitrarySize];
     
-    animateText("[Game History]\n   > Enter Game Number to view its gameBoard\n   > Enter 0 to return to the Main Menu", animateTextDelay_33ms);
+    animateText("[Game History]\n   > Enter 0 to return to mainMenu\n   > Enter a gameNumber to view its gameBoard", animateTextDelay_33ms);
     while (true)    // for gameNum
     {
         printf("\nEnter your choice [0-%d]: ", numOfGames);
@@ -557,7 +557,7 @@ void displayGameBoardDetails(int numOfGames, int* gameNum, int* mode)
         }
     }
 }
-void simplePrintGameBoard(int rowCount, int colCount, int winningIndices[4][2], char gameBoard[][maxCols])
+void simplePrintGameBoard(int rowCount, int colCount, int winningIndices[4][2], char gameBoard[][maxCols], bool printWinningIndices)
 {
     // calculating the num of dashes required for rows
     int numOfDashes = (6 * colCount) + 1;           // had to manually count these
@@ -572,11 +572,12 @@ void simplePrintGameBoard(int rowCount, int colCount, int winningIndices[4][2], 
         for (int j = 0; j < colCount; j++)
         {
             bool isWinningIndex = false;
-            if (winningIndices[0][0] != -1)     // goes inside if the game wasnt draw (if it was, winningIndices would still have all -1)  
+            if ((winningIndices[0][0] != -1) && printWinningIndices)     // goes inside if the game wasnt draw (if it was, winningIndices would still have all -1) & printWinningIndices is true
             {
                 for (int k = 0; k < 4; k++)
                 {
-                    if ((winningIndices[k][0] == i) && (winningIndices[k][1] == j)){   // [k][0] has the i value of the winning position's numOfAvailableColumns & [k][1] the j value
+                    if ((winningIndices[k][0] == i) && (winningIndices[k][1] == j))   // [k][0] has the i value of the winning position's numOfAvailableColumns & [k][1] the j value
+                    {    
                         isWinningIndex = true;
                         break;
                     }
@@ -596,6 +597,7 @@ void simplePrintGameBoard(int rowCount, int colCount, int winningIndices[4][2], 
                 else                                     { printf("%c",                  gameBoard[i][j]); }     // no color formatting if empty char       couldve just printed emptyChar
             }
         }
+
         printf("  |\n  %s\n", rowDashes);   // a row of dashes after every completed row
     }
     
@@ -617,17 +619,15 @@ void showTerminalGameBoard(int gameNum)
 
         while (true)            // parsing through records in the gameBoardHistory.txt file until we find the record for the required game (gameNum)
         {
-            count++;
             fscanf(gameBoardHistory, "Player1: [%[^]]] | Player2: [%[^]]] | rowCount: [%d] | colCount: [%d] | gameMoves: [%[^]]] | gameBoard: [%[^]]] | winningIndices: [%[^]]]\n",         // no need to check return value
                                         player1, player2, &rowCount, &colCount, fGameMoves, fGameBoard, fWinningIndices);
+            count++;
             if (count == gameNum)       // if the record for the required gameNum was reached
             {
-                char playerDetails[123];            // 35 + 35 (max player string size) + 22 + 22 (other chars around %s)  = 114    --->   taking 123 cuz me like that num
-                sprintf(playerDetails,"%s: \033[1;33mX\033[0m\n%s: \033[1;34mO\033[0m\n", player1, player2);
-                animateText(playerDetails, animateTextDelay_13ms);
+                printf("\n");
 
                 // recreating 2d gameboard array
-                char gameBoard[rowCount][colCount];              // had to have maxCols columns instead of colCount since simplePrintGameBoard is defined with the gameBoard having maxCols number of columns (line 560 currently)
+                char gameBoard[rowCount][maxCols];              // had to have maxCols columns instead of colCount since simplePrintGameBoard is defined with the gameBoard having maxCols number of columns (line 560 currently)
                 int index = 0;
                 for (int row = 0; row < rowCount; row++)
                 {
@@ -651,7 +651,11 @@ void showTerminalGameBoard(int gameNum)
                 }
 
                 // printing the gameBoard...
-                simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard);
+                simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard, true);              // highlight/underline the winning row (if it exists) as well since we only concerned with the terminal/end-state of the gameBoard
+
+                char playersStr[135];                                                                // 35 + 35 (max player string size) + 22 + 22 (other chars around %s)  = 114    --->   taking 135 cuz me like that num
+                sprintf(playersStr,"\n   %s: \033[1;33mX\033[0m\t\t\t%s: \033[1;34mO\033[0m\n", player1, player2);
+                animateText(playersStr, animateTextDelay_33ms);
 
                 break;      // breaking from the outer while loop
             }
@@ -678,11 +682,8 @@ void replayGame(int gameNum)
                                         player1, player2, &rowCount, &colCount, fGameMoves, fGameBoard, fWinningIndices);           // no use for fGameBoard in this func
             if (count == gameNum)               // found the gameRecord in the file to replay
             {
-                char playerDetails[135];            // 35 + 35 (max player string size) + 22 + 22 (other chars around %s)  = 114    --->   taking 135 cuz me like that num
-                sprintf(playerDetails,"\n  %s: \033[1;33mX\033[0m\t\t\t%s: \033[1;34mO\033[0m\n", player1, player2);
-
                 // gameBoard
-                char gameBoard[rowCount][colCount];         // declaring the gameBoard
+                char gameBoard[rowCount][maxCols];         // declaring the gameBoard
                 for (int row = 0; row < rowCount; row++)          // initializing the gameBoard with emptyChar
                 {
                     for (int col = 0; col < colCount; col++){ gameBoard[row][col] = emptyChar; }
@@ -703,27 +704,36 @@ void replayGame(int gameNum)
                 for (int i = 0; i < strlen(fGameMoves); i++)                           // parses through each char element in fGameMoves str array and simulates their playing
                 {
                     int colToUpdate = fGameMoves[i] - '0';                             // ie playerMove;        char to int
-                    char playerMark = ((i % 2) == 1)? player1Mark : player2Mark;       // ie tokenToDrop;       player1: 1,3,5...   player2: 2,4,6...
+                    char playerMark = (((i + 1) % 2) == 1)? player1Mark : player2Mark;       // ie tokenToDrop;       player1: 1,3,5...   player2: 2,4,6...;     i+1 gives the current totalMoves (which is >= 1)
 
                     for (int row = 0; row < rowCount; row++)                           // updating gameBoard with the player's move
                     {
                         clearScreen();
-                        simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard);   
+                        printf("\n");
+                        simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard, false);   
                         
                         if (gameBoard[row][colToUpdate] == emptyChar)
                         { 
                             gameBoard[row][colToUpdate] = playerMark; 
                             if (row > 0) { gameBoard[row - 1][colToUpdate] = emptyChar; }          // resetting previous row's element to emptyChar
-                            wait((animateGameBoardDelay_ms/2) - (row * 20));                       // accelerating :)
+                            wait((animateGameBoardDelay_ms/2) - (row * 3));                       // accelerating :)
                         }
                         else { break; }
                     }
 
                     clearScreen();
-                    simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard);
+                    printf("\n");
+                    simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard, false);             // dont highlight/underline the winning row yet
                 }
                 
-                animateText(playerDetails, animateTextDelay_13ms);
+                clearScreen();
+                printf("\n");
+                simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard, true);         // highlight/underline the winning row when all of the gameMoves have been simulated/played/replayed
+                
+                char gameDetails[135];            // 35 + 35 (max player string size) + 22 + 22 (other chars around %s)  = 114    --->   taking 135 cuz me like that num
+                sprintf(gameDetails,"\n    %s: \033[1;33mX\033[0m\t\t\t%s: \033[1;34mO\033[0m\n", player1, player2);
+                animateText(gameDetails, animateTextDelay_33ms);
+
                 break;      // breaks from the outer while loop
             }
         }
