@@ -32,9 +32,6 @@ PF Lab Project
     * `Initial:    0`
     * `Final:    569`
     * `Change:  +569`
-  * Commits
-    * `Version:    ___`
-    * `Total Repo: ___`
 
 
 ### **V2: Thani (ثانی)**
@@ -46,18 +43,16 @@ PF Lab Project
   * Filing
     * Game History
     * LeaderBoards
-  * Header files?
+    * About
+  * Header files
 * Version Details
   * TimeLine
     * `[Started]   Sep 8th, 25;  ≈ 22:00`
     * `[Completed] Sep 19th, 25; ≈ 21:46`
   * LOC
       * `Initial:   569`
-      * `Final:    2151`
-      * `Change:  +1582`
-  * Commits
-    * `Version:    ___`
-    * `Total Repo: 120`
+      * `Final:    2587`
+      * `Change:  +2018`
 
 
 ### **V3: Thalith (ثالث)**
@@ -72,14 +67,11 @@ PF Lab Project
   * miniMax/Look-Aheads (Rabi', Khamis)
 * Version Details
   * TimeLine
-    * `[Started]   Sep 18th, 25; ≈ 12:47`
+    * `[Started]   Sep __th, 25; ≈ __:__`
     * `[Completed] Sep __th, 25; ≈ __:__ (Ideally complete before 1st Nov, 25 insha'Allah)`
   * LOC
-    * `Initial:  1893`
+    * `Initial:  ____`
     * `Final:    ____`
     * `Change:  +____`
-  * Commits
-    * `Version:    ___`
-    * `Total Repo: ___`
   
 ### الحمد للہ
