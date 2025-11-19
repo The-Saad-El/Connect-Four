@@ -45,10 +45,10 @@ void choosePlayer(int promptType)
 
     // player1Info
     char strToAnimate[15];
-    sprintf(strToAnimate, "\n> \033[1;33mPlayer%s\033[0m", (promptType == 0)? "" : " 1");
-    animateText(strToAnimate, animateTextDelay_33ms);
     if (promptType == 0 || promptType == 1)
     {
+        sprintf(strToAnimate, "\n> \033[1;33mPlayer%s\033[0m", (promptType == 0)? "" : " 1");
+        animateText(strToAnimate, animateTextDelay_33ms);
         while (true)
         {
             printf("\n      Enter your name: ");
