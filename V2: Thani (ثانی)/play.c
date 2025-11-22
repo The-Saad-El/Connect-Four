@@ -471,6 +471,8 @@ void getAIMove()
 }
 void updateGameBoard()
 {
+    printf("\033[?25l");        // hiding cursor
+    
     game.totalMoves++;
     char playerMark = ((game.activePlayer == 1)? player1Mark : player2Mark);
 
@@ -489,6 +491,7 @@ void updateGameBoard()
 
     clearScreen();
     printGameBoard();
+    printf("\033[?25h");        // showing cursor
 }
 
 // checking the gameBoard for win, draw, or nothing & then updating game.gameState accordingly

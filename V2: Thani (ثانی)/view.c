@@ -701,6 +701,7 @@ void replayGame(int gameNum)
                     }
                 }
 
+                printf("\033[?25l");    // hide cursor
                 for (int i = 0; i < strlen(fGameMoves); i++)                           // parses through each char element in fGameMoves str array and simulates their playing
                 {
                     int colToUpdate = fGameMoves[i] - '0';                             // ie playerMove;        char to int
@@ -729,7 +730,8 @@ void replayGame(int gameNum)
                 clearScreen();
                 printf("\n");
                 simplePrintGameBoard(rowCount, colCount, winningIndices, gameBoard, true);         // highlight/underline the winning row when all of the gameMoves have been simulated/played/replayed
-                
+                printf("\033[?25h");  // show cursor
+
                 char gameDetails[135];            // 35 + 35 (max player string size) + 22 + 22 (other chars around %s)  = 114    --->   taking 135 cuz me like that num
                 sprintf(gameDetails,"\n    %s: \033[1;33mX\033[0m\t\t\t%s: \033[1;34mO\033[0m\n", player1, player2);
                 animateText(gameDetails, animateTextDelay_33ms);
