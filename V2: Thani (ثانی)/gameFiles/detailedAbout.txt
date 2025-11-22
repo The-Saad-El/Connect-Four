@@ -1,0 +1,169 @@
+=====================================================================================
+
+                              CONNECT FOUR - HELP GUIDE
+
+=====================================================================================
+
+ABOUT THE GAME:
+  Connect Four is a classic two-player strategy game where competitors take turns
+  dropping colored discs into a vertical grid. The objective is simple yet
+  challenging: connect four of your discs in a row (horizontally, vertically, or
+  diagonally) before your opponent does. Victory requires both offensive strategy
+  and defensive awareness!
+
+HOW TO WIN:
+  Be the first player to connect four of your discs consecutively in any direction:
+    - Horizontally: Four discs side by side in the same row (left to right)
+    - Vertically: Four discs stacked on top of each other in the same column
+    - Diagonally: Four discs connected at 45-degree angles (both directions)
+  
+  If the board fills completely with no winner, the game ends in a draw.
+
+HOW TO PLAY:
+  1. When it's your turn, enter a column number (1 through the max column count)
+  2. Your disc automatically falls to the lowest available position in that column
+  3. Players alternate turns until someone achieves four-in-a-row or the board fills
+  4. Plan ahead! Consider both your winning opportunities and blocking opponent threats
+
+=====================================================================================
+  MAIN MENU OPTIONS
+=====================================================================================
+
+[1] PLAY - Start a new game with your preferred settings
+
+    Quick Match:
+      Jump straight into gameplay with pre-configured settings (Classic 7x6 board,
+      standard rules, minimal setup required)
+
+    Custom Match:
+      Full control over game configuration including board size, player names, and
+      AI difficulty. Custom matches are recorded in leaderboards!
+
+[2] VIEW - Access comprehensive game statistics and information
+
+    > Leaderboards: Rankings of top players based on performance in Custom Matches
+    > History: Detailed log of all completed games with match statistics
+    > Help: Display this comprehensive help guide
+    > Go Back: Return to the main menu
+
+[3] EXIT - Save your progress and quit the game safely
+
+=====================================================================================
+  GAME BOARD SIZES
+=====================================================================================
+
+(Available exclusively in Custom Match mode - Quick Match uses Classic by default)
+
+  [1] Mini (5 x 4)    - Compact board for quick 5-minute games, ideal for beginners
+  [2] Blitz (6 x 5)   - Fast-paced matches with slightly more tactical depth
+  [3] Classic (7 x 6) - The traditional Connect Four experience, perfectly balanced
+  [4] Grand (8 x 7)   - Extended gameplay requiring advanced strategic planning
+  [5] Titan (9 x 8)   - Epic battles for experienced players, longest game duration
+
+=====================================================================================
+  GAME MODES
+=====================================================================================
+
+[1] PvP (Player vs Player)
+    Two human players compete head-to-head. Both players can set custom names.
+    Perfect for friendly competition!
+    >> Leaderboard-eligible in Custom Match
+
+[2] PvAI (Player vs AI)
+    Challenge yourself against computer opponents of varying skill levels.
+    Choose your difficulty and test your strategic thinking!
+    >> Leaderboard-eligible
+
+[3] AIvAI (AI vs AI)
+    Watch two AI opponents battle each other - great for studying strategies!
+    Select difficulty for both AIs and observe different playstyles clash.
+    >> Not leaderboard-eligible (entertainment and learning purposes only)
+
+=====================================================================================
+  AI DIFFICULTY LEVELS
+=====================================================================================
+
+[1] Awwal (Beginner) - "The First"
+    Strategy: Takes winning moves when available, otherwise plays randomly.
+    Best for: New players learning game mechanics and basic winning patterns.
+    Win Rate: Low to moderate - predictable but occasionally gets lucky!
+
+[2] Thani (Intermediate) - "The Second"
+    Strategy: Prioritizes winning, blocks immediate opponent threats, then plays
+              randomly. More defensive and harder to defeat than Awwal.
+    Best for: Players comfortable with basics seeking a balanced challenge.
+    Win Rate: Moderate - requires thoughtful planning to consistently defeat.
+
+[3] Thalith (Advanced) - "The Third"
+    Strategy: Goes for wins, blocks opponent wins, prevents 3-in-a-row setups,
+              and only then considers random moves. Highly tactical and challenging!
+    Best for: Experienced players who want a serious test of their skills.
+    Win Rate: High - demands excellent strategy and forward thinking to beat.
+
+=====================================================================================
+  LEADERBOARDS SYSTEM
+=====================================================================================
+
+Leaderboards track player performance and rank competitors based on total points.
+
+ELIGIBILITY REQUIREMENTS:
+  - Only Custom Match games are recorded (Quick Match excluded for fairness)
+  - PvP and PvAI modes qualify (AIvAI excluded as no human participation)
+  - Players must use consistent names to maintain their ranking position
+
+SCORING SYSTEM:
+  WIN    : 200 points per victory (rewards successful strategic gameplay)
+  DRAW   : 50 points per tie (encourages defensive play when behind)
+  DEFEAT : 10 points per loss (participation credit, encourages continued play)
+
+RANKING CALCULATION:
+  Total Score = (Wins x 200) + (Draws x 50) + (Defeats x 10)
+  
+  Players are ranked by total score (highest to lowest). In case of ties, the
+  player with more total games played is ranked higher, rewarding experience.
+
+STATISTICS TRACKED:
+  > Player Name   : Your chosen identifier (case-sensitive, use consistently!)
+  > Games Played  : Total number of Custom Match games completed
+  > Wins          : Games where you connected four discs first
+  > Draws         : Games ending with a full board and no winner
+  > Defeats       : Games lost to your opponent
+  > Total Score   : Cumulative points based on the scoring formula above
+
+NOTE: Leaderboard data persists between game sessions and is automatically updated
+      after each qualifying match. View your ranking anytime from the main menu!
+
+=====================================================================================
+  GAME HISTORY
+=====================================================================================
+
+Every game you play is automatically recorded with comprehensive match details:
+
+  > Date & Time   : Exact timestamp when the game started
+  > Match Type    : Quick Match or Custom Match designation
+  > Game Mode     : PvP, PvAI, or AIvAI classification
+  > Players       : Names of both participants (human or AI)
+  > Board Size    : Which board configuration was used
+  > Total Moves   : Number of discs played before game conclusion
+  > Duration      : Time elapsed from first move to game end (in minutes)
+  > Result        : Winner name or draw declaration
+
+Access complete game history anytime from the View menu to analyze your performance,
+review past strategies, and track improvement over time!
+
+=====================================================================================
+  TIPS & STRATEGIES
+=====================================================================================
+
+  - Center Control   : The middle column creates more winning opportunities
+  - Think Ahead      : Always consider what your opponent might do on their next turn
+  - Double Threats   : Create multiple ways to win simultaneously to guarantee victory
+  - Block First      : If your opponent has three in a row, blocking takes priority!
+  - Build Foundations: Start from the bottom and build connected patterns upward
+  - Avoid Traps      : Don't create situations where your move helps your opponent win
+
+=====================================================================================
+Connect Four - Version 2: Thani
+Developed by Saad, bi-idhni-Allahi Ta'ala
+Help Section: Claude.ai (Made 16/10/2025, Updated 18/10/2025)
+=====================================================================================

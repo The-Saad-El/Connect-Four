@@ -1,0 +1,3 @@
+Score: [400] | Player Name: [Saad] | Games Played: [2] | Wins: [2] | Draws: [0] | Defeats: [0]
+Score: [200] | Player Name: [Umar Niaz] | Games Played: [1] | Wins: [1] | Draws: [0] | Defeats: [0]
+Score: [10] | Player Name: [Meow] | Games Played: [1] | Wins: [0] | Draws: [0] | Defeats: [1]
